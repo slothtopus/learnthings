@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import MasterLayout from './MasterLayout.vue'
-import SectionLayout from './SectionLayout.vue'
+import MasterLayout from './layouts/MasterLayout.vue'
+import SectionLayout from './layouts/SectionLayout.vue'
 
 import LtDeck from '@/components/LtDeck.vue'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/shadcn-ui/button'
 
 import { useDecksStore } from '@/stores/decks'
 
@@ -25,7 +25,7 @@ const decksStore = useDecksStore()
               :key="deck.id"
               :deck="deck"
               @edit="$router.push({ name: 'edit-deck', params: { deckId: deck.id } })"
-              @delete="decksStore.deleteDeck(deck)"
+              @delete="decksStore.deleteDeck(deck.id)"
             /></div
         ></template>
       </SectionLayout>
@@ -34,3 +34,4 @@ const decksStore = useDecksStore()
 </template>
 
 <style scoped></style>
+@/components/shadcn-ui/button

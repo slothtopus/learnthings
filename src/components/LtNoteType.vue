@@ -1,17 +1,22 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/shadcn-ui/button'
+
+import SimpleStackCard from '@/components/ui/SimpleStackCard.vue'
+
+defineEmits<{
+  edit: [value: void]
+  delete: [value: void]
+}>()
 </script>
 
 <template>
-  <div
-    class="first:rounded-t-lg first:border border-x border-b last:rounded-b-lg bg-card text-card-foreground p-4 flex items-center gap-3"
-  >
-    <span class="mr-auto whitespace-nowrap text-ellipsis overflow-hidden">
-      <slot></slot>
-    </span>
-    <Button variant="outline">Edit</Button>
-    <Button variant="outline">Delete</Button>
-  </div>
+  <SimpleStackCard>
+    <slot></slot>
+    <template #controls>
+      <Button variant="outline" @click="$emit('edit')">Edit</Button>
+      <Button variant="outline" @click="$emit('delete')">Delete</Button>
+    </template>
+  </SimpleStackCard>
 </template>
 
 <style scoped></style>

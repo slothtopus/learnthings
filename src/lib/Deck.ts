@@ -1,6 +1,8 @@
 import { NoteType } from './NoteType'
 import { Note } from './Note'
 
+import { nanoid } from 'nanoid'
+
 import type { ExcludeMethods } from './utils'
 
 export class Deck {
@@ -11,7 +13,7 @@ export class Deck {
 
   static createNew() {
     return new Deck({
-      id: String(Date.now()),
+      id: nanoid(6),
       name: 'New Deck',
       noteTypes: [],
       notes: []
@@ -31,5 +33,13 @@ export class Deck {
 
   createNewNoteType() {
     this.noteTypes.push(NoteType.createNewDefault())
+  }
+
+  deleteNoteType(id: string) {
+    this.noteTypes = this.noteTypes.filter((n) => n.id != id)
+  }
+
+  setNoteTypes(noteTypes: NoteType[]) {
+    this.noteTypes = noteTypes
   }
 }

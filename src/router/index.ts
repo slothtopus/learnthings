@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import DecksView from '@/views/DecksView.vue'
-import DeckView from '@/views/DeckView.vue'
-
-import { useDecksStore } from '@/stores/decks'
+import DeckView from '@/views/DeckView/DeckView.vue'
+import NoteTypeView from '@/views/NoteTypeView/NoteTypeView.vue'
+import CardTemplateView from '@/views/CardTemplateView/CardTemplateView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -12,19 +12,20 @@ const router = createRouter({
     {
       path: '/deck/:deckId',
       name: 'edit-deck',
-      beforeEnter: (to, from, next) => {
-        const deck = useDecksStore().getDeckById(to.params.deckId as string)
-        if (deck === undefined) {
-          next('/')
-        } else {
-          to.meta.deck = deck
-          next()
-        }
-      },
-      props: (route) => ({
-        deck: route.meta.deck
-      }),
+      props: true,
       component: DeckView
+    },
+    {
+      path: '/deck/:deckId/notetype/:noteTypeId',
+      name: 'edit-notetype',
+      props: true,
+      component: NoteTypeView
+    },
+    {
+      path: '/deck/:deckId/notetype/:noteTypeId/card/:cardTemplateId',
+      name: 'edit-cardtemplate',
+      props: true,
+      component: CardTemplateView
     }
   ]
 })

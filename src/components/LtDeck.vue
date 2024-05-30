@@ -6,8 +6,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+} from '@/components/shadcn-ui/card'
+import { Button } from '@/components/shadcn-ui/button'
 
 import type { Deck } from '@/lib/Deck'
 
@@ -38,3 +38,4 @@ defineEmits<{
 </template>
 
 <style scoped></style>
+@/components/shadcn-ui/card@/components/shadcn-ui/button
