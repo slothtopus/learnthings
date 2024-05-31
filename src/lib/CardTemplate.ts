@@ -26,4 +26,12 @@ export class CardTemplate {
   setName(name: string) {
     this.name = name
   }
+
+  setFrontTemplate(template: string) {
+    this.frontTemplate = template
+  }
+
+  setBackTemplate(template: string) {
+    this.backTemplate = template
+  }
 }

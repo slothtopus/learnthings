@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { watch } from 'vue'
+
 import MasterLayout from './layouts/MasterLayout.vue'
 import SectionLayout from './layouts/SectionLayout.vue'
 
@@ -8,6 +10,10 @@ import { Button } from '@/components/shadcn-ui/button'
 import { useDecksStore } from '@/stores/decks'
 
 const decksStore = useDecksStore()
+
+watch(decksStore.decks, () => {
+  console.log('decks changed')
+})
 </script>
 
 <template>
@@ -34,4 +40,3 @@ const decksStore = useDecksStore()
 </template>
 
 <style scoped></style>
-@/components/shadcn-ui/button

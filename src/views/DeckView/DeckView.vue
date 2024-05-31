@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { watch, computed } from 'vue'
+
 import MasterLayout from '@/views/layouts/MasterLayout.vue'
 import DeckViewContent from './DeckViewContent.vue'
 
@@ -10,7 +12,15 @@ interface Props {
 }
 const props = defineProps<Props>()
 
-const deck = decksStore.getDeckById(props.deckId)
+const deck = computed(() => decksStore.getDeckById(props.deckId))
+
+watch(
+  deck,
+  () => {
+    console.log(`deck ${deck.value?.id} changed`)
+  },
+  { deep: true }
+)
 </script>
 
 <template>

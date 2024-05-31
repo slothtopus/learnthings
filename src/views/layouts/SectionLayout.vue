@@ -1,6 +1,6 @@
 <template>
   <section class="rounded-lg bg-white shadow-md">
-    <aside class="w-full flex justify-end p-6 pb-2 items-end">
+    <aside class="w-full flex justify-end p-6 pb-2 items-end gap-3">
       <h2
         class="text-2xl font-bold tracking-tight mr-auto whitespace-nowrap text-ellipsis overflow-hidden"
       >

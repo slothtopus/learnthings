@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import SectionLayout from '@/views/layouts/SectionLayout.vue'
+import CardTemplateDetailsSection from './CardTemplateDetailsSection.vue'
+import CardTemplateTemplatesSection from './CardTemplateTemplatesSection.vue'
 
 import type { CardTemplate } from '@/lib/CardTemplate'
 
@@ -10,9 +11,8 @@ defineProps<Props>()
 </script>
 
 <template>
-  <SectionLayout>
-    <template #title>{{ card.name }}</template>
-  </SectionLayout>
+  <CardTemplateDetailsSection :card="card" />
+  <CardTemplateTemplatesSection :card="card" />
 </template>
 
 <style scoped></style>
