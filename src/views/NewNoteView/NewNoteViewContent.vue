@@ -14,33 +14,36 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shadcn-ui/tabs'
 import { Button } from '@/components/shadcn-ui/button'
 
-import NoteViewEditNoteSection from './NoteViewEditNoteSection.vue'
+import NewNoteViewEditNoteSection from './NewNoteViewEditNoteSection.vue'
 
 import type { NoteType } from '@/lib/NoteType'
 
 interface Props {
+  noteTypes: NoteType[]
   noteType: NoteType
 }
 defineProps<Props>()
 
 const selectedTab = ref<'edit' | 'preview'>('edit')
-
-const selectedNoteType = ref('one')
-const NOTETYPES = ['one']
 </script>
 
 <template>
   <SectionLayout>
     <template #title>Add new note</template>
     <template #controls>
-      <Select v-model="selectedNoteType">
+      <Select
+        :modelValue="noteType.id"
+        @update:modelValue="
+          $router.replace({ name: 'new-note', params: { ...$route.params, noteTypeId: $event } })
+        "
+      >
         <SelectTrigger class="w-[180px]">
           <SelectValue placeholder="Note type" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem v-for="noteType in NOTETYPES" :key="noteType" :value="noteType"
-              >{{ noteType }}
+            <SelectItem v-for="noteType in noteTypes" :key="noteType.id" :value="noteType.id"
+              >{{ noteType.name }}
             </SelectItem>
           </SelectGroup>
         </SelectContent>
@@ -54,7 +57,7 @@ const NOTETYPES = ['one']
           <TabsTrigger value="preview"> Preview </TabsTrigger>
         </TabsList>
         <TabsContent value="edit">
-          <NoteViewEditNoteSection :noteType="noteType" />
+          <NewNoteViewEditNoteSection :noteType="noteType" />
         </TabsContent>
         <TabsContent value="preview">
           <p>Preview stuff goes here</p>

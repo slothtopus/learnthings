@@ -1,21 +1,30 @@
 import { NoteField } from './NoteField'
 import { CardTemplate } from './CardTemplate'
+import { AsyncCollection } from './loader'
 
 import { nanoid } from 'nanoid'
 
 import type { ExcludeMethods } from './utils'
 
+export type SerialisedNoteType = {
+  id: string
+  name: string
+  fieldIds: string[]
+  cards: CardTemplate[]
+}
 export class NoteType {
   id: string
   name: string
-  fields: NoteField[] = []
+  fields: AsyncCollection<NoteField>
+  //fieldIds: string[] = []
+  //fieldObjects: Record<string, AsyncLoader<NoteField>>
   cards: CardTemplate[] = []
 
   static createNewDefault() {
-    return new NoteType({
+    const newNoteType = new NoteType({
       id: nanoid(6),
       name: 'New note type',
-      fields: [NoteField.createNew('front'), NoteField.createNew('back')],
+      fieldIds: [],
       cards: [
         new CardTemplate({
           id: nanoid(6),
@@ -25,12 +34,17 @@ export class NoteType {
         })
       ]
     })
+    newNoteType.fields = AsyncCollection.fromData([
+      NoteField.createNewDefault('front'),
+      NoteField.createNewDefault('back')
+    ])
+    return newNoteType
   }
 
-  constructor({ id, name, fields, cards }: ExcludeMethods<NoteType>) {
+  constructor({ id, name, fieldIds, cards }: SerialisedNoteType) {
     this.id = id
     this.name = name
-    this.fields = fields
+    this.fields = new AsyncCollection<NoteField>(fieldIds, { loader: NoteField.service.getOne })
     this.cards = cards
   }
 
@@ -39,15 +53,18 @@ export class NoteType {
   }
 
   setFields(fields: NoteField[]) {
-    this.fields = fields
+    throw 'setFields not implemented'
+    //this.fields = fields
   }
 
   createNewField() {
-    this.fields.unshift(NoteField.createNew())
+    throw 'createNewField not implemented'
+    //this.fields.unshift(NoteField.createNewDefault())
   }
 
   deleteField(id: string) {
-    this.fields = this.fields.filter((f) => f.id != id)
+    throw 'deleteField not implemented'
+    //this.fields = this.fields.filter((f) => f.id != id)
   }
 
   setCards(cards: CardTemplate[]) {

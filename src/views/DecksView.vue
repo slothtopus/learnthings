@@ -31,6 +31,12 @@ watch(decksStore.decks, () => {
               :key="deck.id"
               :deck="deck"
               @edit="$router.push({ name: 'edit-deck', params: { deckId: deck.id } })"
+              @add="
+                $router.push({
+                  name: 'new-note',
+                  params: { deckId: deck.id, noteTypeId: deck.noteTypes[0].id }
+                })
+              "
               @delete="decksStore.deleteDeck(deck.id)"
             /></div
         ></template>

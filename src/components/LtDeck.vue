@@ -19,6 +19,7 @@ defineProps<Props>()
 defineEmits<{
   edit: [value: void]
   delete: [value: void]
+  add: [value: void]
 }>()
 </script>
 
@@ -32,6 +33,7 @@ defineEmits<{
     </CardContent>
     <CardFooter class="gap-3">
       <Button variant="outline" @click="$emit('edit')">Edit</Button>
+      <Button variant="outline" @click="$emit('add')">Add</Button>
       <Button variant="outline" @click="$emit('delete')">Delete</Button>
     </CardFooter>
   </Card>
