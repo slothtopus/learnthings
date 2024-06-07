@@ -1,3 +1,4 @@
+import { AsyncCollection } from './loader'
 import { NoteType } from './NoteType'
 import { Note } from './Note'
 
@@ -8,14 +9,15 @@ import type { ExcludeMethods } from './utils'
 export class Deck {
   id: string
   name: string
-  noteTypes: NoteType[]
+  //noteTypes: NoteType[]
+  noteTypes: AsyncCollection<NoteType>
   notes: Note[]
 
   static createNew() {
     return new Deck({
       id: nanoid(6),
       name: 'New Deck',
-      noteTypes: [],
+      noteTypes: new AsyncCollection<NoteType>([], NoteType),
       notes: []
     })
   }
@@ -32,14 +34,20 @@ export class Deck {
   }
 
   createNewNoteType() {
-    this.noteTypes.push(NoteType.createNewDefault())
+    this.noteTypes.unshiftNew(NoteType.createNewDefault())
   }
 
   deleteNoteType(id: string) {
+    this.noteTypes.delete(id)
+  }
+
+  /*deleteNoteType(id: string) {
     this.noteTypes = this.noteTypes.filter((n) => n.id != id)
   }
 
   setNoteTypes(noteTypes: NoteType[]) {
     this.noteTypes = noteTypes
-  }
+  }*/
+
+  serialise() {}
 }

@@ -1,14 +1,8 @@
 import { debounce, type DebouncedFunc } from 'lodash-es'
 import { createOne, deleteOne, getOne, persistOne } from './db'
 
-/*export interface PersistanceServiceInterface<T extends PersistableObject> {
-  getOne: (id: string) => Promise<T>
-  persistOne: (obj: T) => Promise<void>
-}*/
-
 export interface PersistableObject {
   id: string
-  persist: () => Promise<void>
   serialise: () => any
 }
 
@@ -33,12 +27,6 @@ export const wrapPersistanceProxy = <T extends PersistableObject>(
   if (isAlreadyProxied(obj)) {
     return obj
   }
-
-  /*debouncedPersist =
-    debouncedPersist ||
-    debounce(() => {
-      obj.persist()
-    }, delay)*/
 
   const handler: ProxyHandler<T> = {
     set: (target: T, prop: string | symbol, value: any) => {
@@ -67,20 +55,28 @@ export const wrapPersistanceProxy = <T extends PersistableObject>(
   return proxy
 }
 
+export type Constructor<T> = new (...args: any[]) => T
+export type Serialised<T extends PersistableObject> = ReturnType<T['serialise']>
+
 export class AsyncLoader<T extends PersistableObject> {
   id: string
   _isLoading = false
   _isReady = false
-  _loader: undefined | ((id: string) => Promise<T>) = getOne
+  _isError = false
+  _error: any
+  _loader: undefined | ((id: string) => Promise<Serialised<T>>) = getOne
   _deleter: (id: string) => Promise<boolean> = deleteOne
   _persister: (obj: T) => Promise<void> = persistOne
+  _cls: Constructor<T>
   _data: undefined | T = undefined
 
   constructor(
     id: string,
-    { loader, data }: { loader?: (id: string) => Promise<T>; data?: T } = {}
+    cls: Constructor<T>,
+    { loader, data }: { loader?: (id: string) => Promise<Serialised<T>>; data?: T } = {}
   ) {
     this.id = id
+    this._cls = cls
     if (loader !== undefined) {
       this._loader = loader
     }
@@ -88,12 +84,12 @@ export class AsyncLoader<T extends PersistableObject> {
       this._data = wrapPersistanceProxy(
         data,
         debounce(() => {
-          console.log('constructor debouncing:', data)
+          //console.log('constructor debouncing:', data)
           this._persister(data)
         }, 1000)
       )
-      console.log('constructor data = ', data)
-      console.log('constructor _data = ', this._data)
+      //console.log('constructor data = ', data)
+      //console.log('constructor _data = ', this._data)
       this._isReady = true
     }
   }
@@ -113,13 +109,17 @@ export class AsyncLoader<T extends PersistableObject> {
     return this._isReady
   }
 
+  get isError() {
+    return this._isError
+  }
+
   async loadData() {
     if (this._loader === undefined) {
       throw new Error('loader is not defined!')
     }
     try {
       this._isLoading = true
-      const data = await this._loader(this.id)
+      const data = new this._cls(await this._loader(this.id))
       this._data = wrapPersistanceProxy(
         data,
         debounce(() => {
@@ -130,6 +130,8 @@ export class AsyncLoader<T extends PersistableObject> {
       this._isReady = true
     } catch (err) {
       console.error(err)
+      this._isError = true
+      this._error = err
     } finally {
       this._isLoading = false
     }
@@ -139,35 +141,50 @@ export class AsyncLoader<T extends PersistableObject> {
     await this._deleter(this.id)
     console.log(`obj ${this.id} fully deleted`)
   }
+
+  persist() {
+    if (this._data === undefined) {
+      return new Error(`Cannot persist object with id ${this.id}: object not yet loaded`)
+    }
+    this._persister(this._data)
+  }
 }
 
 export class AsyncCollection<T extends PersistableObject> {
   ids: string[] = []
+  _cls: Constructor<T>
   _objects: Record<string, AsyncLoader<T>> = {}
   _creator: (obj: T) => Promise<T> = createOne
 
-  static fromData<T extends PersistableObject>(objs: T[]) {
+  static fromData<T extends PersistableObject>(cls: Constructor<T>, objs: T[]) {
     return new AsyncCollection(
       objs.map((o) => o.id),
+      cls,
       { data: objs }
     )
   }
 
   constructor(
     ids: string[],
+    cls: Constructor<T>,
     {
       loader,
       creator,
       data
-    }: { loader?: (id: string) => Promise<T>; creator?: (obj: T) => Promise<T>; data?: T[] } = {}
+    }: {
+      loader?: (id: string) => Promise<Serialised<T>>
+      creator?: (obj: T) => Promise<T>
+      data?: T[]
+    } = {}
   ) {
     this.ids = ids
+    this._cls = cls
     if (creator !== undefined) {
       this._creator = creator
     }
     this._objects = this.ids.reduce(
       (objects, id, i) => {
-        objects[id] = new AsyncLoader(id, { data: data ? data[i] : undefined, loader: loader })
+        objects[id] = new AsyncLoader(id, cls, { data: data ? data[i] : undefined, loader: loader })
         return objects
       },
       {} as Record<string, AsyncLoader<T>>
@@ -190,7 +207,11 @@ export class AsyncCollection<T extends PersistableObject> {
     const createdObj = await this._creator(obj)
     console.log('unshiftNew createdObj = ', createdObj)
     this.ids.unshift(createdObj.id)
-    this._objects[createdObj.id] = new AsyncLoader<T>(createdObj.id, { data: createdObj })
+    const newAsyncObj = new AsyncLoader<T>(createdObj.id, this._cls, {
+      data: createdObj
+    })
+    this._creator(createdObj)
+    this._objects[createdObj.id] = newAsyncObj
   }
 
   async delete(deleteId: string) {

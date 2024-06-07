@@ -1,10 +1,8 @@
 import { NoteField } from './NoteField'
 import { CardTemplate } from './CardTemplate'
-import { AsyncCollection, wrapPersistanceProxy } from './loader'
+import { AsyncCollection, type PersistableObject } from './loader'
 
 import { nanoid } from 'nanoid'
-
-import type { ExcludeMethods } from './utils'
 
 export type SerialisedNoteType = {
   id: string
@@ -12,13 +10,20 @@ export type SerialisedNoteType = {
   field_ids: string[]
   cards: CardTemplate[]
 }
-export class NoteType {
+export class NoteType implements PersistableObject {
   id: string
   name: string
   fields: AsyncCollection<NoteField>
-  //fieldIds: string[] = []
-  //fieldObjects: Record<string, AsyncLoader<NoteField>>
   cards: CardTemplate[] = []
+
+  static createPlaceholder() {
+    return new NoteType({
+      id: '...',
+      name: '...',
+      field_ids: [],
+      cards: []
+    })
+  }
 
   static createNewDefault() {
     const newNoteType = new NoteType({
@@ -34,10 +39,12 @@ export class NoteType {
         })
       ]
     })
-    newNoteType.fields = AsyncCollection.fromData([
+    /*newNoteType.fields = AsyncCollection.fromData([
       NoteField.createNewDefault('front'),
       NoteField.createNewDefault('back')
-    ])
+    ])*/
+    newNoteType.fields.unshiftNew(NoteField.createNewDefault('back'))
+    newNoteType.fields.unshiftNew(NoteField.createNewDefault('back'))
 
     console.log(newNoteType)
     return newNoteType
@@ -46,7 +53,7 @@ export class NoteType {
   constructor({ id, name, field_ids, cards }: SerialisedNoteType) {
     this.id = id
     this.name = name
-    this.fields = new AsyncCollection<NoteField>(field_ids)
+    this.fields = new AsyncCollection<NoteField>(field_ids, NoteField)
     this.cards = cards
   }
 
@@ -77,5 +84,14 @@ export class NoteType {
 
   deleteCard(id: string) {
     this.cards = this.cards.filter((c) => c.id != id)
+  }
+
+  serialise(): SerialisedNoteType {
+    return {
+      id: this.id,
+      name: this.name,
+      field_ids: this.fields.toIds(),
+      cards: this.cards
+    }
   }
 }

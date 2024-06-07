@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid'
 import { cloneDeep } from 'lodash-es'
+import type { PersistableObject } from './loader'
 
 export const generateId = (conflict = false) => (conflict ? 'same' : nanoid(6))
 
@@ -60,7 +61,7 @@ export const getOne = async <T extends { id: string }>(
   return obj
 }
 
-export const persistOne = async <T extends { id: string }>(
+export const persistOne = async <T extends PersistableObject>(
   obj: T,
   objectStore?: IDBObjectStore
 ) => {
@@ -68,19 +69,20 @@ export const persistOne = async <T extends { id: string }>(
   if (objectStore === undefined) {
     objectStore = await getObjectStore()
   }
-  await wrapRequest(objectStore.put(cloneDeep(obj)))
+  await wrapRequest(objectStore.put(cloneDeep(obj.serialise())))
 }
 
-export const createOne = async <T extends { id: string }>(
+export const createOne = async <T extends PersistableObject>(
   obj: T,
   objectStore?: IDBObjectStore
 ): Promise<T> => {
+  console.log('createOne(', obj, ')')
   if (objectStore === undefined) {
     objectStore = await getObjectStore()
   }
 
   try {
-    await wrapRequest(objectStore.add(obj))
+    await wrapRequest(objectStore.add(cloneDeep(obj.serialise())))
   } catch (err: any) {
     console.log('caught error:', err)
     if (err.target.error.name == 'ConstraintError') {
@@ -117,3 +119,8 @@ export const wrapRequest = (request: IDBRequest) =>
     request.onsuccess = resolve
     request.onerror = reject
   })
+
+export const clearAll = async () => {
+  const objectStore = await getObjectStore()
+  objectStore.clear()
+}

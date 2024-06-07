@@ -11,15 +11,21 @@ import LtNoteType from '@/components/LtNoteType.vue'
 
 import type { Deck } from '@/lib/Deck'
 import type { NoteType } from '@/lib/NoteType'
+import type { AsyncLoader } from '@/lib/loader'
 
 interface Props {
   deck: Deck
 }
 const props = defineProps<Props>()
 
-const noteTypes = computed({
+/*const noteTypes = computed({
   get: () => props.deck.noteTypes,
   set: (noteTypes: NoteType[]) => props.deck.setNoteTypes(noteTypes)
+})*/
+
+const noteTypes = computed({
+  get: () => props.deck.noteTypes.objects,
+  set: (noteTypes: AsyncLoader<NoteType>[]) => props.deck.noteTypes.setObjects(noteTypes)
 })
 </script>
 
@@ -28,7 +34,7 @@ const noteTypes = computed({
     <template #title>Note types</template>
     <template #controls><Button @click="deck.createNewNoteType()">Create new</Button></template>
     <template #content>
-      <CardStack>
+      <!--<CardStack>
         <Draggable v-model="noteTypes" item-key="id" handle=".drag-handle">
           <template #item="{ element }: { element: NoteType }">
             <LtNoteType
@@ -40,6 +46,24 @@ const noteTypes = computed({
               "
               @delete="deck.deleteNoteType(element.id)"
               >{{ element.name }}</LtNoteType
+            >
+          </template>
+        </Draggable>
+      </CardStack>-->
+      <CardStack>
+        <Draggable v-model="noteTypes" item-key="id" handle=".drag-handle">
+          <template #item="{ element }: { element: AsyncLoader<NoteType> }">
+            <p v-if="element.data === undefined">NOTHING HERE</p>
+            <LtNoteType
+              v-else
+              @edit="
+                $router.push({
+                  name: 'edit-notetype',
+                  params: { deckId: deck.id, noteTypeId: element.id }
+                })
+              "
+              @delete="deck.deleteNoteType(element.id)"
+              >{{ element.data.name }}</LtNoteType
             >
           </template>
         </Draggable>
