@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { onMounted, ref } from 'vue'
 
 import MasterLayout from '@/views/layouts/MasterLayout.vue'
 import NewNoteViewContent from './NewNoteViewContent.vue'
@@ -7,19 +7,25 @@ import NewNoteViewContent from './NewNoteViewContent.vue'
 import { useDecksStore } from '@/stores/decks'
 const decksStore = useDecksStore()
 
-//const noteType = ref(NoteType.createNewDefault())
+import type { Deck } from '@/lib/Deck'
+import type { NoteType } from '@/lib/NoteType'
+
 interface Props {
   deckId: string
-  noteTypeId: string
+  noteTypeIndex: string
 }
 const props = defineProps<Props>()
 
-const deck = computed(() => decksStore.getDeckById(props.deckId))
-const noteType = computed(() => decksStore.getNoteTypeById(props.deckId, props.noteTypeId))
+const deck = ref<Deck | undefined>(undefined)
+const noteType = ref<NoteType | undefined>(undefined)
+onMounted(async () => {
+  deck.value = await decksStore.getDeck(Number(props.deckId))
+  noteType.value = deck.value.noteTypes[Number(props.noteTypeIndex)]
+})
 </script>
 
 <template>
-  <MasterLayout>
+  <MasterLayout :loading="decksStore.loading">
     <template #title>New note: note type name</template>
     <template #content v-if="deck === undefined || noteType === undefined">
       <p>Not found</p>

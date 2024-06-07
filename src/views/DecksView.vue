@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { onMounted } from 'vue'
 
 import MasterLayout from './layouts/MasterLayout.vue'
 import SectionLayout from './layouts/SectionLayout.vue'
@@ -10,14 +10,11 @@ import { Button } from '@/components/shadcn-ui/button'
 import { useDecksStore } from '@/stores/decks'
 
 const decksStore = useDecksStore()
-
-watch(decksStore.decks, () => {
-  console.log('decks changed')
-})
+onMounted(decksStore.refreshDecks)
 </script>
 
 <template>
-  <MasterLayout>
+  <MasterLayout :loading="decksStore.loading">
     <template #title>Decks</template>
     <template #content>
       <SectionLayout>
@@ -34,7 +31,7 @@ watch(decksStore.decks, () => {
               @add="
                 $router.push({
                   name: 'new-note',
-                  params: { deckId: deck.id, noteTypeId: deck.noteTypes[0].id }
+                  params: { deckId: deck.id, noteTypeIndex: 0 }
                 })
               "
               @delete="decksStore.deleteDeck(deck.id)"

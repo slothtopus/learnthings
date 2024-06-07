@@ -17,12 +17,15 @@ const props = defineProps<Props>()
 
 const noteType = ref<NoteType | undefined>(undefined)
 onMounted(async () => {
-  noteType.value = await decksStore.getNoteTypeByIndex(props.deckId, Number(props.noteTypeIndex))
+  noteType.value = await decksStore.getNoteTypeByIndex(
+    Number(props.deckId),
+    Number(props.noteTypeIndex)
+  )
 })
 </script>
 
 <template>
-  <MasterLayout>
+  <MasterLayout :loading="decksStore.loading">
     <template #title>{{
       noteType == undefined ? 'Note type not found' : `Note type: ${noteType.name}`
     }}</template>

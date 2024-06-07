@@ -2,10 +2,10 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import { Deck } from '@/lib/Deck'
-import { createOne, getOne } from '@/lib/db'
 
 export const useDecksStore = defineStore('decks', () => {
   const decks = ref<Deck[]>([])
+  const loading = ref(false)
 
   // ---------------- Object lookup ----------------
   /*const getDeckById = computed<(deckId: string) => Deck | undefined>(
@@ -24,28 +24,36 @@ export const useDecksStore = defineStore('decks', () => {
 
   // ---------------- Deck CRUD ----------------
   const createNewDeck = async () => {
-    const newDeck = await createOne(Deck.createNewDefault())
+    const newDeck = await Deck.service.createOne(Deck.createNewDefault())
     decks.value.unshift(newDeck)
   }
 
-  const getDeck = async (deckId: string) => {
+  const refreshDecks = async () => {
+    loading.value = true
+    decks.value = await Deck.service.getAll()
+    loading.value = false
+  }
+
+  const getDeck = async (deckId: number) => {
     const cachedDeck = decks.value.find((d) => d.id == deckId)
     if (cachedDeck !== undefined) {
       return cachedDeck
     } else {
-      const persistedDeck = new Deck(await getOne<Deck>(deckId))
+      loading.value = true
+      const persistedDeck = await Deck.service.getOne(deckId)
       decks.value.push(persistedDeck)
+      loading.value = false
       return persistedDeck
     }
   }
 
-  const getNoteTypeByIndex = async (deckId: string, noteTypeIndex: number) => {
+  const getNoteTypeByIndex = async (deckId: number, noteTypeIndex: number) => {
     const deck = await getDeck(deckId)
     return deck.noteTypes[noteTypeIndex]
   }
 
   const getCardTemplateByIndex = async (
-    deckId: string,
+    deckId: number,
     noteTypeIndex: number,
     cardTemplateIndex: number
   ) => {
@@ -53,14 +61,17 @@ export const useDecksStore = defineStore('decks', () => {
     return noteType.cards[cardTemplateIndex]
   }
 
-  const deleteDeck = (id: string) => {
+  const deleteDeck = (id: number) => {
     decks.value = decks.value.filter((d) => d.id != id)
+    Deck.service.deleteOne(id)
   }
 
   return {
     decks,
+    loading,
     createNewDeck,
     getDeck,
+    refreshDecks,
     getNoteTypeByIndex,
     getCardTemplateByIndex,
     deleteDeck

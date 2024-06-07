@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { Button } from '@/components/shadcn-ui/button'
-import { clearAll } from '@/lib/db'
+import { db } from '@/lib/dexieDB'
 
-const handleClearDB = () => {
+interface Props {
+  loading?: boolean
+}
+defineProps<Props>()
+
+const handleClearDB = async () => {
   const userConfirmed = confirm('Are you sure you want to delete everything?')
   if (userConfirmed) {
-    clearAll()
+    await db.delete()
     window.location.pathname = '/'
   }
 }
@@ -22,7 +27,8 @@ const handleClearDB = () => {
       >
     </header>
     <main class="grow overflow-auto p-6 flex flex-col gap-4 w-full mx-auto max-w-screen-lg">
-      <slot name="content"></slot>
+      <p v-if="loading">LOADING</p>
+      <slot v-else name="content"></slot>
     </main>
   </div>
 </template>

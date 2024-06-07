@@ -16,12 +16,12 @@ const props = defineProps<Props>()
 
 const deck = ref<Deck | undefined>(undefined)
 onMounted(async () => {
-  deck.value = await decksStore.getDeck(props.deckId)
+  deck.value = await decksStore.getDeck(Number(props.deckId))
 })
 </script>
 
 <template>
-  <MasterLayout>
+  <MasterLayout :loading="decksStore.loading">
     <template #title>{{ deck == undefined ? 'Deck not found' : `Deck: ${deck.name}` }}</template>
     <template #content v-if="deck === undefined">
       <p>Deck with id {{ deckId }} not found</p>

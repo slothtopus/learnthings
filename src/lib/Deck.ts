@@ -1,28 +1,54 @@
 import { NoteType, type SerialisedNoteType } from './NoteType'
 import { Note } from './Note'
-import type { PersistableObject } from './loader'
 
-import { nanoid } from 'nanoid'
+import { debounce, cloneDeep } from 'lodash-es'
 
-import { persistOne } from './db'
-import { debounce } from 'lodash-es'
+import { db } from './dexieDB'
+import type { DexiePersistableObject } from './dexieDB'
 
 export type SerialisedDeck = {
-  id: string
+  id: number
   name: string
   noteTypes: SerialisedNoteType[]
   notes: Note[]
 }
 
-export class Deck implements PersistableObject {
-  id: string
+export const deckService = {
+  getAll: async (): Promise<Deck[]> => {
+    return (await db.decks.toArray()).map((d) => new Deck(d))
+  },
+  getOne: async (id: number): Promise<Deck> => {
+    const record = await db.decks.get(id)
+    if (record === undefined) {
+      throw new Error(`Deck with id ${id} not found`)
+    }
+    return new Deck(record)
+  },
+  createOne: async (deck: Deck): Promise<Deck> => {
+    const serialisedDeck = deck.serialise()
+    delete (serialisedDeck as any)['id']
+    serialisedDeck.id = await db.decks.add(serialisedDeck)
+    return new Deck(serialisedDeck)
+  },
+  persistOne: async (deck: Deck): Promise<void> => {
+    await db.decks.put(cloneDeep(deck.serialise()))
+  },
+  deleteOne: async (id: number) => {
+    await db.decks.delete(id)
+  }
+}
+
+export class Deck implements DexiePersistableObject {
+  id: number
   name: string
   noteTypes: NoteType[]
   notes: Note[]
 
+  static service = deckService
+
   static createNewDefault() {
     return new Deck({
-      id: nanoid(6),
+      id: 0,
       name: 'New Deck',
       noteTypes: [],
       notes: []
@@ -69,6 +95,6 @@ export class Deck implements PersistableObject {
     this.debouncedPersist(this)
   }
   debouncedPersist = debounce((deck: Deck) => {
-    persistOne<Deck>(deck)
+    Deck.service.persistOne(deck)
   }, 1000)
 }
