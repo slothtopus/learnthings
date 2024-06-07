@@ -13,7 +13,6 @@ import LtNoteField from '@/components/LtNoteField.vue'
 
 import type { NoteType } from '@/lib/NoteType'
 import { NoteField } from '@/lib/NoteField'
-import type { AsyncLoader } from '@/lib/loader'
 
 interface Props {
   noteType: NoteType
@@ -21,8 +20,8 @@ interface Props {
 const props = defineProps<Props>()
 
 const fields = computed({
-  get: () => props.noteType.fields.objects,
-  set: (fields: AsyncLoader<NoteField>[]) => props.noteType.fields.setObjects(fields)
+  get: () => props.noteType.fields,
+  set: (fields: NoteField[]) => props.noteType.setFields(fields)
 })
 </script>
 
@@ -33,9 +32,8 @@ const fields = computed({
     <template #content>
       <CardStack>
         <Draggable v-model="fields" item-key="id" handle=".drag-handle">
-          <template #item="{ element }: { element: AsyncLoader<NoteField> }">
-            <LtNoteField v-if="element.data === undefined" :field="NoteField.createPlaceholder()" />
-            <LtNoteField v-else :field="element.data" @delete="noteType.deleteField(element.id)" />
+          <template #item="{ element }: { element: NoteField }">
+            <LtNoteField :field="element" @delete="noteType.deleteField(element.id)" />
           </template>
         </Draggable>
       </CardStack>

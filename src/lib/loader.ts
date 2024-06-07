@@ -4,6 +4,7 @@ import { createOne, deleteOne, getOne, persistOne } from './db'
 export interface PersistableObject {
   id: string
   serialise: () => any
+  persist: () => Promise<void>
 }
 
 export const PROXY_MARKER = Symbol('proxyMarker')

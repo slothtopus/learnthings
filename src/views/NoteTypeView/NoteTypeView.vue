@@ -1,38 +1,36 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-
+import { onMounted, ref } from 'vue'
 import MasterLayout from '@/views/layouts/MasterLayout.vue'
 
 import NoteTypeContent from './NoteTypeContent.vue'
 
+import type { NoteType } from '@/lib/NoteType'
+
 import { useDecksStore } from '@/stores/decks'
-import { AsyncLoader } from '@/lib/loader'
-import { NoteType } from '@/lib/NoteType'
 const decksStore = useDecksStore()
 
 interface Props {
   deckId: string
-  noteTypeId: string
+  noteTypeIndex: string
 }
 const props = defineProps<Props>()
 
-//const noteType = decksStore.getNoteTypeById(props.deckId, props.noteTypeId)
-const noteType = ref(new AsyncLoader<NoteType>(props.noteTypeId, NoteType))
+const noteType = ref<NoteType | undefined>(undefined)
+onMounted(async () => {
+  noteType.value = await decksStore.getNoteTypeByIndex(props.deckId, Number(props.noteTypeIndex))
+})
 </script>
 
 <template>
   <MasterLayout>
     <template #title>{{
-      noteType.data == undefined ? 'Note type not found' : `Note type: ${noteType.data.name}`
+      noteType == undefined ? 'Note type not found' : `Note type: ${noteType.name}`
     }}</template>
-    <template #content v-if="noteType.isError">
-      <p>Note type with id {{ noteTypeId }} in deck {{ deckId }} not found</p>
-    </template>
-    <template #content v-else-if="noteType.data === undefined">
-      <NoteTypeContent :noteType="NoteType.createPlaceholder()" />
+    <template #content v-if="noteType === undefined">
+      <p>Note type with index {{ noteTypeIndex }} in deck {{ deckId }} not found</p>
     </template>
     <template #content v-else>
-      <NoteTypeContent :noteType="noteType.data" />
+      <NoteTypeContent :noteType="noteType" />
     </template>
   </MasterLayout>
 </template>

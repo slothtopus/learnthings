@@ -17,19 +17,19 @@ const router = createRouter({
       component: DeckView
     },
     {
-      path: '/deck/:deckId/notetype/:noteTypeId',
+      path: '/deck/:deckId/notetype/:noteTypeIndex',
       name: 'edit-notetype',
       props: true,
       component: NoteTypeView
     },
     {
-      path: '/deck/:deckId/notetype/:noteTypeId/new',
+      path: '/deck/:deckId/notetype/:noteTypeIndex/new',
       name: 'new-note',
       props: true,
       component: NewNoteView
     },
     {
-      path: '/deck/:deckId/notetype/:noteTypeId/card/:cardTemplateId',
+      path: '/deck/:deckId/notetype/:noteTypeIndex/card/:cardTemplateIndex',
       name: 'edit-cardtemplate',
       props: true,
       component: CardTemplateView

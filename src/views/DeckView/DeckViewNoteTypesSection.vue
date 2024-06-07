@@ -18,15 +18,15 @@ interface Props {
 }
 const props = defineProps<Props>()
 
-/*const noteTypes = computed({
+const noteTypes = computed({
   get: () => props.deck.noteTypes,
   set: (noteTypes: NoteType[]) => props.deck.setNoteTypes(noteTypes)
-})*/
+})
 
-const noteTypes = computed({
+/*const noteTypes = computed({
   get: () => props.deck.noteTypes.objects,
   set: (noteTypes: AsyncLoader<NoteType>[]) => props.deck.noteTypes.setObjects(noteTypes)
-})
+})*/
 </script>
 
 <template>
@@ -34,14 +34,14 @@ const noteTypes = computed({
     <template #title>Note types</template>
     <template #controls><Button @click="deck.createNewNoteType()">Create new</Button></template>
     <template #content>
-      <!--<CardStack>
+      <CardStack>
         <Draggable v-model="noteTypes" item-key="id" handle=".drag-handle">
-          <template #item="{ element }: { element: NoteType }">
+          <template #item="{ element, index }: { element: NoteType; index: number }">
             <LtNoteType
               @edit="
                 $router.push({
                   name: 'edit-notetype',
-                  params: { deckId: deck.id, noteTypeId: element.id }
+                  params: { deckId: deck.id, noteTypeIndex: index }
                 })
               "
               @delete="deck.deleteNoteType(element.id)"
@@ -49,8 +49,8 @@ const noteTypes = computed({
             >
           </template>
         </Draggable>
-      </CardStack>-->
-      <CardStack>
+      </CardStack>
+      <!--<CardStack>
         <Draggable v-model="noteTypes" item-key="id" handle=".drag-handle">
           <template #item="{ element }: { element: AsyncLoader<NoteType> }">
             <p v-if="element.data === undefined">NOTHING HERE</p>
@@ -67,7 +67,7 @@ const noteTypes = computed({
             >
           </template>
         </Draggable>
-      </CardStack>
+      </CardStack>-->
     </template>
   </SectionLayout>
 </template>

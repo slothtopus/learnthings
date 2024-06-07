@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { Button } from '@/components/shadcn-ui/button'
 import { clearAll } from '@/lib/db'
-import { useRouter } from 'vue-router'
 
-const router = useRouter()
 const handleClearDB = () => {
   const userConfirmed = confirm('Are you sure you want to delete everything?')
   if (userConfirmed) {
     clearAll()
-    router.push('/')
+    window.location.pathname = '/'
   }
 }
 </script>
