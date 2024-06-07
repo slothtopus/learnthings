@@ -8,6 +8,7 @@ import { createOne, deleteOne, getOne, persistOne } from './db'
 
 export interface PersistableObject {
   id: string
+  persist: () => Promise<void>
   serialise: () => any
 }
 
@@ -64,6 +65,80 @@ export const wrapPersistanceProxy = <T extends PersistableObject>(
   markAsProxied(proxy)
 
   return proxy
+}
+
+export class AsyncLoader<T extends PersistableObject> {
+  id: string
+  _isLoading = false
+  _isReady = false
+  _loader: undefined | ((id: string) => Promise<T>) = getOne
+  _deleter: (id: string) => Promise<boolean> = deleteOne
+  _persister: (obj: T) => Promise<void> = persistOne
+  _data: undefined | T = undefined
+
+  constructor(
+    id: string,
+    { loader, data }: { loader?: (id: string) => Promise<T>; data?: T } = {}
+  ) {
+    this.id = id
+    if (loader !== undefined) {
+      this._loader = loader
+    }
+    if (data !== undefined) {
+      this._data = wrapPersistanceProxy(
+        data,
+        debounce(() => {
+          console.log('constructor debouncing:', data)
+          this._persister(data)
+        }, 1000)
+      )
+      console.log('constructor data = ', data)
+      console.log('constructor _data = ', this._data)
+      this._isReady = true
+    }
+  }
+
+  get data() {
+    if (this._data === undefined && !this._isLoading) {
+      this.loadData()
+    }
+    return this._data
+  }
+
+  get isLoading() {
+    return this._isLoading
+  }
+
+  get isReady() {
+    return this._isReady
+  }
+
+  async loadData() {
+    if (this._loader === undefined) {
+      throw new Error('loader is not defined!')
+    }
+    try {
+      this._isLoading = true
+      const data = await this._loader(this.id)
+      this._data = wrapPersistanceProxy(
+        data,
+        debounce(() => {
+          console.log('loadData debouncing:', data)
+          this._persister(data)
+        }, 1000)
+      )
+      this._isReady = true
+    } catch (err) {
+      console.error(err)
+    } finally {
+      this._isLoading = false
+    }
+  }
+
+  async delete() {
+    await this._deleter(this.id)
+    console.log(`obj ${this.id} fully deleted`)
+  }
 }
 
 export class AsyncCollection<T extends PersistableObject> {
