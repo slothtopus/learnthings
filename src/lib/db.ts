@@ -1,3 +1,8 @@
+import { nanoid } from 'nanoid'
+import { cloneDeep } from 'lodash-es'
+
+export const generateId = (conflict = false) => (conflict ? 'same' : nanoid(6))
+
 let _db: IDBDatabase | undefined = undefined
 export const getDatabase = async () => {
   if (_db === undefined) {
@@ -23,12 +28,24 @@ export const getDatabase = async () => {
   return _db
 }
 
-export const getOne = async <T>(id: string) => {
-  console.log(`loader called for ${id}`)
+export const getObjectStore = async () => {
   const db = await getDatabase()
-  const transaction = db.transaction('allObjects')
+  const transaction = db.transaction('allObjects', 'readwrite')
+  const objectStore = transaction.objectStore('allObjects')
+  return objectStore
+}
+
+export const getOne = async <T extends { id: string }>(
+  id: string,
+  objectStore?: IDBObjectStore
+) => {
+  console.log(`getOne called for ${id}`)
+  /*const db = await getDatabase()
+  const transaction = db.transaction('allObjects')*/
+  if (objectStore === undefined) {
+    objectStore = await getObjectStore()
+  }
   const obj = await new Promise<T>((resolve, reject) => {
-    const objectStore = transaction.objectStore('allObjects')
     const request = objectStore.get(id)
     request.onsuccess = () => {
       console.log(`loader(${id}).onsuccess = `, request.result)
@@ -43,15 +60,60 @@ export const getOne = async <T>(id: string) => {
   return obj
 }
 
-export const persistOne = async (obj: any) => {
+export const persistOne = async <T extends { id: string }>(
+  obj: T,
+  objectStore?: IDBObjectStore
+) => {
   console.log('persistOne called for', obj)
-  const db = await getDatabase()
-  console.log('persistOne.db =', db)
-  const transaction = db.transaction('allObjects', 'readwrite')
-  const objectStore = transaction.objectStore('allObjects')
-  await new Promise((resolve, reject) => {
-    const request = objectStore.put(obj)
+  if (objectStore === undefined) {
+    objectStore = await getObjectStore()
+  }
+  await wrapRequest(objectStore.put(cloneDeep(obj)))
+}
+
+export const createOne = async <T extends { id: string }>(
+  obj: T,
+  objectStore?: IDBObjectStore
+): Promise<T> => {
+  if (objectStore === undefined) {
+    objectStore = await getObjectStore()
+  }
+
+  try {
+    await wrapRequest(objectStore.add(obj))
+  } catch (err: any) {
+    console.log('caught error:', err)
+    if (err.target.error.name == 'ConstraintError') {
+      const newId = generateId()
+      console.log(`Key ${obj.id} already exists; trying new key ${newId}`)
+      obj.id = newId
+      return await createOne(obj)
+    } else {
+      console.error(err)
+      throw err
+    }
+  }
+  return obj
+}
+
+export const deleteOne = async (id: string, objectStore?: IDBObjectStore): Promise<boolean> => {
+  if (objectStore === undefined) {
+    objectStore = await getObjectStore()
+  }
+  const obj = await getOne(id, objectStore)
+  console.log('deleteOne: got obj', obj)
+  const embeddedIds = Object.keys(obj).filter((k) => k.endsWith('_id'))
+  console.log('had embeddedIds:', embeddedIds)
+
+  await Promise.all([
+    wrapRequest(objectStore.delete(obj.id)).then(() => console.log(`obj id ${obj.id} deleted`)),
+    ...embeddedIds.map((embeddedId) => deleteOne(embeddedId, objectStore))
+  ])
+  return true
+}
+
+export const wrapRequest = (request: IDBRequest) =>
+  new Promise((resolve, reject) => {
     request.onsuccess = resolve
     request.onerror = reject
   })
-}

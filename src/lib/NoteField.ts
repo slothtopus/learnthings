@@ -1,13 +1,5 @@
 import { nanoid } from 'nanoid'
-import type { PersistanceServiceInterface } from './loader'
-import { getOne, persistOne } from './db'
-
-const noteFieldService: PersistanceServiceInterface<NoteField> = {
-  getOne: async (id: string) => {
-    return new NoteField(await getOne<SerialisedNoteField>(id))
-  },
-  persistOne: (obj: NoteField) => persistOne(obj.serialise())
-}
+import type { PersistableObject } from './loader'
 
 export type SerialisedNoteField = {
   id: string
@@ -15,13 +7,11 @@ export type SerialisedNoteField = {
   mimeType: string
 }
 
-export class NoteField {
+export class NoteField implements PersistableObject {
   id: string
   name: string
   mimeType = 'text/plain'
   mimeTypes = ['text/plain']
-
-  static service = noteFieldService
 
   static createNewDefault(name?: string) {
     return new NoteField({
@@ -63,9 +53,5 @@ export class NoteField {
       name: this.name,
       mimeType: this.mimeType
     }
-  }
-
-  async persist() {
-    NoteField.service.persistOne(this)
   }
 }

@@ -1,6 +1,6 @@
 import { NoteField } from './NoteField'
 import { CardTemplate } from './CardTemplate'
-import { AsyncCollection } from './loader'
+import { AsyncCollection, wrapPersistanceProxy } from './loader'
 
 import { nanoid } from 'nanoid'
 
@@ -9,7 +9,7 @@ import type { ExcludeMethods } from './utils'
 export type SerialisedNoteType = {
   id: string
   name: string
-  fieldIds: string[]
+  field_ids: string[]
   cards: CardTemplate[]
 }
 export class NoteType {
@@ -24,7 +24,7 @@ export class NoteType {
     const newNoteType = new NoteType({
       id: nanoid(6),
       name: 'New note type',
-      fieldIds: [],
+      field_ids: [],
       cards: [
         new CardTemplate({
           id: nanoid(6),
@@ -38,13 +38,15 @@ export class NoteType {
       NoteField.createNewDefault('front'),
       NoteField.createNewDefault('back')
     ])
+
+    console.log(newNoteType)
     return newNoteType
   }
 
-  constructor({ id, name, fieldIds, cards }: SerialisedNoteType) {
+  constructor({ id, name, field_ids, cards }: SerialisedNoteType) {
     this.id = id
     this.name = name
-    this.fields = new AsyncCollection<NoteField>(fieldIds, { loader: NoteField.service.getOne })
+    this.fields = new AsyncCollection<NoteField>(field_ids)
     this.cards = cards
   }
 
@@ -52,19 +54,17 @@ export class NoteType {
     this.name = name
   }
 
-  setFields(fields: NoteField[]) {
-    throw 'setFields not implemented'
-    //this.fields = fields
-  }
-
   createNewField() {
-    throw 'createNewField not implemented'
-    //this.fields.unshift(NoteField.createNewDefault())
+    const newField = new NoteField({
+      id: 'sameid',
+      name: 'New field',
+      mimeType: 'text/plain'
+    })
+    this.fields.unshiftNew(newField)
   }
 
   deleteField(id: string) {
-    throw 'deleteField not implemented'
-    //this.fields = this.fields.filter((f) => f.id != id)
+    this.fields.delete(id)
   }
 
   setCards(cards: CardTemplate[]) {

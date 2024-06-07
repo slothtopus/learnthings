@@ -1,13 +1,13 @@
-import { debounce } from 'lodash-es'
+import { debounce, type DebouncedFunc } from 'lodash-es'
+import { createOne, deleteOne, getOne, persistOne } from './db'
 
-export interface PersistanceServiceInterface<T extends PersistableObject> {
+/*export interface PersistanceServiceInterface<T extends PersistableObject> {
   getOne: (id: string) => Promise<T>
   persistOne: (obj: T) => Promise<void>
-}
+}*/
 
 export interface PersistableObject {
   id: string
-  persist: () => Promise<void>
   serialise: () => any
 }
 
@@ -18,32 +18,31 @@ export const markAsProxied = (obj: any) => {
 
 export const isAlreadyProxied = (obj: any) => obj[PROXY_MARKER] === true
 
-const wrapNestedObject = (obj: any, delay: number, debouncedPersist: any): any => {
+const wrapNestedObject = (obj: any, debouncedPersist: DebouncedFunc<() => void>): any => {
   if (typeof obj === 'object' && obj !== null && !isAlreadyProxied(obj)) {
-    return wrapPersistanceProxy(obj, delay, debouncedPersist)
+    return wrapPersistanceProxy(obj, debouncedPersist)
   }
   return obj
 }
 
 export const wrapPersistanceProxy = <T extends PersistableObject>(
   obj: T,
-  delay = 1000,
-  debouncedPersist?: any
+  debouncedPersist: DebouncedFunc<() => void>
 ): T => {
   if (isAlreadyProxied(obj)) {
     return obj
   }
 
-  debouncedPersist =
+  /*debouncedPersist =
     debouncedPersist ||
     debounce(() => {
       obj.persist()
-    }, delay)
+    }, delay)*/
 
   const handler: ProxyHandler<T> = {
     set: (target: T, prop: string | symbol, value: any) => {
       if (typeof value === 'object' && value !== null) {
-        value = wrapNestedObject(value, delay, debouncedPersist)
+        value = wrapNestedObject(value, debouncedPersist)
       }
       target[prop as keyof T] = value
       if (typeof prop != 'symbol' && !prop.startsWith('_')) {
@@ -57,7 +56,7 @@ export const wrapPersistanceProxy = <T extends PersistableObject>(
   // Wrap existing nested objects
   for (const key in obj) {
     if (typeof obj[key] === 'object' && obj[key] !== null) {
-      obj[key] = wrapNestedObject(obj[key], delay, debouncedPersist)
+      obj[key] = wrapNestedObject(obj[key], debouncedPersist)
     }
   }
 
@@ -67,58 +66,10 @@ export const wrapPersistanceProxy = <T extends PersistableObject>(
   return proxy
 }
 
-export class AsyncLoader<T extends PersistableObject> {
-  id: string
-  _isLoading = false
-  _isReady = false
-  _loader: undefined | ((id: string) => Promise<T>) = undefined
-  _data: undefined | T = undefined
-
-  constructor(id: string, { loader, data }: { loader?: (id: string) => Promise<T>; data?: T }) {
-    this.id = id
-    if (loader !== undefined) {
-      this._loader = loader
-    }
-    if (data !== undefined) {
-      this._data = wrapPersistanceProxy(data)
-      this._isReady = true
-    }
-  }
-
-  get data() {
-    if (this._data === undefined && !this._isLoading) {
-      this.loadData()
-    }
-    return this._data
-  }
-
-  get isLoading() {
-    return this._isLoading
-  }
-
-  get isReady() {
-    return this._isReady
-  }
-
-  async loadData() {
-    if (this._loader === undefined) {
-      throw new Error('loader is not defined!')
-    }
-    try {
-      this._isLoading = true
-      this._data = wrapPersistanceProxy(await this._loader(this.id))
-      this._isReady = true
-    } catch (err) {
-      console.error(err)
-    } finally {
-      this._isLoading = false
-    }
-  }
-}
-
 export class AsyncCollection<T extends PersistableObject> {
   ids: string[] = []
   _objects: Record<string, AsyncLoader<T>> = {}
+  _creator: (obj: T) => Promise<T> = createOne
 
   static fromData<T extends PersistableObject>(objs: T[]) {
     return new AsyncCollection(
@@ -129,9 +80,16 @@ export class AsyncCollection<T extends PersistableObject> {
 
   constructor(
     ids: string[],
-    { loader, data }: { loader?: (id: string) => Promise<T>; data?: T[] }
+    {
+      loader,
+      creator,
+      data
+    }: { loader?: (id: string) => Promise<T>; creator?: (obj: T) => Promise<T>; data?: T[] } = {}
   ) {
     this.ids = ids
+    if (creator !== undefined) {
+      this._creator = creator
+    }
     this._objects = this.ids.reduce(
       (objects, id, i) => {
         objects[id] = new AsyncLoader(id, { data: data ? data[i] : undefined, loader: loader })
@@ -151,6 +109,23 @@ export class AsyncCollection<T extends PersistableObject> {
 
   toIds() {
     return [...this.ids]
+  }
+
+  async unshiftNew(obj: T) {
+    const createdObj = await this._creator(obj)
+    console.log('unshiftNew createdObj = ', createdObj)
+    this.ids.unshift(createdObj.id)
+    this._objects[createdObj.id] = new AsyncLoader<T>(createdObj.id, { data: createdObj })
+  }
+
+  async delete(deleteId: string) {
+    const obj = this._objects[deleteId]
+    if (obj === undefined) {
+      throw new Error(`Cannot delete object with id ${deleteId}: not found in collection`)
+    }
+    obj.delete()
+    delete this._objects[deleteId]
+    this.ids = this.ids.filter((id) => id != deleteId)
   }
 }
 
