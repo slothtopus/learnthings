@@ -69,3 +69,4 @@ defineEmits<{
 </template>
 
 <style scoped></style>
+@/lib/NoteFieldTemplate

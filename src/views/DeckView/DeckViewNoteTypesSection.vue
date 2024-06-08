@@ -36,12 +36,12 @@ const noteTypes = computed({
     <template #content>
       <CardStack>
         <Draggable v-model="noteTypes" item-key="id" handle=".drag-handle">
-          <template #item="{ element, index }: { element: NoteType; index: number }">
+          <template #item="{ element }: { element: NoteType; index: number }">
             <LtNoteType
               @edit="
                 $router.push({
                   name: 'edit-notetype',
-                  params: { deckId: deck.id, noteTypeIndex: index }
+                  params: { deckId: deck.id, noteTypeId: element.id }
                 })
               "
               @delete="deck.deleteNoteType(element.id)"

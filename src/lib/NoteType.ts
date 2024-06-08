@@ -4,38 +4,28 @@ import type { SerialisedNoteField } from './NoteField'
 import { CardTemplate } from './CardTemplate'
 import type { SerialisedCardTemplate } from './CardTemplate'
 
-import type { PersistableObject } from './loader'
+import type { DexiePersistableObject } from './dexieDB'
 
-import { nanoid } from 'nanoid'
 import type { Deck } from './Deck'
 
 export type SerialisedNoteType = {
-  id: string
+  id: number
   name: string
   fields: SerialisedNoteField[]
   cards: SerialisedCardTemplate[]
 }
 
-export class NoteType implements PersistableObject {
-  id: string
+export class NoteType implements DexiePersistableObject {
+  id: number
   name: string
   fields: NoteField[]
   cards: CardTemplate[] = []
 
   _parentDeck: Deck
 
-  /*static createPlaceholder() {
-    return new NoteType({
-      id: '...',
-      name: '...',
-      fields: [],
-      cards: []
-    })
-  }*/
-
   static async createNewDefault(parentDeck: Deck) {
     const newNoteType = new NoteType(parentDeck, {
-      id: nanoid(6),
+      id: parentDeck.getNextInternalId(),
       name: 'New note type',
       fields: [
         NoteField.createNewDefault(parentDeck, 'front'),
@@ -43,7 +33,7 @@ export class NoteType implements PersistableObject {
       ],
       cards: [
         new CardTemplate(parentDeck, {
-          id: nanoid(6),
+          id: parentDeck.getNextInternalId(),
           name: 'Default',
           frontTemplate: '{ front }',
           backTemplate: '{ back }'
@@ -67,16 +57,11 @@ export class NoteType implements PersistableObject {
   }
 
   createNewField() {
-    const newField = new NoteField(this._parentDeck, {
-      id: 'sameid',
-      name: 'New field',
-      mimeType: 'text/plain'
-    })
-    this.fields.unshift(newField)
+    this.fields.unshift(NoteField.createNewDefault(this._parentDeck, 'New field'))
     this.persist()
   }
 
-  deleteField(id: string) {
+  deleteField(id: number) {
     this.fields = this.fields.filter((field) => field.id != id)
     this.persist()
   }
@@ -96,7 +81,7 @@ export class NoteType implements PersistableObject {
     this.persist()
   }
 
-  deleteCard(id: string) {
+  deleteCard(id: number) {
     this.cards = this.cards.filter((c) => c.id != id)
     this.persist()
   }

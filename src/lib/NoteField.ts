@@ -1,13 +1,12 @@
-import { nanoid } from 'nanoid'
 import type { ExcludeMethods } from './utils'
-import type { PersistableObject } from './loader'
+import type { DexiePersistableObject } from './dexieDB'
 
 import type { Deck } from './Deck'
 
 export type SerialisedNoteField = Omit<ExcludeMethods<NoteField>, 'mimeTypes' | '_parentDeck'>
 
-export class NoteField implements PersistableObject {
-  id: string
+export class NoteField implements DexiePersistableObject {
+  id: number
   name: string
   mimeType = 'text/plain'
 
@@ -16,19 +15,11 @@ export class NoteField implements PersistableObject {
 
   static createNewDefault(parentDeck: Deck, name?: string) {
     return new NoteField(parentDeck, {
-      id: nanoid(6),
+      id: parentDeck.getNextInternalId(),
       name: name || 'New field',
       mimeType: 'text/plain'
     })
   }
-
-  /*static createPlaceholder() {
-    return new NoteField({
-      id: '...',
-      name: '...',
-      mimeType: 'text/plain'
-    })
-  }*/
 
   constructor(parentDeck: Deck, { id, name, mimeType }: SerialisedNoteField) {
     this._parentDeck = parentDeck

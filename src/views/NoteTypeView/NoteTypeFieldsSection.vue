@@ -42,3 +42,4 @@ const fields = computed({
 </template>
 
 <style scoped></style>
+@/lib/NoteFieldTemplate

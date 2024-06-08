@@ -31,7 +31,7 @@ onMounted(decksStore.refreshDecks)
               @add="
                 $router.push({
                   name: 'new-note',
-                  params: { deckId: deck.id, noteTypeIndex: 0 }
+                  params: { deckId: deck.id, noteTypeId: deck.noteTypes[0].id }
                 })
               "
               @delete="decksStore.deleteDeck(deck.id)"

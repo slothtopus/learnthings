@@ -1,0 +1,47 @@
+<script setup lang="ts">
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectGroup,
+  SelectItem
+} from '@/components/shadcn-ui/select'
+
+import type { SelectOption } from './ui.types'
+
+interface Props {
+  options: SelectOption[]
+  modelValue?: SelectOption
+  placeholder?: string
+}
+const props = defineProps<Props>()
+
+const emit = defineEmits<{
+  'update:modelValue': [option?: SelectOption]
+}>()
+
+const handleUpdateModelValue = (id: string) => {
+  emit(
+    'update:modelValue',
+    props.options.find((o) => o.id == id)
+  )
+}
+</script>
+
+<template>
+  <Select :modelValue="modelValue?.id" @update:modelValue="handleUpdateModelValue">
+    <SelectTrigger class="w-[180px]">
+      <SelectValue :placeholder="placeholder" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectGroup>
+        <SelectItem v-for="option in options" :key="option.id" :value="option.id"
+          >{{ option.value }}
+        </SelectItem>
+      </SelectGroup>
+    </SelectContent>
+  </Select>
+</template>
+
+<style scoped></style>

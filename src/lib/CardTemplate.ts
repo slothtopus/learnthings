@@ -1,30 +1,21 @@
 import type { Deck } from './Deck'
-import type { PersistableObject } from './loader'
+import type { DexiePersistableObject } from './dexieDB'
 import type { ExcludeMethods } from './utils'
 import { nanoid } from 'nanoid'
 
 export type SerialisedCardTemplate = Omit<ExcludeMethods<CardTemplate>, '_parentDeck'>
 
-export class CardTemplate implements PersistableObject {
-  id: string
+export class CardTemplate implements DexiePersistableObject {
+  id: number
   name: string
   frontTemplate: string
   backTemplate: string
 
   _parentDeck: Deck
 
-  /*static createPlaceholder(parentDeck: Deck) {
-    return new CardTemplate(parentDeck, {
-      id: '...',
-      name: '...',
-      frontTemplate: '',
-      backTemplate: ''
-    })
-  }*/
-
   static createNewDefault(parentDeck: Deck, name?: string) {
     return new CardTemplate(parentDeck, {
-      id: nanoid(6),
+      id: parentDeck.getNextInternalId(),
       name: name || 'New card template',
       frontTemplate: '',
       backTemplate: ''

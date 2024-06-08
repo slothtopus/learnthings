@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 import SectionLayout from '@/views/layouts/SectionLayout.vue'
 
@@ -14,25 +14,35 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shadcn-ui/tabs'
 import { Button } from '@/components/shadcn-ui/button'
 
-import NewNoteViewEditNoteSection from './NewNoteViewEditNoteSection.vue'
+import NoteViewEditSection from './NoteViewEditSection.vue'
+import NoteViewPreviewSection from './NoteViewPreviewSection.vue'
 
 import type { NoteType } from '@/lib/NoteType'
+import { Note } from '@/lib/Note'
 
 interface Props {
   noteTypes: NoteType[]
   noteType: NoteType
 }
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const selectedTab = ref<'edit' | 'preview'>('edit')
+
+const note = ref<Note>(Note.createNewEmpty(props.noteType))
+watch(
+  () => props.noteType,
+  () => {
+    note.value = Note.createNewEmpty(props.noteType)
+  }
+)
 </script>
 
 <template>
-  <SectionLayout>
+  <SectionLayout class="grow">
     <template #title>Add new note</template>
     <template #controls>
       <Select
-        :modelValue="noteType.id"
+        :modelValue="String(noteType.id)"
         @update:modelValue="
           $router.replace({ name: 'new-note', params: { ...$route.params, noteTypeId: $event } })
         "
@@ -42,7 +52,10 @@ const selectedTab = ref<'edit' | 'preview'>('edit')
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem v-for="noteType in noteTypes" :key="noteType.id" :value="noteType.id"
+            <SelectItem
+              v-for="noteType in noteTypes"
+              :key="noteType.id"
+              :value="String(noteType.id)"
               >{{ noteType.name }}
             </SelectItem>
           </SelectGroup>
@@ -51,16 +64,16 @@ const selectedTab = ref<'edit' | 'preview'>('edit')
       <Button>Add</Button></template
     >
     <template #content
-      ><Tabs v-model="selectedTab">
+      ><Tabs v-model="selectedTab" class="flex flex-col grow">
         <TabsList class="grid w-96 grid-cols-2 mx-auto">
           <TabsTrigger value="edit"> Edit </TabsTrigger>
           <TabsTrigger value="preview"> Preview </TabsTrigger>
         </TabsList>
         <TabsContent value="edit">
-          <NewNoteViewEditNoteSection :noteType="noteType" />
+          <NoteViewEditSection :noteType="noteType" :note="note" />
         </TabsContent>
-        <TabsContent value="preview">
-          <p>Preview stuff goes here</p>
+        <TabsContent class="grow" value="preview">
+          <NoteViewPreviewSection />
         </TabsContent>
       </Tabs>
     </template>

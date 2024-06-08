@@ -32,14 +32,14 @@ const cards = computed({
     <template #content>
       <CardStack>
         <Draggable v-model="cards" item-key="id" handle=".drag-handle">
-          <template #item="{ element, index }: { element: CardTemplate; index: number }">
+          <template #item="{ element }: { element: CardTemplate; index: number }">
             <LtCardTemplate
               :card="element"
               @delete="noteType.deleteCard(element.id)"
               @edit="
                 $router.push({
                   name: 'edit-cardtemplate',
-                  params: { ...$route.params, cardTemplateIndex: index }
+                  params: { ...$route.params, cardTemplateId: element.id }
                 })
               "
             />

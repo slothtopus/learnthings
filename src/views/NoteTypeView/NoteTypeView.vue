@@ -11,16 +11,13 @@ const decksStore = useDecksStore()
 
 interface Props {
   deckId: string
-  noteTypeIndex: string
+  noteTypeId: string
 }
 const props = defineProps<Props>()
 
 const noteType = ref<NoteType | undefined>(undefined)
 onMounted(async () => {
-  noteType.value = await decksStore.getNoteTypeByIndex(
-    Number(props.deckId),
-    Number(props.noteTypeIndex)
-  )
+  noteType.value = await decksStore.getNoteTypeById(Number(props.deckId), Number(props.noteTypeId))
 })
 </script>
 
@@ -30,7 +27,7 @@ onMounted(async () => {
       noteType == undefined ? 'Note type not found' : `Note type: ${noteType.name}`
     }}</template>
     <template #content v-if="noteType === undefined">
-      <p>Note type with index {{ noteTypeIndex }} in deck {{ deckId }} not found</p>
+      <p>Note type with index {{ noteTypeId }} in deck {{ deckId }} not found</p>
     </template>
     <template #content v-else>
       <NoteTypeContent :noteType="noteType" />

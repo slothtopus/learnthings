@@ -11,17 +11,17 @@ const decksStore = useDecksStore()
 
 interface Props {
   deckId: string
-  noteTypeIndex: string
-  cardTemplateIndex: string
+  noteTypeId: string
+  cardTemplateId: string
 }
 const props = defineProps<Props>()
 
 const cardTemplate = ref<CardTemplate | undefined>(undefined)
 onMounted(async () => {
-  cardTemplate.value = await decksStore.getCardTemplateByIndex(
+  cardTemplate.value = await decksStore.getCardTemplateById(
     Number(props.deckId),
-    Number(props.noteTypeIndex),
-    Number(props.cardTemplateIndex)
+    Number(props.noteTypeId),
+    Number(props.cardTemplateId)
   )
 })
 
@@ -40,7 +40,7 @@ const isError = computed(
       cardTemplate == undefined ? 'Card template not found' : `Card template: ${cardTemplate.name}`
     }}</template>
     <template #content v-if="cardTemplate === undefined">
-      <p>Card template with index {{ cardTemplateIndex }} not found.</p>
+      <p>Card template with index {{ cardTemplateId }} not found.</p>
     </template>
     <template #content v-else>
       <CardTemplateContent :card="cardTemplate" />

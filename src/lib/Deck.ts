@@ -11,6 +11,7 @@ export type SerialisedDeck = {
   name: string
   noteTypes: SerialisedNoteType[]
   notes: Note[]
+  nextInternalId: number
 }
 
 export const deckService = {
@@ -43,6 +44,7 @@ export class Deck implements DexiePersistableObject {
   name: string
   noteTypes: NoteType[]
   notes: Note[]
+  nextInternalId: number
 
   static service = deckService
 
@@ -51,15 +53,17 @@ export class Deck implements DexiePersistableObject {
       id: 0,
       name: 'New Deck',
       noteTypes: [],
-      notes: []
+      notes: [],
+      nextInternalId: 0
     })
   }
 
-  constructor({ id, name, noteTypes, notes }: SerialisedDeck) {
+  constructor({ id, name, noteTypes, notes, nextInternalId }: SerialisedDeck) {
     this.id = id
     this.name = name
     this.noteTypes = noteTypes.map((n) => new NoteType(this, n))
     this.notes = notes
+    this.nextInternalId = nextInternalId
   }
 
   setName(name: string) {
@@ -72,7 +76,7 @@ export class Deck implements DexiePersistableObject {
     this.persist()
   }
 
-  deleteNoteType(id: string) {
+  deleteNoteType(id: number) {
     this.noteTypes = this.noteTypes.filter((n) => n.id != id)
     this.persist()
   }
@@ -87,8 +91,13 @@ export class Deck implements DexiePersistableObject {
       id: this.id,
       name: this.name,
       noteTypes: this.noteTypes.map((n) => n.serialise()),
-      notes: this.notes
+      notes: this.notes,
+      nextInternalId: this.nextInternalId
     }
+  }
+
+  getNextInternalId() {
+    return this.nextInternalId++
   }
 
   async persist() {
