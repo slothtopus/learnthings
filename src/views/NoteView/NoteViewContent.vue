@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shadcn-ui
 import { Button } from '@/components/shadcn-ui/button'
 
 import NoteViewEditSection from './NoteViewEditSection.vue'
-import NoteViewPreviewSection from './NoteViewPreviewSection.vue'
+import CardPreview from '@/components/CardPreview.vue'
 
 import type { NoteType } from '@/lib/NoteType'
 import { Note } from '@/lib/Note'
@@ -73,7 +73,7 @@ watch(
           <NoteViewEditSection :noteType="noteType" :note="note" />
         </TabsContent>
         <TabsContent class="grow" value="preview">
-          <NoteViewPreviewSection />
+          <CardPreview />
         </TabsContent>
       </Tabs>
     </template>

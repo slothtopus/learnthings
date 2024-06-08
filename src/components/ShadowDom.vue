@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 
 interface Props {
   html: string
@@ -18,6 +18,20 @@ onMounted(() => {
     shadow.adoptedStyleSheets = [sheet]
   }
 })
+
+watch(
+  () => props.html,
+  () => {
+    shadow.innerHTML = props.html
+  }
+)
+
+watch(
+  () => props.css,
+  () => {
+    sheet.replaceSync(props.css)
+  }
+)
 </script>
 
 <template>

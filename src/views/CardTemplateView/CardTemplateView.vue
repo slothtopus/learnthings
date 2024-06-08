@@ -7,6 +7,7 @@ import CardTemplateContent from './CardTemplateContent.vue'
 import { CardTemplate } from '@/lib/CardTemplate'
 
 import { useDecksStore } from '@/stores/decks'
+import { NoteType } from '@/lib/NoteType'
 const decksStore = useDecksStore()
 
 interface Props {
@@ -16,13 +17,17 @@ interface Props {
 }
 const props = defineProps<Props>()
 
+const noteType = ref<NoteType | undefined>(undefined)
 const cardTemplate = ref<CardTemplate | undefined>(undefined)
 onMounted(async () => {
-  cardTemplate.value = await decksStore.getCardTemplateById(
+  noteType.value = await decksStore.getNoteTypeById(Number(props.deckId), Number(props.noteTypeId))
+  cardTemplate.value = noteType.value?.getCardTemplateById(Number(props.cardTemplateId))
+
+  /*await decksStore.getCardTemplateById(
     Number(props.deckId),
     Number(props.noteTypeId),
     Number(props.cardTemplateId)
-  )
+  )*/
 })
 
 /*const noteType = ref(new AsyncLoader<NoteType>(props.noteTypeId, NoteType))
@@ -39,11 +44,13 @@ const isError = computed(
     <template #title>{{
       cardTemplate == undefined ? 'Card template not found' : `Card template: ${cardTemplate.name}`
     }}</template>
-    <template #content v-if="cardTemplate === undefined">
-      <p>Card template with index {{ cardTemplateId }} not found.</p>
+    <template #content v-if="cardTemplate === undefined || noteType === undefined">
+      <p>
+        Card template with id {{ cardTemplateId }} or note type with id {{ noteTypeId }} not found.
+      </p>
     </template>
     <template #content v-else>
-      <CardTemplateContent :card="cardTemplate" />
+      <CardTemplateContent :card="cardTemplate" :noteType="noteType" />
     </template>
   </MasterLayout>
 </template>

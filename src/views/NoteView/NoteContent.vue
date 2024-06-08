@@ -5,11 +5,11 @@ import LabelledControl from '@/components/ui/LabelledControl.vue'
 import { Textarea } from '@/components/shadcn-ui/textarea'
 import { Label } from '@/components/shadcn-ui/label'
 
-import { NoteContent } from '@/lib/Note'
+import type { NoteFieldContent } from '@/lib/Note'
 
 interface Props {
   name: string
-  noteContent: NoteContent
+  noteContent: NoteFieldContent
 }
 const props = defineProps<Props>()
 

@@ -7,6 +7,7 @@ import {
   SelectGroup,
   SelectItem
 } from '@/components/shadcn-ui/select'
+import { cn } from '@/lib/shadcn-utils'
 
 import type { SelectOption } from './ui.types'
 
@@ -14,6 +15,7 @@ interface Props {
   options: SelectOption[]
   modelValue?: SelectOption
   placeholder?: string
+  class?: string
 }
 const props = defineProps<Props>()
 
@@ -31,7 +33,7 @@ const handleUpdateModelValue = (id: string) => {
 
 <template>
   <Select :modelValue="modelValue?.id" @update:modelValue="handleUpdateModelValue">
-    <SelectTrigger class="w-[180px]">
+    <SelectTrigger :class="cn('w-[180px]', props.class)">
       <SelectValue :placeholder="placeholder" />
     </SelectTrigger>
     <SelectContent>

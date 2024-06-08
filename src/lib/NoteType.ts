@@ -36,7 +36,8 @@ export class NoteType implements DexiePersistableObject {
           id: parentDeck.getNextInternalId(),
           name: 'Default',
           frontTemplate: '{ front }',
-          backTemplate: '{ back }'
+          backTemplate: '{ back }',
+          css: ''
         })
       ]
     })
@@ -84,6 +85,10 @@ export class NoteType implements DexiePersistableObject {
   deleteCard(id: number) {
     this.cards = this.cards.filter((c) => c.id != id)
     this.persist()
+  }
+
+  getCardTemplateById(id: number) {
+    return this.cards.find((c) => c.id == id)
   }
 
   serialise(): SerialisedNoteType {

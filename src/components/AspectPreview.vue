@@ -8,6 +8,8 @@ import ShadowDom from './ShadowDom.vue'
 interface Props {
   previewWidth: number
   previewHeight: number
+  html: string
+  css: string
 }
 const props = defineProps<Props>()
 
@@ -21,7 +23,6 @@ const addContainerQuery = (width: number, height: number) => {
   const css = `
         .${className} {
             width: 100%;
-            background-color: beige;
             overflow: hidden;
         }
 
@@ -71,14 +72,21 @@ const scaleRatio = ref(0)
     <div class="preview-wrapper">
       <div
         ref="previewElement"
+        class="rounded-md border"
         :class="className"
         :style="`aspect-ratio: ${previewWidth} / ${previewHeight}`"
       >
-        <ShadowDom
-          class="content flex flex-col justify-center items-center"
+        <!--<div
+          class="content"
           :style="`width: ${previewWidth}px; height: ${previewHeight}px; transform: scale(${scaleRatio})`"
-          html="<h1>HELLO</h1>"
-          css=":root { display: flex; justify-content: center; align-items: center}"
+        >
+          <ShadowDom :html="html" :css="css" />
+        </div>-->
+        <ShadowDom
+          class="content"
+          :style="`width: ${previewWidth}px; height: ${previewHeight}px; transform: scale(${scaleRatio})`"
+          :html="html"
+          :css="css"
         />
       </div>
     </div>
@@ -93,28 +101,13 @@ const scaleRatio = ref(0)
 .preview-wrapper {
   position: absolute;
   inset: 0;
-  outline: 1px solid blue;
   container-type: size;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.desktop {
-  width: 100%;
-  background-color: beige;
-  overflow: hidden;
-}
-
 .content {
   transform-origin: top left;
-}
-
-h1 {
-  font-size: 3rem;
-}
-
-h1:hover {
-  color: red;
 }
 </style>

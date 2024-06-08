@@ -2,6 +2,7 @@ import type { ExcludeMethods } from './utils'
 import type { DexiePersistableObject } from './dexieDB'
 
 import type { Deck } from './Deck'
+import { NoteFieldContent } from './Note'
 
 export type SerialisedNoteField = Omit<ExcludeMethods<NoteField>, 'mimeTypes' | '_parentDeck'>
 
@@ -52,5 +53,21 @@ export class NoteField implements DexiePersistableObject {
 
   async persist() {
     await this._parentDeck.persist()
+  }
+
+  getPlaceholderContent() {
+    return new NoteFieldContent({ id: this.id, content: this.name })
+  }
+
+  render(content?: NoteFieldContent) {
+    if (content === undefined) {
+      return ''
+    }
+    if (content.id != this.id) {
+      throw new Error(
+        `Cannot render field id (${this.id}) and content id (${content.id}) mismatch `
+      )
+    }
+    return content.content
   }
 }
