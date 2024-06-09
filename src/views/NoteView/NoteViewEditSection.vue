@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 import { NoteType } from '@/lib/NoteType'
 import { Note } from '@/lib/Note'
 
@@ -8,16 +10,18 @@ interface Props {
   noteType: NoteType
   note: Note
 }
-defineProps<Props>()
+const props = defineProps<Props>()
+
+const zipped = computed(() => props.note.zipFieldsAndContent(props.noteType.fields))
 </script>
 
 <template>
   <div class="flex flex-col gap-5">
     <NoteContent
-      v-for="field in noteType.fields"
+      v-for="[field, content] in zipped"
       :key="field.id"
       :name="field.name"
-      :noteContent="note.content.find((c) => c.id == field.id)"
+      :noteContent="content"
     />
   </div>
 </template>

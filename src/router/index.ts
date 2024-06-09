@@ -34,6 +34,12 @@ const router = createRouter({
       props: true,
       component: CardTemplateView
     }
+    /*{
+      path: '/deck/:deckId/notes',
+      name: 'view-notes',
+      props: true,
+      component: ViewNotesView
+    }*/
   ]
 })
 

@@ -6,11 +6,13 @@ import AspectPreview from '@/components/AspectPreview.vue'
 
 import type { SelectOption } from '@/components/ui/ui.types'
 import type { CardTemplate } from '@/lib/CardTemplate'
-import type { NoteType } from '@/lib/NoteType'
+import type { NoteField } from '@/lib/NoteField'
+import type { NoteFieldContent } from '@/lib/Note'
 
 interface Props {
   template: CardTemplate
-  noteType: NoteType
+  noteFields: NoteField[]
+  noteFieldContent?: NoteFieldContent[]
 }
 const props = defineProps<Props>()
 
@@ -48,8 +50,8 @@ const selectedSideOption = ref(SIDE_OPTIONS[0])
 const renderedCard = computed(() => {
   return props.template.render(
     selectedSideOption.value.id,
-    props.noteType.fields,
-    props.noteType.fields.map((f) => f.getPlaceholderContent())
+    props.noteFields,
+    props.noteFieldContent || props.noteFields.map((f) => f.getPlaceholderContent())
   )
 })
 </script>

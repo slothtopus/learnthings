@@ -51,7 +51,7 @@ const cssTemplate = computed({
           <Textarea v-else-if="selectedTemplate.id == 'back'" rows="20" v-model="backTemplate" />
           <Textarea v-else rows="20" v-model="cssTemplate" />
         </div>
-        <CardPreview class="p-0 items-center" :template="card" :noteType="noteType" />
+        <CardPreview class="p-0 items-center" :template="card" :noteFields="noteType.fields" />
       </div>
     </template>
   </SectionLayout>
