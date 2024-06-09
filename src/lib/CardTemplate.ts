@@ -78,9 +78,15 @@ export class CardTemplate implements DexiePersistableObject {
       },
       {} as Record<string, string>
     )
+    let renderedHTML = ''
+    try {
+      renderedHTML = template(templateFields)
+    } catch (err) {
+      console.error(err)
+    }
     return {
       css: this.css,
-      html: `<main style="overflow: auto;">${template(templateFields)}</main>`
+      html: `<main style="overflow: auto;">${renderedHTML}</main>`
     }
   }
 
