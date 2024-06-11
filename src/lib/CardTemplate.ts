@@ -86,7 +86,7 @@ export class CardTemplate implements DexiePersistableObject {
     }
     return {
       css: this.css,
-      html: `<main style="overflow: auto;">${renderedHTML}</main>`
+      html: `<main class="${side}" style="overflow: auto;">${renderedHTML}</main>`
     }
   }
 

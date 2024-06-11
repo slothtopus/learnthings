@@ -27,6 +27,10 @@ const noteService = {
     delete (serialisedNote as any)['id']
     serialisedNote.id = await db.notes.add(cloneDeep(serialisedNote))
     return new Note(serialisedNote)
+  },
+  getNotesForDeck: async (deckId: number) => {
+    const serialisedNotes = await db.notes.where({ deckId }).toArray()
+    return serialisedNotes.map((n) => new Note(n))
   }
 }
 

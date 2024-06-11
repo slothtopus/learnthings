@@ -20,6 +20,7 @@ defineEmits<{
   edit: [value: void]
   delete: [value: void]
   add: [value: void]
+  view: [value: void]
 }>()
 </script>
 
@@ -31,8 +32,9 @@ defineEmits<{
     <CardContent>
       <p>Lorem ipsum dipsum shipsum</p>
     </CardContent>
-    <CardFooter class="gap-3">
+    <CardFooter class="gap-3 flex-wrap">
       <Button variant="outline" @click="$emit('edit')">Edit</Button>
+      <Button variant="outline" @click="$emit('view')">View</Button>
       <Button variant="outline" @click="$emit('add')">Add</Button>
       <Button variant="outline" @click="$emit('delete')">Delete</Button>
     </CardFooter>

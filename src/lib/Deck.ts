@@ -86,6 +86,10 @@ export class Deck implements DexiePersistableObject {
     this.persist()
   }
 
+  getNoteTypeById(id: number) {
+    return this.noteTypes.find((n) => n.id == id)
+  }
+
   serialise(): SerialisedDeck {
     return {
       id: this.id,
@@ -106,4 +110,8 @@ export class Deck implements DexiePersistableObject {
   debouncedPersist = debounce((deck: Deck) => {
     Deck.service.persistOne(deck)
   }, 1000)
+
+  getAllNotes() {
+    return Note.service.getNotesForDeck(this.id)
+  }
 }

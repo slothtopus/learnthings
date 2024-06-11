@@ -34,6 +34,12 @@ onMounted(decksStore.refreshDecks)
                   params: { deckId: deck.id, noteTypeId: deck.noteTypes[0].id }
                 })
               "
+              @view="
+                $router.push({
+                  name: 'view-notes',
+                  params: { deckId: deck.id }
+                })
+              "
               @delete="decksStore.deleteDeck(deck.id)"
             /></div
         ></template>

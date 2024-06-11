@@ -5,6 +5,7 @@ import DeckView from '@/views/DeckView/DeckView.vue'
 import NoteTypeView from '@/views/NoteTypeView/NoteTypeView.vue'
 import CardTemplateView from '@/views/CardTemplateView/CardTemplateView.vue'
 import NoteView from '@/views/NoteView/NoteView.vue'
+import NotesTableView from '@/views/NotesTableView/NotesTableView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -33,13 +34,13 @@ const router = createRouter({
       name: 'edit-cardtemplate',
       props: true,
       component: CardTemplateView
-    }
-    /*{
+    },
+    {
       path: '/deck/:deckId/notes',
       name: 'view-notes',
       props: true,
-      component: ViewNotesView
-    }*/
+      component: NotesTableView
+    }
   ]
 })
 

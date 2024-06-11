@@ -91,6 +91,10 @@ export class NoteType implements DexiePersistableObject {
     return this.cards.find((c) => c.id == id)
   }
 
+  getSearchField() {
+    return this.fields[0]
+  }
+
   serialise(): SerialisedNoteType {
     return {
       id: this.id,
