@@ -2,7 +2,9 @@
 import { onMounted, ref } from 'vue'
 
 import MasterLayout from '@/views/layouts/MasterLayout.vue'
+import SectionLayout from '@/views/layouts/SectionLayout.vue'
 import NotesTable from '@/components/NotesTable.vue'
+import { Tabs, TabsList, TabsTrigger } from '@/components/shadcn-ui/tabs'
 
 import type { Deck } from '@/lib/Deck'
 import type { Note } from '@/lib/Note'
@@ -23,6 +25,18 @@ onMounted(async () => {
     notes.value = await deck.value.getAllNotes()
   }
 })
+
+const handleEditNote = (noteId: number) => {
+  console.log('edit note:', noteId)
+}
+
+const handleDeleteNote = (noteId: number) => {
+  console.log('delete note', noteId)
+  deck.value?.deleteNote(noteId)
+  notes.value = notes.value.filter((n) => n.id != noteId)
+}
+
+const selectedTab = ref('notes')
 </script>
 
 <template>
@@ -33,7 +47,28 @@ onMounted(async () => {
     <template #content v-if="deck === undefined">
       <p>Deck with id {{ deckId }}</p>
     </template>
-    <template #content v-else><NotesTable :deck="deck" :notes="notes" /></template>
+    <template #content v-else>
+      <SectionLayout class="h-full">
+        <template #title>Browse {{ selectedTab == 'notes' ? 'notes' : 'cards' }}</template>
+        <template #controls>
+          <Tabs default-value="notes" v-model="selectedTab" class="w-[200px]">
+            <TabsList class="grid w-full grid-cols-2">
+              <TabsTrigger value="notes"> Notes </TabsTrigger>
+              <TabsTrigger value="cards"> Cards </TabsTrigger>
+            </TabsList></Tabs
+          ></template
+        >
+        <template #content>
+          <NotesTable
+            v-if="selectedTab == 'notes'"
+            :deck="deck"
+            :notes="notes"
+            @edit="handleEditNote"
+            @delete="handleDeleteNote"
+          />
+        </template>
+      </SectionLayout>
+    </template>
   </MasterLayout>
 </template>
 

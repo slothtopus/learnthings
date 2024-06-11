@@ -8,6 +8,8 @@ import Handlebars from 'handlebars'
 
 export type SerialisedCardTemplate = Omit<ExcludeMethods<CardTemplate>, '_parentDeck'>
 
+export type RenderedCard = { css: string; html: string }
+
 export class CardTemplate implements DexiePersistableObject {
   id: number
   name: string
@@ -69,15 +71,15 @@ export class CardTemplate implements DexiePersistableObject {
     }
   }
 
-  render(side: 'front' | 'back', fields: NoteField[], content: NoteFieldContent[]) {
+  render(side: 'front' | 'back', templateFields: Record<string, string>): RenderedCard {
     const template = Handlebars.compile(side == 'front' ? this.frontTemplate : this.backTemplate)
-    const templateFields = fields.reduce(
+    /*const templateFields = fields.reduce(
       (allFields, field) => {
         allFields[field.name] = field.render(content.find((c) => c.id == field.id))
         return allFields
       },
       {} as Record<string, string>
-    )
+    )*/
     let renderedHTML = ''
     try {
       renderedHTML = template(templateFields)

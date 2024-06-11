@@ -5,7 +5,7 @@ import SectionLayout from '@/views/layouts/SectionLayout.vue'
 
 import SelectControl from '@/components/ui/SelectControl.vue'
 import { Textarea } from '@/components/shadcn-ui/textarea'
-import CardPreview from '@/components/CardPreview.vue'
+import CardTemplatePreview from './CardTemplatePreview.vue'
 
 import type { CardTemplate } from '@/lib/CardTemplate'
 import type { NoteType } from '@/lib/NoteType'
@@ -51,7 +51,7 @@ const cssTemplate = computed({
           <Textarea v-else-if="selectedTemplate.id == 'back'" rows="20" v-model="backTemplate" />
           <Textarea v-else rows="20" v-model="cssTemplate" />
         </div>
-        <CardPreview class="p-0 items-center" :template="card" :noteFields="noteType.fields" />
+        <CardTemplatePreview :card="card" :noteType="noteType" />
       </div>
     </template>
   </SectionLayout>

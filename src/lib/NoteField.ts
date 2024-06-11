@@ -64,6 +64,10 @@ export class NoteField implements DexiePersistableObject {
     return note.content.find((c) => c.id == this.id)
   }
 
+  getFieldId() {
+    return this.name
+  }
+
   render(content?: NoteFieldContent) {
     if (content === undefined) {
       return ''

@@ -7,9 +7,8 @@ import { NoteField } from '@/lib/NoteField'
 import { NoteType } from '@/lib/NoteType'
 import type { Deck } from '@/lib/Deck'
 
-import SectionLayout from '@/views/layouts/SectionLayout.vue'
 import ActionButton from '@/components/ui/ActionButton.vue'
-import { Button } from '@/components/shadcn-ui/button'
+import PaginationControl from '@/components/ui/PaginationControl.vue'
 import { Input } from '@/components/shadcn-ui/input'
 
 import type { ColumnDef, Cell, Updater, ColumnFiltersState } from '@tanstack/vue-table'
@@ -32,24 +31,32 @@ const valueUpdater = <T extends Updater<any>>(updaterOrValue: T, refToUpdate: Re
     typeof updaterOrValue === 'function' ? updaterOrValue(refToUpdate.value) : updaterOrValue
 }
 
-type NotesData = { searchField: string; noteTypeId: number; noteTypeName: string; cards: number }
+type NotesData = {
+  noteId: number
+  searchField: string
+  noteTypeId: number
+  noteTypeName: string
+  cards: number
+}
 
 const tableData = computed<NotesData[]>(() => {
   const rawData = props.notes.flatMap<{
+    note: Note
     noteType: NoteType
     searchField: NoteField
     searchContent: NoteFieldContent
-  }>((n) => {
-    const noteType = props.deck.getNoteTypeById(n.noteTypeId)
+  }>((note) => {
+    const noteType = props.deck.getNoteTypeById(note.noteTypeId)
     const searchField = noteType?.getSearchField()
-    const searchContent = searchField?.getFieldContentFromNote(n)
+    const searchContent = searchField?.getFieldContentFromNote(note)
     if (noteType === undefined || searchField === undefined || searchContent === undefined) {
       return []
     } else {
-      return [{ noteType, searchField, searchContent }]
+      return [{ note, noteType, searchField, searchContent }]
     }
   })
   return rawData.map((d) => ({
+    noteId: d.note.id,
     searchField: d.searchContent.content,
     noteTypeId: d.noteType.id,
     noteTypeName: d.noteType.name,
@@ -64,6 +71,11 @@ const spanWrapper =
   ({ cell }: { cell: Cell<NotesData, string> }) =>
     h('span', { class: classNames }, [cell.getValue()])
 
+const emit = defineEmits<{
+  edit: [noteId: number]
+  delete: [noteId: number]
+}>()
+
 const columns = computed(() => {
   const columns: ColumnDef<NotesData, string>[] = [
     {
@@ -75,12 +87,16 @@ const columns = computed(() => {
     { accessorKey: 'cards', header: 'Cards', cell: spanWrapper('mx-auto') },
     {
       id: 'actions',
-      cell: () =>
+      cell: ({ row }) =>
         h(ActionButton, {
           actions: [
             { id: 'edit', value: 'Edit note' },
             { id: 'delete', value: 'Delete' }
-          ]
+          ],
+          onSelect: (action: string) => {
+            if (action == 'edit') emit('edit', row.original.noteId)
+            if (action == 'delete') emit('delete', row.original.noteId)
+          }
         })
     }
   ]
@@ -107,90 +123,72 @@ const table = useVueTable({
 </script>
 
 <template>
-  <SectionLayout class="h-full">
-    <template #title> All notes </template>
-    <template #content>
-      <div class="flex items-center py-4">
-        <Input
-          class="max-w-sm"
-          placeholder="Filter notes..."
-          :model-value="table.getColumn('searchField')?.getFilterValue() as string"
-          @update:model-value="table.getColumn('searchField')?.setFilterValue($event)"
-        />
-      </div>
-      <div class="relative grow overflow-hidden">
-        <div class="absolute inset-0">
-          <table class="text-sm">
-            <thead class="bg-slate-500 border-slate-500 rounded-t-md text-white sticky top-0 z-10">
-              <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-                <th
-                  v-for="header in headerGroup.headers"
-                  :key="header.id"
-                  class="h-12 p-4 text-left align-middle font-medium [&:has([role=checkbox])]:pr-0 last:pr-8"
-                >
-                  <FlexRender
-                    v-if="!header.isPlaceholder"
-                    :render="header.column.columnDef.header"
-                    :props="header.getContext()"
-                  />
-                </th>
-              </tr>
-            </thead>
-            <tbody class="border rounded-b-md border-t-none [&_tr:last-child]:border-0">
-              <template v-if="table.getRowModel().rows?.length">
-                <tr
-                  v-for="row in table.getRowModel().rows"
-                  :key="row.id"
-                  :data-state="row.getIsSelected() ? 'selected' : undefined"
-                  class="self-start border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-                >
-                  <td
-                    v-for="cell in row.getVisibleCells()"
-                    :key="cell.id"
-                    :class="{ 'text-center': cell.column.id == 'cards' }"
-                    class="p-4 last:pr-8 [&:has([role=checkbox])]:pr-0"
-                  >
-                    <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
-                  </td>
-                </tr>
-              </template>
-              <template v-else>
-                <tr
-                  class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-                >
-                  <td
-                    class="p-4 last:pr-8 [&:has([role=checkbox])]:pr-0 justify-center"
-                    style="grid-column: 1/-1"
-                  >
-                    No results.
-                  </td>
-                </tr>
-              </template>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="mt-auto p-4 flex justify-end gap-3">
-        <Button
-          variant="outline"
-          size="sm"
-          :disabled="!table.getCanPreviousPage()"
-          @click="table.previousPage()"
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          :disabled="!table.getCanNextPage()"
-          @click="table.nextPage()"
-        >
-          Next
-        </Button>
-      </div>
-    </template>
-  </SectionLayout>
-  <!--</section>-->
+  <div class="flex items-center py-4">
+    <Input
+      class="max-w-sm"
+      placeholder="Filter notes..."
+      :model-value="table.getColumn('searchField')?.getFilterValue() as string"
+      @update:model-value="table.getColumn('searchField')?.setFilterValue($event)"
+    />
+  </div>
+  <div class="relative grow overflow-hidden">
+    <div class="absolute inset-0">
+      <table class="text-sm">
+        <thead class="bg-slate-500 border-slate-500 rounded-t-md text-white sticky top-0 z-10">
+          <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
+            <th
+              v-for="header in headerGroup.headers"
+              :key="header.id"
+              class="h-12 p-4 text-left align-middle font-medium [&:has([role=checkbox])]:pr-0 last:pr-8"
+            >
+              <FlexRender
+                v-if="!header.isPlaceholder"
+                :render="header.column.columnDef.header"
+                :props="header.getContext()"
+              />
+            </th>
+          </tr>
+        </thead>
+        <tbody class="border rounded-b-md border-t-none [&_tr:last-child]:border-0">
+          <template v-if="table.getRowModel().rows?.length">
+            <tr
+              v-for="row in table.getRowModel().rows"
+              :key="row.id"
+              :data-state="row.getIsSelected() ? 'selected' : undefined"
+              class="self-start border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+            >
+              <td
+                v-for="cell in row.getVisibleCells()"
+                :key="cell.id"
+                :class="{ 'text-center': cell.column.id == 'cards' }"
+                class="p-4 last:pr-8 [&:has([role=checkbox])]:pr-0"
+              >
+                <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+              </td>
+            </tr>
+          </template>
+          <template v-else>
+            <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+              <td
+                class="p-4 last:pr-8 [&:has([role=checkbox])]:pr-0 justify-center"
+                style="grid-column: 1/-1"
+              >
+                No results.
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="mt-auto p-4 flex justify-end gap-3">
+    <PaginationControl
+      :totalItems="table.getPrePaginationRowModel().rows.length"
+      :itemsPerPage="table.getState().pagination.pageSize"
+      :page="table.getState().pagination.pageIndex + 1"
+      @update:page="table.setPageIndex($event - 1)"
+    />
+  </div>
 </template>
 
 <style scoped>

@@ -4,6 +4,8 @@ import type { SerialisedNoteField } from './NoteField'
 import { CardTemplate } from './CardTemplate'
 import type { SerialisedCardTemplate } from './CardTemplate'
 
+import type { Note } from './Note'
+
 import type { DexiePersistableObject } from './dexieDB'
 
 import type { Deck } from './Deck'
@@ -106,5 +108,13 @@ export class NoteType implements DexiePersistableObject {
 
   async persist() {
     await this._parentDeck.persist()
+  }
+
+  generateCards(note: Note) {
+    const templateFields = note.populateFields(this.fields)
+    return this.cards.map((card) => ({
+      front: card.render('front', templateFields),
+      back: card.render('back', templateFields)
+    }))
   }
 }

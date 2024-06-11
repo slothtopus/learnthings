@@ -5,14 +5,10 @@ import SelectControl from '@/components/ui/SelectControl.vue'
 import AspectPreview from '@/components/AspectPreview.vue'
 
 import type { SelectOption } from '@/components/ui/ui.types'
-import type { CardTemplate } from '@/lib/CardTemplate'
-import type { NoteField } from '@/lib/NoteField'
-import type { NoteFieldContent } from '@/lib/Note'
+import type { RenderedCard } from '@/lib/CardTemplate'
 
 interface Props {
-  template: CardTemplate
-  noteFields: NoteField[]
-  noteFieldContent?: NoteFieldContent[]
+  renderedCard: RenderedCard
 }
 const props = defineProps<Props>()
 
@@ -48,11 +44,7 @@ const SIDE_OPTIONS: (SelectOption & { id: 'front' | 'back' })[] = [
 const selectedSideOption = ref(SIDE_OPTIONS[0])
 
 const renderedCard = computed(() => {
-  return props.template.render(
-    selectedSideOption.value.id,
-    props.noteFields,
-    props.noteFieldContent || props.noteFields.map((f) => f.getPlaceholderContent())
-  )
+  return props.template.render(selectedSideOption.value.id, props.note.populateFields(props.fields))
 })
 </script>
 

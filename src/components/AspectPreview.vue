@@ -10,6 +10,7 @@ interface Props {
   previewHeight: number
   html: string
   css: string
+  align?: 'left' | 'right'
 }
 const props = defineProps<Props>()
 
@@ -69,7 +70,7 @@ const scaleRatio = ref(0)
 
 <template>
   <div class="preview-outer justify-center relative h-full">
-    <div class="preview-wrapper">
+    <div class="preview-wrapper" :class="align">
       <div
         ref="previewElement"
         class="rounded-md border"
@@ -94,9 +95,9 @@ const scaleRatio = ref(0)
 </template>
 
 <style scoped>
-.preview-outer {
+/*.preview-outer {
   min-height: 24rem;
-}
+}*/
 
 .preview-wrapper {
   position: absolute;
@@ -105,6 +106,13 @@ const scaleRatio = ref(0)
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.preview-wrapper.right {
+  justify-content: flex-end;
+}
+.preview-wrapper.left {
+  justify-content: flex-start;
 }
 
 .content {

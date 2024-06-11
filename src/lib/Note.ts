@@ -31,6 +31,9 @@ const noteService = {
   getNotesForDeck: async (deckId: number) => {
     const serialisedNotes = await db.notes.where({ deckId }).toArray()
     return serialisedNotes.map((n) => new Note(n))
+  },
+  deleteNote: async (noteId: number) => {
+    await db.notes.delete(noteId)
   }
 }
 
@@ -59,6 +62,15 @@ export class Note implements DexiePersistableObject {
     })
   }
 
+  static createPlaceholderNote(noteType: NoteType) {
+    return new Note({
+      id: -1,
+      deckId: noteType._parentDeck.id,
+      noteTypeId: noteType.id,
+      content: noteType.fields.map((f) => f.getPlaceholderContent())
+    })
+  }
+
   constructor({ id, deckId, noteTypeId, content }: SerialisedNote) {
     this.id = id
     this.deckId = deckId
@@ -66,11 +78,28 @@ export class Note implements DexiePersistableObject {
     this.content = content
   }
 
+  getContentForField(field: NoteField) {
+    return this.content.find((c) => c.id == field.id)
+  }
+
   zipFieldsAndContent(noteFields: NoteField[]) {
     const zipped = noteFields
       .map((f) => [f, this.content.find((c) => c.id == f.id)])
       .filter((z) => z[1] !== undefined) as [NoteField, NoteFieldContent][]
     return zipped
+  }
+
+  populateFields(noteFields: NoteField[], usePlaceholderContent = false) {
+    return noteFields.reduce(
+      (allFields, field) => {
+        const content =
+          this.getContentForField(field) ||
+          (usePlaceholderContent ? field.getPlaceholderContent() : undefined)
+        allFields[field.getFieldId()] = field.render(content)
+        return allFields
+      },
+      {} as Record<string, string>
+    )
   }
 
   serialise(): SerialisedNote {

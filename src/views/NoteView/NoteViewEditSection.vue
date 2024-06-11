@@ -16,7 +16,7 @@ const zipped = computed(() => props.note.zipFieldsAndContent(props.noteType.fiel
 </script>
 
 <template>
-  <div class="flex flex-col gap-5">
+  <div class="-mr-4 -ml-2 py-6 pr-6 pl-2 overflow-auto flex flex-col gap-5">
     <NoteContent
       v-for="[field, content] in zipped"
       :key="field.id"
