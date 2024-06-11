@@ -16,6 +16,7 @@ interface Props {
   modelValue?: SelectOption
   placeholder?: string
   class?: string
+  disabled?: boolean
 }
 const props = defineProps<Props>()
 
@@ -32,7 +33,11 @@ const handleUpdateModelValue = (id: string) => {
 </script>
 
 <template>
-  <Select :modelValue="modelValue?.id" @update:modelValue="handleUpdateModelValue">
+  <Select
+    :disabled="disabled"
+    :modelValue="modelValue?.id"
+    @update:modelValue="handleUpdateModelValue"
+  >
     <SelectTrigger :class="cn('w-[180px]', props.class)">
       <SelectValue :placeholder="placeholder" />
     </SelectTrigger>

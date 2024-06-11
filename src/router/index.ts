@@ -4,7 +4,8 @@ import DecksView from '@/views/DecksView.vue'
 import DeckView from '@/views/DeckView/DeckView.vue'
 import NoteTypeView from '@/views/NoteTypeView/NoteTypeView.vue'
 import CardTemplateView from '@/views/CardTemplateView/CardTemplateView.vue'
-import NoteView from '@/views/NoteView/NoteView.vue'
+import AddNoteView from '@/views/NoteView/AddNoteView.vue'
+import EditNoteView from '@/views/NoteView/EditNoteView.vue'
 import NotesTableView from '@/views/NotesTableView/NotesTableView.vue'
 
 const router = createRouter({
@@ -27,7 +28,13 @@ const router = createRouter({
       path: '/deck/:deckId/notetype/:noteTypeId/new',
       name: 'new-note',
       props: true,
-      component: NoteView
+      component: AddNoteView
+    },
+    {
+      path: '/deck/:deckId/notes/:noteId/edit',
+      name: 'edit-note',
+      props: true,
+      component: EditNoteView
     },
     {
       path: '/deck/:deckId/notetype/:noteTypeId/card/:cardTemplateId',

@@ -3,7 +3,7 @@ import AspectPreview from '@/components/AspectPreview.vue'
 import type { RenderedCard } from '@/lib/CardTemplate'
 
 interface Props {
-  name: string
+  name?: string
   renderedFront: RenderedCard
   renderedBack: RenderedCard
   dims: number[]
@@ -13,7 +13,7 @@ defineProps<Props>()
 
 <template>
   <section class="w-full flex flex-col gap-4 p-4">
-    <h2 class="text-lg text-center">{{ name }}</h2>
+    <h2 v-if="name !== undefined" class="text-lg text-center">{{ name }}</h2>
     <div class="previews">
       <AspectPreview
         class="w-full"

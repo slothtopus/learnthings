@@ -115,6 +115,10 @@ export class Deck implements DexiePersistableObject {
     return Note.service.getNotesForDeck(this.id)
   }
 
+  getNote(id: number) {
+    return Note.service.getNote(id)
+  }
+
   deleteNote(noteId: number) {
     return Note.service.deleteNote(noteId)
   }

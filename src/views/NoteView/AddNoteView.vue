@@ -2,7 +2,8 @@
 import { onMounted, ref, watch } from 'vue'
 
 import MasterLayout from '@/views/layouts/MasterLayout.vue'
-import NoteViewContent from './NoteViewContent.vue'
+//import NoteViewContent from './NoteViewContent.vue'
+import AddNoteContentWrapper from './AddNoteContentWrapper.vue'
 
 import { useDecksStore } from '@/stores/decks'
 const decksStore = useDecksStore()
@@ -37,7 +38,7 @@ watch(
       <p>Not found</p>
     </template>
     <template #content v-else>
-      <NoteViewContent :noteTypes="deck.noteTypes" :noteType="noteType" />
+      <AddNoteContentWrapper :noteTypes="deck.noteTypes" :noteType="noteType" />
     </template>
   </MasterLayout>
 </template>

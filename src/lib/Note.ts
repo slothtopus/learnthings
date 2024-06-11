@@ -7,17 +7,25 @@ import type { DexiePersistableObject } from './dexieDB'
 
 import { cloneDeep } from 'lodash-es'
 
+export type SerialisedNoteFieldContent = ExcludeMethods<NoteFieldContent>
 export class NoteFieldContent {
   id: number
   content: string
 
-  constructor({ id, content }: ExcludeMethods<NoteFieldContent>) {
+  constructor({ id, content }: SerialisedNoteFieldContent) {
     this.id = id
     this.content = content
   }
 
   setContent(content: string) {
     this.content = content
+  }
+
+  serialise(): SerialisedNoteFieldContent {
+    return {
+      id: this.id,
+      content: this.content
+    }
   }
 }
 
@@ -34,10 +42,25 @@ const noteService = {
   },
   deleteNote: async (noteId: number) => {
     await db.notes.delete(noteId)
+  },
+  getNote: async (noteId: number) => {
+    const serialisedNote = await db.notes.get(noteId)
+    if (serialisedNote === undefined) {
+      throw new Error(`Note with ${noteId} not found`)
+    }
+    return new Note(serialisedNote)
+  },
+  persistNote: async (note: Note) => {
+    await db.notes.put(cloneDeep(note.serialise()))
   }
 }
 
-export type SerialisedNote = ExcludeMethods<Note>
+export type SerialisedNote = {
+  id: number
+  deckId: number
+  noteTypeId: number
+  content: SerialisedNoteFieldContent[]
+}
 
 export class Note implements DexiePersistableObject {
   id: number
@@ -75,7 +98,7 @@ export class Note implements DexiePersistableObject {
     this.id = id
     this.deckId = deckId
     this.noteTypeId = noteTypeId
-    this.content = content
+    this.content = content.map((c) => new NoteFieldContent(c))
   }
 
   getContentForField(field: NoteField) {
@@ -107,11 +130,11 @@ export class Note implements DexiePersistableObject {
       id: this.id,
       deckId: this.deckId,
       noteTypeId: this.noteTypeId,
-      content: this.content
+      content: this.content.map((c) => c.serialise())
     }
   }
 
   async persist() {
-    throw new Error('persist not implemented')
+    Note.service.persistNote(this)
   }
 }

@@ -4,13 +4,16 @@ import { onMounted, ref } from 'vue'
 import MasterLayout from '@/views/layouts/MasterLayout.vue'
 import SectionLayout from '@/views/layouts/SectionLayout.vue'
 import NotesTable from '@/components/NotesTable.vue'
+import CardsTable from '@/components/CardsTable.vue'
 import { Tabs, TabsList, TabsTrigger } from '@/components/shadcn-ui/tabs'
 
 import type { Deck } from '@/lib/Deck'
 import type { Note } from '@/lib/Note'
 
 import { useDecksStore } from '@/stores/decks'
+import { useRouter } from 'vue-router'
 const decksStore = useDecksStore()
+const router = useRouter()
 
 interface Props {
   deckId: string
@@ -28,6 +31,7 @@ onMounted(async () => {
 
 const handleEditNote = (noteId: number) => {
   console.log('edit note:', noteId)
+  router.push({ name: 'edit-note', params: { deckId: props.deckId, noteId: String(noteId) } })
 }
 
 const handleDeleteNote = (noteId: number) => {
@@ -66,6 +70,7 @@ const selectedTab = ref('notes')
             @edit="handleEditNote"
             @delete="handleDeleteNote"
           />
+          <CardsTable v-else :deck="deck" :notes="notes" />
         </template>
       </SectionLayout>
     </template>

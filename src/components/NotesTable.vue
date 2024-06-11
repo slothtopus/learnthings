@@ -181,7 +181,18 @@ const table = useVueTable({
       </table>
     </div>
   </div>
-  <div class="mt-auto p-4 flex justify-end gap-3">
+  <div class="mt-auto p-4 flex justify-between items-center gap-3">
+    <span class="text-sm text-slate-500"
+      >Showing notes
+      {{ table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1 }} to
+      {{
+        Math.min(
+          table.getPrePaginationRowModel().rows.length,
+          (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize
+        )
+      }}
+      of {{ table.getPrePaginationRowModel().rows.length }}</span
+    >
     <PaginationControl
       :totalItems="table.getPrePaginationRowModel().rows.length"
       :itemsPerPage="table.getState().pagination.pageSize"

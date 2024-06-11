@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import { NoteType } from '@/lib/NoteType'
 import { Note } from '@/lib/Note'
 
-import NoteContent from './NoteContent.vue'
+import NoteFieldContent from './NoteFieldContent.vue'
 
 interface Props {
   noteType: NoteType
@@ -17,7 +17,7 @@ const zipped = computed(() => props.note.zipFieldsAndContent(props.noteType.fiel
 
 <template>
   <div class="-mr-4 -ml-2 py-6 pr-6 pl-2 overflow-auto flex flex-col gap-5">
-    <NoteContent
+    <NoteFieldContent
       v-for="[field, content] in zipped"
       :key="field.id"
       :name="field.name"
