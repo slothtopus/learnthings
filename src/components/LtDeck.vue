@@ -44,4 +44,3 @@ defineEmits<{
 </template>
 
 <style scoped></style>
-@/components/shadcn-ui/card@/components/shadcn-ui/button

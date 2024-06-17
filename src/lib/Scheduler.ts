@@ -16,10 +16,6 @@ export class CardMeta implements DexiePersistableObject {
   cardTemplateId: number
   lastCorrectTimestamp: number
 
-  static generateId(noteId: number, cardTemplateId: number) {
-    return `${noteId}:${cardTemplateId}`
-  }
-
   static async getKeyedMeta(deckId: number) {
     const serialisedCardMeta = await db.cardMeta.where({ deckId }).toArray()
     const cardMeta = serialisedCardMeta.map((n) => new CardMeta(n))
@@ -34,6 +30,7 @@ export class CardMeta implements DexiePersistableObject {
 
   static fromCard(card: Card, lastCorrectTimestamp: number) {
     return new CardMeta({
+      id: card.id,
       deckId: card._parentDeck.id,
       noteId: card.note.id,
       cardTemplateId: card.cardTemplate.id,
@@ -41,13 +38,8 @@ export class CardMeta implements DexiePersistableObject {
     })
   }
 
-  constructor({
-    deckId,
-    noteId,
-    cardTemplateId,
-    lastCorrectTimestamp
-  }: Omit<SerialisedCardMeta, 'id'>) {
-    this.id = CardMeta.generateId(noteId, cardTemplateId)
+  constructor({ id, deckId, noteId, cardTemplateId, lastCorrectTimestamp }: SerialisedCardMeta) {
+    this.id = id
     this.deckId = deckId
     this.noteId = noteId
     this.cardTemplateId = cardTemplateId
@@ -104,8 +96,12 @@ export class Card {
     this.meta = meta || CardMeta.fromCard(this, 0)
   }
 
+  static generateId(noteId: number, cardTemplateId: number) {
+    return `${noteId}:${cardTemplateId}`
+  }
+
   get id() {
-    return `${this.note.id}:${this.cardTemplate.id}`
+    return Card.generateId(this.note.id, this.cardTemplate.id)
   }
 
   render(side: 'front' | 'back') {
@@ -162,7 +158,7 @@ export class Scheduler {
             note,
             cardTemplate: c,
             fields: this._parentDeck.getNoteTypeByIdOrThrow(note.noteTypeId).fields,
-            meta: cardMetaLookup[CardMeta.generateId(note.id, c.id)]
+            meta: cardMetaLookup[Card.generateId(note.id, c.id)]
           })
       )
     })
@@ -209,6 +205,14 @@ export class Scheduler {
     }
   }
 
+  getCardOrThrow(id: string) {
+    const card = this.cards.find((c) => c.id == id)
+    if (card === undefined) {
+      throw new Error(`Card id ${id} not found`)
+    }
+    return card
+  }
+
   getNextCardIds() {
     const maxWeight = this.cumWeights[this.cumWeights.length - 1]
     const randomVal = Math.random() * maxWeight
@@ -225,14 +229,6 @@ export class Scheduler {
 
     const card = this.cards[i]
     return { deckId: this._parentDeck.id, cardId: card.id }
-  }
-
-  getCardOrThrow(id: string) {
-    const card = this.cards.find((c) => c.id == id)
-    if (card === undefined) {
-      throw new Error(`Card id ${id} not found`)
-    }
-    return card
   }
 
   answer(card: Card, value: number) {

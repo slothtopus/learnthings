@@ -133,4 +133,15 @@ export class Deck implements DexiePersistableObject {
   deleteNote(noteId: number) {
     return Note.service.deleteNote(noteId)
   }
+
+  async getStatistics() {
+    const notes = await Note.service.getNotesForDeck(this.id)
+    return {
+      notes: notes.length,
+      cards: notes.reduce((cardCount, note) => {
+        const noteType = this.getNoteTypeById(note.noteTypeId)
+        return cardCount + (noteType?.cards.length || 0)
+      }, 0)
+    }
+  }
 }

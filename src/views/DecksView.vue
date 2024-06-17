@@ -4,7 +4,9 @@ import { onMounted } from 'vue'
 import MasterLayout from './layouts/MasterLayout.vue'
 import SectionLayout from './layouts/SectionLayout.vue'
 
-import LtDeck from '@/components/LtDeck.vue'
+import LtDeck2 from '@/components/LtDeck2.vue'
+
+//import LtDeck from '@/components/LtDeck.vue'
 import { Button } from '@/components/shadcn-ui/button'
 
 import { useDecksStore } from '@/stores/decks'
@@ -18,23 +20,24 @@ onMounted(decksStore.refreshDecks)
     <template #title>Decks</template>
     <template #content>
       <SectionLayout>
+        <template #title>All decks</template>
         <template #controls
           ><Button @click="decksStore.createNewDeck">Create new deck</Button></template
         >
-        <template #content
-          ><div class="grid grid-cols-[repeat(auto-fill,18rem)] justify-center gap-6">
-            <LtDeck
+        <template #content>
+          <div class="flex flex-col gap-5">
+            <LtDeck2
               v-for="deck in decksStore.decks"
               :key="deck.id"
               :deck="deck"
-              @edit="$router.push({ name: 'edit-deck', params: { deckId: deck.id } })"
+              @settings="$router.push({ name: 'edit-deck', params: { deckId: deck.id } })"
               @add="
                 $router.push({
                   name: 'new-note',
                   params: { deckId: deck.id, noteTypeId: deck.noteTypes[0].id }
                 })
               "
-              @view="
+              @browse="
                 $router.push({
                   name: 'view-notes',
                   params: { deckId: deck.id }
@@ -42,8 +45,9 @@ onMounted(decksStore.refreshDecks)
               "
               @delete="decksStore.deleteDeck(deck.id)"
               @study="$router.push({ name: 'study', params: { deckId: deck.id } })"
-            /></div
-        ></template>
+            />
+          </div>
+        </template>
       </SectionLayout>
     </template>
   </MasterLayout>
