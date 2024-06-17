@@ -41,6 +41,7 @@ onMounted(decksStore.refreshDecks)
                 })
               "
               @delete="decksStore.deleteDeck(deck.id)"
+              @study="$router.push({ name: 'study', params: { deckId: deck.id } })"
             /></div
         ></template>
       </SectionLayout>

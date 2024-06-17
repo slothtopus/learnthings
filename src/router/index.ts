@@ -7,6 +7,16 @@ import CardTemplateView from '@/views/CardTemplateView/CardTemplateView.vue'
 import AddNoteView from '@/views/NoteView/AddNoteView.vue'
 import EditNoteView from '@/views/NoteView/EditNoteView.vue'
 import NotesTableView from '@/views/NotesTableView/NotesTableView.vue'
+import StudyView from '@/views/StudyView/StudyView.vue'
+
+import type { Scheduler } from '@/lib/Scheduler'
+
+// https://router.vuejs.org/guide/advanced/meta.html#TypeScript
+declare module 'vue-router' {
+  interface RouteMeta {
+    scheduler?: Scheduler
+  }
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,6 +57,12 @@ const router = createRouter({
       name: 'view-notes',
       props: true,
       component: NotesTableView
+    },
+    {
+      path: '/study/:deckId/:cardId?',
+      name: 'study',
+      props: true,
+      component: StudyView
     }
   ]
 })

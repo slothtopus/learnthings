@@ -5,6 +5,7 @@ import { debounce, cloneDeep } from 'lodash-es'
 
 import { db } from './dexieDB'
 import type { DexiePersistableObject } from './dexieDB'
+import { Scheduler } from './Scheduler'
 
 export type SerialisedDeck = {
   id: number
@@ -44,6 +45,7 @@ export class Deck implements DexiePersistableObject {
   name: string
   noteTypes: NoteType[]
   notes: Note[]
+  scheduler: Scheduler
   nextInternalId: number
 
   static service = deckService
@@ -64,6 +66,7 @@ export class Deck implements DexiePersistableObject {
     this.noteTypes = noteTypes.map((n) => new NoteType(this, n))
     this.notes = notes
     this.nextInternalId = nextInternalId
+    this.scheduler = new Scheduler(this, { newCards: 5 })
   }
 
   setName(name: string) {
@@ -88,6 +91,14 @@ export class Deck implements DexiePersistableObject {
 
   getNoteTypeById(id: number) {
     return this.noteTypes.find((n) => n.id == id)
+  }
+
+  getNoteTypeByIdOrThrow(id: number) {
+    const noteType = this.getNoteTypeById(id)
+    if (noteType === undefined) {
+      throw new Error(`note type ${id} not found`)
+    }
+    return noteType
   }
 
   serialise(): SerialisedDeck {
