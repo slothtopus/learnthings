@@ -25,7 +25,7 @@ const initialise = async () => {
   await deck.scheduler.initialiseIfNeeded()
 
   if (props.cardId === undefined || props.cardId == '') {
-    router.push({
+    router.replace({
       name: 'study',
       params: deck.scheduler.getNextCardIds()
     })

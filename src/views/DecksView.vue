@@ -30,7 +30,7 @@ onMounted(decksStore.refreshDecks)
               v-for="deck in decksStore.decks"
               :key="deck.id"
               :deck="deck"
-              @settings="$router.push({ name: 'edit-deck', params: { deckId: deck.id } })"
+              @settings="$router.push({ name: 'settings-deck', params: { deckId: deck.id } })"
               @add="
                 $router.push({
                   name: 'new-note',
@@ -39,7 +39,7 @@ onMounted(decksStore.refreshDecks)
               "
               @browse="
                 $router.push({
-                  name: 'view-notes',
+                  name: 'browse-notes',
                   params: { deckId: deck.id }
                 })
               "

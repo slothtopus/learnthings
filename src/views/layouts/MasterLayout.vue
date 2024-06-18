@@ -2,6 +2,8 @@
 import { Button } from '@/components/shadcn-ui/button'
 import { db } from '@/lib/dexieDB'
 
+import BreadCrumbs from '@/components/BreadCrumbs/BreadCrumbs.vue'
+
 interface Props {
   loading?: boolean
 }
@@ -25,6 +27,7 @@ const handleClearDB = async () => {
       <Button @click="handleClearDB" class="absolute right-4 top-1/2 transform -translate-y-1/2"
         >Clear DB</Button
       >
+      <BreadCrumbs />
     </header>
     <main class="grow overflow-auto p-6 flex flex-col gap-4 w-full mx-auto max-w-screen-lg">
       <p v-if="loading">LOADING</p>

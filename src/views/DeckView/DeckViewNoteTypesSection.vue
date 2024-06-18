@@ -40,7 +40,7 @@ const noteTypes = computed({
             <LtNoteType
               @edit="
                 $router.push({
-                  name: 'edit-notetype',
+                  name: 'settings-notetype',
                   params: { deckId: deck.id, noteTypeId: element.id }
                 })
               "

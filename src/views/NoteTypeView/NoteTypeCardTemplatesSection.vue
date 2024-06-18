@@ -38,7 +38,7 @@ const cards = computed({
               @delete="noteType.deleteCard(element.id)"
               @edit="
                 $router.push({
-                  name: 'edit-cardtemplate',
+                  name: 'settings-template',
                   params: { ...$route.params, cardTemplateId: element.id }
                 })
               "
