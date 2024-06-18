@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import SimpleCrumbElem from './SimpleCrumb.vue'
+import BreadCrumbElem from './BreadCrumb.vue'
 import { ChevronsRightIcon } from 'lucide-vue-next'
+
+import type { BreadCrumb } from './breadcrumbs.types'
 
 import { useRoute } from 'vue-router'
 const route = useRoute()
 
-export type SimpleCrumb = { resource: 'simple'; title: string; name: string }
-const breadcrumbs = computed<SimpleCrumb[]>(() =>
+const breadcrumbs = computed<BreadCrumb[]>(() =>
   route.matched.flatMap((r) =>
-    r.meta?.breadcrumb !== undefined ? [r.meta.breadcrumb as SimpleCrumb] : []
+    r.meta?.breadcrumb !== undefined ? [r.meta.breadcrumb as BreadCrumb] : []
   )
 )
 </script>
@@ -18,9 +19,7 @@ const breadcrumbs = computed<SimpleCrumb[]>(() =>
 <template>
   <div class="flex items-center px-3">
     <template v-for="(crumb, i) in breadcrumbs" :key="i">
-      <SimpleCrumbElem :route="{ name: crumb.name, params: $route.params }">{{
-        crumb.title
-      }}</SimpleCrumbElem>
+      <BreadCrumbElem :crumb="crumb" :params="$route.params" />
       <ChevronsRightIcon class="last-of-type:hidden text-gray-400" />
     </template>
   </div>

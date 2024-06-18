@@ -25,9 +25,14 @@ export const useDecksStore = defineStore('decks', () => {
     } else {
       loading.value = true
       const persistedDeck = await Deck.service.getOne(deckId)
-      decks.value.push(persistedDeck)
-      loading.value = false
-      return persistedDeck
+      const cachedDeck = decks.value.find((d) => d.id == deckId)
+      if (!cachedDeck) {
+        decks.value.push(persistedDeck)
+        loading.value = false
+        return persistedDeck
+      } else {
+        return cachedDeck
+      }
     }
   }
 
