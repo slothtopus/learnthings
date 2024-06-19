@@ -6,6 +6,7 @@ import SectionLayout from '@/views/layouts/SectionLayout.vue'
 import SelectControl from '@/components/ui/SelectControl.vue'
 import { Textarea } from '@/components/shadcn-ui/textarea'
 import CardTemplatePreview from './CardTemplatePreview.vue'
+import CodeMirrorEditor from '@/components/CodeMirrorEditor.vue'
 
 import type { CardTemplate } from '@/lib/CardTemplate'
 import type { NoteType } from '@/lib/NoteType'
@@ -41,15 +42,28 @@ const cssTemplate = computed({
 </script>
 
 <template>
-  <SectionLayout>
+  <SectionLayout class="h-full min-h-[32rem] overflow-hidden">
     <template #title>Templates</template>
     <template #content>
       <div class="grid-section">
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-3 overflow-hidden p-2">
           <SelectControl :options="TEMPLATES" v-model="selectedTemplate" />
-          <Textarea v-if="selectedTemplate.id == 'front'" rows="20" v-model="frontTemplate" />
-          <Textarea v-else-if="selectedTemplate.id == 'back'" rows="20" v-model="backTemplate" />
-          <Textarea v-else rows="20" v-model="cssTemplate" />
+          <CodeMirrorEditor
+            v-if="selectedTemplate.id == 'front'"
+            v-model="frontTemplate"
+            mode="html"
+          />
+          <CodeMirrorEditor
+            v-else-if="selectedTemplate.id == 'back'"
+            r
+            v-model="backTemplate"
+            mode="html"
+          />
+          <CodeMirrorEditor
+            v-else-if="selectedTemplate.id == 'css'"
+            v-model="cssTemplate"
+            mode="css"
+          />
         </div>
         <CardTemplatePreview :card="card" :noteType="noteType" />
       </div>
@@ -63,5 +77,6 @@ const cssTemplate = computed({
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto;
   gap: 0 1rem;
+  height: 100%;
 }
 </style>
