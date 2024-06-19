@@ -4,7 +4,6 @@ import { ref, computed } from 'vue'
 import SectionLayout from '@/views/layouts/SectionLayout.vue'
 
 import SelectControl from '@/components/ui/SelectControl.vue'
-import { Textarea } from '@/components/shadcn-ui/textarea'
 import CardTemplatePreview from './CardTemplatePreview.vue'
 import CodeMirrorEditor from '@/components/CodeMirrorEditor.vue'
 

@@ -28,7 +28,7 @@ const selectedSideOption = ref(SIDE_OPTIONS[0])
 const renderedCard = computed(() => {
   return props.card.render(
     selectedSideOption.value.id,
-    Note.createPlaceholderNote(props.noteType).populateFields(props.noteType.fields)
+    props.noteType.renderFields(Note.createPlaceholderNote(props.noteType))
   )
 })
 </script>

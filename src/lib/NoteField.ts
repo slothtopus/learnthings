@@ -52,23 +52,44 @@ export class NoteField implements DexiePersistableObject {
     }
   }
 
-  async persist() {
-    await this._parentDeck.persist()
+  getFieldId() {
+    return this.name
   }
 
-  getPlaceholderContent() {
-    return new NoteFieldContent({ id: this.id, content: this.name })
+  async persist() {
+    await this._parentDeck.persist()
   }
 
   getFieldContentFromNote(note: Note) {
     return note.content.find((c) => c.id == this.id)
   }
 
-  getFieldId() {
-    return this.name
+  getEmptyContent() {
+    return new NoteFieldContent({ id: this.id, content: '' })
   }
 
-  render(content?: NoteFieldContent) {
+  getPlaceholderContent() {
+    return new NoteFieldContent({ id: this.id, content: this.name })
+  }
+
+  renderFromContent(content: NoteFieldContent) {
+    if (content.id != this.id) {
+      throw new Error(
+        `Cannot render field id (${this.id}) and content id (${content.id}) mismatch `
+      )
+    }
+    return { [this.getFieldId()]: content.content }
+  }
+
+  renderFromNote(note: Note) {
+    const content = note.getContentForField(this)
+    if (content === undefined) {
+      throw new Error(`note content not found for field id ${this.id}`)
+    }
+    return this.renderFromContent(content)
+  }
+
+  /*render(content?: NoteFieldContent) {
     if (content === undefined) {
       return ''
     }
@@ -78,5 +99,5 @@ export class NoteField implements DexiePersistableObject {
       )
     }
     return content.content
-  }
+  }*/
 }

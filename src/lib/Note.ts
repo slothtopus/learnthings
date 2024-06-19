@@ -75,13 +75,7 @@ export class Note implements DexiePersistableObject {
       id: -1,
       deckId: noteType._parentDeck.id,
       noteTypeId: noteType.id,
-      content: noteType.fields.map(
-        (f) =>
-          new NoteFieldContent({
-            id: f.id,
-            content: ''
-          })
-      )
+      content: noteType.fields.map((f) => f.getEmptyContent())
     })
   }
 
@@ -112,7 +106,7 @@ export class Note implements DexiePersistableObject {
     return zipped
   }
 
-  populateFields(noteFields: NoteField[], usePlaceholderContent = false) {
+  /*populateFields(noteFields: NoteField[], usePlaceholderContent = false) {
     return noteFields.reduce(
       (allFields, field) => {
         const content =
@@ -123,7 +117,7 @@ export class Note implements DexiePersistableObject {
       },
       {} as Record<string, string>
     )
-  }
+  }*/
 
   serialise(): SerialisedNote {
     return {

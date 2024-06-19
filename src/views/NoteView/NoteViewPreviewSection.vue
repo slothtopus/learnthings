@@ -16,7 +16,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const populatedFields = computed(() => {
-  return props.note.populateFields(props.noteType.fields, false)
+  return props.noteType.renderFields(props.note)
 })
 
 const previewCards = computed(() => {

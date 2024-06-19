@@ -110,8 +110,15 @@ export class NoteType implements DexiePersistableObject {
     await this._parentDeck.persist()
   }
 
+  renderFields(note: Note) {
+    return this.fields.reduce(
+      (renderedFields, field) => Object.assign(renderedFields, field.renderFromNote(note)),
+      {} as Record<string, string>
+    )
+  }
+
   generateCards(note: Note) {
-    const templateFields = note.populateFields(this.fields)
+    const templateFields = this.renderFields(note)
     return this.cards.map((card) => ({
       front: card.render('front', templateFields),
       back: card.render('back', templateFields)
