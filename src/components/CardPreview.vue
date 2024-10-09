@@ -43,9 +43,9 @@ const SIDE_OPTIONS: (SelectOption & { id: 'front' | 'back' })[] = [
 ]
 const selectedSideOption = ref(SIDE_OPTIONS[0])
 
-const renderedCard = computed(() => {
+/*const renderedCard = computed(() => {
   return props.template.render(selectedSideOption.value.id, props.note.populateFields(props.fields))
-})
+})*/
 </script>
 
 <template>

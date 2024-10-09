@@ -5,14 +5,19 @@ import MasterLayout from './layouts/MasterLayout.vue'
 import SectionLayout from './layouts/SectionLayout.vue'
 
 import LtDeck2 from '@/components/LtDeck2.vue'
-
-//import LtDeck from '@/components/LtDeck.vue'
 import { Button } from '@/components/shadcn-ui/button'
 
 import { useDecksStore } from '@/stores/decks'
 
+import { addSampleDeck } from '@/lib/sampleDeck'
+
 const decksStore = useDecksStore()
 onMounted(decksStore.refreshDecks)
+
+const handleAddSampleDeck = async () => {
+  await addSampleDeck()
+  await decksStore.refreshDecks()
+}
 </script>
 
 <template>
@@ -22,6 +27,7 @@ onMounted(decksStore.refreshDecks)
       <SectionLayout>
         <template #title>All decks</template>
         <template #controls
+          ><Button @click="handleAddSampleDeck">Add sample deck</Button
           ><Button @click="decksStore.createNewDeck">Create new deck</Button></template
         >
         <template #content>
