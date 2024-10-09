@@ -1,45 +1,29 @@
 # learnthings
 
-This template should help get you started developing with Vue 3 in Vite.
+Learnthings is a flashcard app built in Vue 3 that is heavily inspired by the legendary Anki. The aim of this project is to build a modernised version of Anki based on web technology. The hope is that learnthings will achieve feature parity with Anki and then take things much further.
 
-## Recommended IDE Setup
+I believe there are some key reasons why Anki has become so popular.
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- It's open source
+- Anki's Note Type/Note Card Template/Card structure is beautifully flexible
+- Precious decks are saved locally so you do not need to trust in the continued existence of a cloud service
+- The web component card views allow for great customisation through HTML/CSS/JS
+- Add-ons allow you to adapt Anki to all kinds of different use cases
 
-## Type Support for `.vue` Imports in TS
+Learnthings will be built to tick all these boxes.
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+- Learnthings is open source
+- Everything is based on the Anki structure
+- There will eventually be a Electron release with full local storage (although cloud sync will also be available)
+- Cards are fully customisable through HTML/CSS/JS
+- The core structure will be built with add-ons and extensibility always in mind
 
-## Customize configuration
+This project is still very much in its infancy and more work is needed before it becomes a genuinely usable tool. Therefore, I don't recommend any serious usage at this point. Things are likely to change significantly and all your hard work building decks could easily go up in smoke. For now, just watch this space!
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+# Demo version
 
-## Project Setup
+A demo version is available here.
 
-```sh
-npm install
-```
+# Running locally
 
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+Clone the repo and run `npm install` to install all deps. Then run `npm run dev` to run in development mode.
