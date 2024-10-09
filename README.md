@@ -22,7 +22,7 @@ This project is still very much in its infancy and more work is needed before it
 
 # Demo version
 
-A demo version is available here.
+[A demo version is available here](https://learnthings-dev.web.app/).
 
 # Running locally
 
