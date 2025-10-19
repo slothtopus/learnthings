@@ -4,25 +4,23 @@ import capitals from 'core/data/capitals.json'
 
 const CSS = `
 main#root {
-  width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   background-color: #003153;
   background-image: linear-gradient(315deg, #003153 0%, #1B1B1B 74%);
+  font-family: helvetica;
 }
 
 hr {
   width: 60%;
   border-color: grey;
+  margin: 2rem 0;
 }
 
 #content {
   display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr 1rem 1fr;
-  justify-content: center;
-  align-items: center;
+  grid-template-rows: 1fr auto 1fr;
+  place-items: center;
   padding: 4rem;
   flex-grow: 1;
 }
@@ -31,6 +29,7 @@ h1 {
   font-size: 2rem;
   text-align: center;
   align-self: flex-end;
+  color: white;
 }
 
 .fade-in {
@@ -81,7 +80,7 @@ const BACK = `
 `
 
 export const createCountriesAndCapitals = async (deck: Deck) => {
-  deck.name = 'Countries and Capitals'
+  deck.setName('Countries and Capitals')
   const noteType = deck.createNewNoteType('Countries and Capitals')
   const countryField = noteType.createNewField('country', TextNoteField, {})
   const capitalField = noteType.createNewField('capital', TextNoteField, {})

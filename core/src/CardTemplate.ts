@@ -254,7 +254,7 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
       variant.front,
       variant.css,
       content,
-      additionalContext
+      Object.assign(additionalContext, note.getInternalContext())
     );
   }
 
@@ -269,7 +269,7 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
       variant.back,
       variant.css,
       content,
-      additionalContext
+      Object.assign(additionalContext, note.getInternalContext())
     );
   }
 }

@@ -4,14 +4,13 @@ import type { ObjectManager } from "./ObjectManager";
 
 import { Card } from "./Card";
 import type { NoteFieldContent } from "./NoteField";
-import type { CardTemplate } from "./CardTemplate";
-import type { NoteField } from "./NoteField";
 import type { NoteType } from "./NoteType";
 
 import { combineIds } from "./utils/ids";
 
 export type SerialisedNote = {
   noteTypeId: string;
+  order?: number;
 } & PersistedObject;
 
 export class Note extends PersistableObject<SerialisedNote> {
@@ -29,42 +28,37 @@ export class Note extends PersistableObject<SerialisedNote> {
     return [this.noteTypeId];
   }
 
+  order: number | undefined;
+
   static createNewEmpty(
     objectManager: ObjectManager,
     { noteTypeId }: { noteTypeId: string }
   ) {
     return new Note(
-      { ...PersistableObject.create(), noteTypeId },
+      { ...PersistableObject.create(), noteTypeId, order: undefined },
       objectManager
     );
   }
 
   constructor(serialised: SerialisedNote, objectManager: ObjectManager) {
     super(serialised, objectManager);
-    const { noteTypeId } = serialised;
+    const { noteTypeId, order } = serialised;
     this.noteTypeId = noteTypeId;
+    this.order = order;
   }
 
   serialise(includeObjects = true): SerialisedNote {
     return {
       ...super.serialise(includeObjects),
       noteTypeId: this.noteTypeId,
+      order: this.order
     };
   }
 
-  // --------------- Queries that we might want to cache --------------
-  /*getAllFields() {
-    return this.objectManager.query({
-      include: { doctype: "notefield", noteTypeId: this.noteTypeId },
-    }) as NoteField<any>[];
+  setOrder(order: number) {
+    this.order = order;
+    this.markDirty()
   }
-
-  getAllCardTemplates() {
-    return this.objectManager.query({
-      include: { doctype: "cardtemplate", noteTypeId: this.noteTypeId },
-    }) as CardTemplate[];
-  }*/
-  // --------------- End queries that we might want to cache --------------
 
   getFieldByName(name: string) {
     const field = this.noteType
@@ -90,26 +84,16 @@ export class Note extends PersistableObject<SerialisedNote> {
     return field.getContent(this);
   }
 
-  /*getFieldContent<F extends NoteField<any>>(
-    field: F
-  ): ReturnType<F["getContent"]> {
-    return field.getContent(this);
+  getInternalContext() {
+    return this.order !== undefined ? {'note:order': this.order} : {}
   }
 
-  setFieldContent<F extends NoteField<any>>(
-    field: F,
-    content: Parameters<ReturnType<F["getContent"]>["setContent"]>[0]
-  ) {
-    field.getOrCreateContent(this).setContent(content);
-    this.markDirty();
-  }*/
-
-  getAllContent() {
+  /*getAllContent() {
     return this.noteType.getAllFields().map((f) => ({
       name: f.name,
       content: f.getContent(this).content,
     }));
-  }
+  }*/
 
   getCardForTemplate(cardTemplateId: string) {
     return this.objectManager.getObjectById(

@@ -12,9 +12,9 @@ import { freezeAll, unfreezeAll } from '@/composables/useObjectDetails'
 import { useDecks, usePersistDeck } from '@/composables/useDecks'
 import { createCountriesAndCapitals } from '@/lib/build-capitals-deck'
 import { createFlagsDeck } from '@/lib/build-flags-deck'
-import type { Deck } from 'core/Deck.js'
 import { useFormDialog } from '@/composables/useFormDialog'
 import { useConfirmation } from '@/composables/useConfirmationDialog'
+import { createLittlePrince } from '@/lib/build-little-prince-deck'
 
 const { decks, newDeck, deleteDeck } = useDecks()
 
@@ -46,20 +46,26 @@ const importMenuItems = [
       createTestDeck('flags')
     },
   },
+  {
+    icon: 'pi pi-book',
+    label: 'O Pequeno Príncipe',
+    command: () => {
+      createTestDeck('prince')
+    },
+  },
 ]
 
 const { persistDeck } = usePersistDeck()
 
-const createTestDeck = async (name: 'countries' | 'flags') => {
-  let deck: Deck | undefined
+const createTestDeck = async (name: 'countries' | 'flags' | 'prince') => {
+  const deck = await newDeck('')
+  freezeAll()
   if (name === 'countries') {
-    deck = await newDeck('Countries and Capitals')
-    freezeAll()
     await createCountriesAndCapitals(deck)
-  } else {
-    deck = await newDeck('Flags of the World')
-    freezeAll()
+  } else if (name === 'flags') {
     await createFlagsDeck(deck)
+  } else {
+    await createLittlePrince(deck)
   }
   await persistDeck(deck, 'Importing')
   unfreezeAll()

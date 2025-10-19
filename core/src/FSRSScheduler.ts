@@ -57,6 +57,7 @@ export class FSRSCardMeta {
   card: Card;
   scheduler: FSRSScheduler;
   lastReviewSequence = -Infinity;
+  order: number | undefined;
 
   due: DateTime<true>;
   difficulty: number;
@@ -100,6 +101,15 @@ export class FSRSCardMeta {
       card,
       scheduler
     );
+  }
+
+  static sortByOrder(cards: FSRSCardMeta[]) {
+    return cards.toSorted((a, b) => {
+      if (a.order === undefined && b.order === undefined) return 0;
+      if (a.order === undefined) return 1;
+      if (b.order === undefined) return -1;
+      return a.order - b.order;
+    });
   }
 
   constructor(
@@ -375,6 +385,8 @@ export class FSRSScheduler extends PersistableObject<SerialisedFSRSScheduler> {
         FSRSCardMeta.fromCardIfExists(card, this) ||
         FSRSCardMeta.createEmpty(card, this);
 
+      cardMeta.order = card.getNote().order;
+
       allCardsByCardId[card.id] = cardMeta;
       return allCardsByCardId;
     }, {} as Record<string, FSRSCardMeta>);
@@ -411,13 +423,16 @@ export class FSRSScheduler extends PersistableObject<SerialisedFSRSScheduler> {
   }
 
   addNewCardsToSession(n: number) {
-    const newCards = this.allCards.filter((c) => c.isNew()).slice(0, n);
-    if (newCards.length < n) {
+    const newCards = this.allCards.filter((c) => c.isNew());
+    const sortedNewCards = FSRSCardMeta.sortByOrder(newCards);
+    const selectedNewCards = sortedNewCards.slice(0, n);
+
+    if (selectedNewCards.length < n) {
       console.warn(
-        `addNewCardsToSession(${n}): can only add ${newCards.length} new cards to session`
+        `addNewCardsToSession(${n}): can only add ${selectedNewCards.length} new cards to session`
       );
     }
-    this.sessionCards = this.sessionCards.concat(newCards);
+    this.sessionCards = this.sessionCards.concat(selectedNewCards);
   }
 
   prepareSessionCards() {
@@ -535,7 +550,18 @@ export class FSRSScheduler extends PersistableObject<SerialisedFSRSScheduler> {
       filteredEligibleCards = eligibleCards;
     }
 
-    const chosenCard = sample(filteredEligibleCards) as FSRSCardMeta;
+    let chosenCard = sample(filteredEligibleCards) as FSRSCardMeta;
+    // if we chose a new card and our new cards are sorted, swap it with
+    // the lowest order
+    if (
+      chosenCard.isNew() &&
+      filteredEligibleCards.some((c) => c.order !== undefined)
+    ) {
+      chosenCard = FSRSCardMeta.sortByOrder(
+        filteredEligibleCards.filter((c) => c.isNew())
+      )[0];
+    }
+
     return chosenCard.card;
   }
 

@@ -21,7 +21,8 @@ watch(
   exampleNote,
   async () => {
     if (exampleNote.value) {
-      renderedContent.value = await props.template.renderAllFieldContent(exampleNote.value)
+      const fieldContent = await props.template.renderAllFieldContent(exampleNote.value)
+      renderedContent.value = Object.assign(fieldContent, exampleNote.value.getInternalContext())
     }
   },
   { immediate: true },

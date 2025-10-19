@@ -48,6 +48,11 @@ export class Deck extends PersistableObject<SerialisedDeck> {
     this.schedulerId = schedulerId;
   }
 
+  setName(name: string) {
+    this.name = name
+    this.markDirty()
+  }
+
   createNewNoteType(name: string) {
     const notetype = NoteType.createNewEmpty(this.objectManager, { name });
     this.objectManager.setObject(notetype);

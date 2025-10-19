@@ -11,6 +11,7 @@ main#root {
   flex-direction: column;
   background-color: #003153;
   background-image: linear-gradient(315deg, #003153 0%, #1B1B1B 74%);
+  font-family: helvetica;
 }
 
 hr {
@@ -43,6 +44,7 @@ h1 {
   font-size: 2rem;
   text-align: center;
   align-self: flex-end;
+  color: white;
 }
 
 .fade-in {
@@ -94,7 +96,7 @@ const backTemplate = `
 `
 
 export const createFlagsDeck = async (deck: Deck) => {
-  deck.name = 'Flags of the World'
+  deck.setName('Flags of the World')
 
   const noteType = deck.createNewNoteType('Flag and Country')
 
