@@ -1,0 +1,59 @@
+services:
+  caddy:
+    image: caddy:2
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - API_HOST=${API_HOST}  
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    networks:
+      - internal
+
+  couchdb:
+    build: ./couch
+    ports:
+      - "5984:5984"
+    env_file:
+      - .env
+    environment:
+      - COUCHDB_USER=${COUCH_USER}
+      - COUCHDB_PASSWORD=${COUCH_PASSWORD}
+    restart: always
+    networks:
+      - internal
+    # limit the max number of file descriptors to reduce the amount of memory the erland VM requires
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - ${COUCH_DATA_VOLUME}:/opt/couchdb/data
+
+  couch-proxy:
+    build: ./proxy
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    restart: always
+    depends_on:
+      - couchdb
+    environment:
+      - COUCHDB_URL=http://couchdb:5984
+      - COUCHDB_USER=${COUCH_USER}
+      - COUCHDB_PASSWORD=${COUCH_PASSWORD}
+      - FIREBASE_CONFIG_JSON=${FIREBASE_CONFIG_JSON}
+    networks:
+      - internal
+
+networks:
+  internal:
+
+volumes:
+  caddy_data:
+  caddy_config:

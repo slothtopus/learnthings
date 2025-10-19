@@ -1,0 +1,92 @@
+BUGS:
+
+- Deleting a block does not update the preview
+- Widgets are no longer visible in preview... sometimes?
+- Cannot delete a template yet
+- Empty cards should be skipped somehow?
+
+
+
+
+Template Editor Update
+
+- Refactor widgets to be Vue components.
+- Make simple widget configs that are scoped at card template level. Make it easy to rescope them to variant level if this becomes necessary.
+- Create a variant switcher control
+
+Variant switcher:
+
+Default variant:
+- variant 1 *
+- variant 2
+
+Change for this card:
+- <Use default>
+- variant 1
+- variant 2
+- etc.
+
+Top part says 
+
+Card variant: use default (variant 1)
+
+Default variant:
+    - variant 1
+    - variant 2
+
+Override for this card only: tick and then appears
+    - variant 1
+    - variant 1
+
+
+
+- Select of all variants
+
+
+
+getWidgetConfigs() {
+    // not ordered, scoped to the card template
+    // or should these be scoped to the template set?
+    // simple template scoping to start and then scope like blocks if this proves necessary
+}
+
+
+
+Left menu has:
+
+Blocks:
+    - Deck
+    - NoteType
+    - This Template
+
+Widgets (only used?):
+    - Widget one
+    - Widget two
+    - Widget 3 (customised but not used so greyed out or something?)
+
+Widget settings defined in core as widget setting doctype with an any payload. Can be subclassed to include a zod schema and a a default? Or just subclass subtypes in Vue with the typed settings?
+
+Templates:
+    - Default (can rename)
+        - CSS
+        - Front
+        - Back
+    - Other...
+
+
+Will need to use a dashboard layout with a tiered panel menu in the sidebar
+
+
+Card viewer will have an option to change the default variant for a card template. Can change for just this card or all cards. This is stored as 'variant' in the card meta
+
+If I can get this implemented and working nicely, I can clean up the repo 
+
+
+After this:
+
+- Decks in a nice foldered/hierarchically tagged structure with ability to review multiple decks together 
+- More interesting fields to see if this is possible.
+- Add in global settings for things like OpenRouter keys and AI integrations
+- MCP automation?
+- Community decks/templates/notetypes
+    - Some kind of user friendly way of browsing + adding these

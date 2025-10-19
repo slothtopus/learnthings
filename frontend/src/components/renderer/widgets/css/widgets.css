@@ -1,0 +1,5 @@
+@import 'tailwindcss' source(none);
+@import 'tailwindcss-primeui';
+@source inline("w-full");
+@source inline("h-full");
+@source "../src";

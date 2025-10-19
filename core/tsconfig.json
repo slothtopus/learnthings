@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES6", // Sets ECMAScript target version
+    "module": "ESNext", // Sets module system for the project
+    "moduleResolution": "node", // Resolves modules similar to Node.js
+    "outDir": "./build", // Output directory for compiled code
+    "strict": true, // Enable strict type checking
+    "esModuleInterop": true, // Allows default imports from CommonJS modules
+    "skipLibCheck": true, // Skips type-checking .d.ts files for faster compilation
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": true, // Generates source maps for easier debugging
+    "declaration": true,
+    "lib": ["DOM", "ESNext"], // Includes DOM and latest ECMAScript featuress
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true // Allows imports like `import React from "react";` instead of `import * as React from "react"`
+  },
+  "include": ["src", "src/**/*.json"], // Include your source folder
+  "exclude": ["node_modules", "build", "src/**/old"] // Exclude unnecessary folders
+}

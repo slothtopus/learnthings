@@ -1,0 +1,30 @@
+# Override for running locally. This override file is not included in the deploy
+services:
+  # disable Caddy locally 
+  caddy:
+    deploy:
+      replicas: 0 
+
+  firebase-auth:
+    build:
+      context: ./firebase-auth-emulator
+    volumes:
+      - firebase_emulator_data:/data
+    ports:
+      - "9099:9099"   # optional (host access)
+      - "4000:4000"   # optional UI
+    networks:
+      - internal
+
+  # Expose the couch proxy backend directly
+  couch-proxy:
+    ports:
+      - "3000:3000"
+    environment:
+      - FIREBASE_AUTH_EMULATOR_HOST=firebase-auth:9099
+
+  couchdb:
+    restart: unless-stopped
+
+volumes:
+  firebase_emulator_data:
