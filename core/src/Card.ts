@@ -40,17 +40,24 @@ export class Card extends PersistableObject<SerialisedCard> {
     options: { cardTemplateId: string; noteId: string }
   ) {
     return new Card(
-      { ...PersistableObject.create(), ...options, cardMeta: {} },
+      {
+        ...PersistableObject.create(),
+        ...options,
+        cardMeta: {},
+        cardTemplateVariantId: undefined,
+      },
       objectManager
     );
   }
 
   constructor(serialised: SerialisedCard, objectManager: ObjectManager) {
     super(serialised, objectManager);
-    const { cardTemplateId, noteId, cardMeta } = serialised;
+    const { cardTemplateId, noteId, cardMeta, cardTemplateVariantId } =
+      serialised;
     this.noteId = noteId;
     this.cardTemplateId = cardTemplateId;
     this.cardMeta = cardMeta;
+    this.cardTemplateVariantId = cardTemplateVariantId;
   }
 
   serialise(includeObjects = true): SerialisedCard {
