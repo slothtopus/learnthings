@@ -68,7 +68,7 @@ export class TransactionGraphV4 {
 
     const edges = inverted ? this.invertedEdgesSet[id] : this.edgesSet[id];
     if (edges) {
-      edges.values().forEach((nextId) => {
+      Array.from(edges.values()).forEach((nextId) => {
         this.assignLevel(nextId, level + 1, levels, inverted);
       });
     }
@@ -86,12 +86,12 @@ export class TransactionGraphV4 {
 
     console.log("-------------------------------------------------");
     console.log("> Nodes");
-    this.nodesSet.values().forEach((n) => console.log(idToString(n)));
+    Array.from(this.nodesSet.values()).forEach((n) => console.log(idToString(n)));
 
     const edgesLeft: string[] = [];
     const edgesRight: string[] = [];
     Object.entries(this.edgesSet).forEach(([sourceId, targetIdSet]) => {
-      targetIdSet.values().forEach((targetId) => {
+      Array.from(targetIdSet.values()).forEach((targetId) => {
         edgesLeft.push(idToString(sourceId));
         edgesRight.push(idToString(targetId));
       });

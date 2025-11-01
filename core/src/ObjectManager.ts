@@ -200,7 +200,7 @@ export class ObjectManager {
     }
 
     const rootIdsToPersist = new Set<string>(
-      schemaChange.toPersist.values().map((id) => this.getObjectById(id).rootId)
+      Array.from(schemaChange.toPersist.values()).map((id) => this.getObjectById(id).rootId)
     );
 
     let updates: OrderedObjectOperation[] = [];

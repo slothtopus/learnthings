@@ -161,6 +161,15 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     return block;
   }
 
+  createNewVariant(name: string) {
+    const variant = CardTemplateVariant.createNewEmpty(this.objectManager, {
+      name,
+      cardTemplateId: this.id,
+    });
+    this.objectManager.setObject(variant);
+    return variant
+  }
+
   serialise(includeObjects = true): SerialisedCardTemplate {
     return {
       ...super.serialise(includeObjects),
@@ -287,6 +296,8 @@ export class CardTemplateBlock extends PersistableObject<SerialisedCardTemplateB
   static doctype = "cardtemplateblock";
   static subtype = "base";
 
+  shouldPersistIfUnsaved = true
+
   name!: string;
   cardTemplateId?: string;
   noteTypeId?: string;
@@ -384,8 +395,13 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
   static doctype = "cardtemplatevariant";
   static subtype = "base";
 
+  shouldPersistIfUnsaved = true
+
   name!: string;
   cardTemplateId!: string;
+  get cardTemplate() {
+    return this.objectManager.getObjectById(this.cardTemplateId) as CardTemplate
+  }
 
   css!: string;
   front!: string;
@@ -461,5 +477,9 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
       front: this.front,
       back: this.back,
     };
+  }
+
+  isDefault() {
+    return this.cardTemplate.getDefaultVariant().id === this.id
   }
 }

@@ -9,7 +9,7 @@ import type { FormData } from '@/components/forms/CreateNewNamedObjectForm.vue'
 import { useFormDialog } from '@/composables/useFormDialog'
 
 import type { CardTemplate } from 'core/CardTemplate.js'
-import { CardTemplateVariant } from 'core/CardTemplate.js'
+//import { CardTemplateVariant } from 'core/CardTemplate.js'
 import { PersistableObject } from 'core/PersistableObject.js'
 
 interface Props {
@@ -30,11 +30,12 @@ const handleCreateNewVariant = async () => {
   const result = await openVariantDialog()
   if (result.cancelled) return
   const { name } = result.data
-  const variant = CardTemplateVariant.createNewEmpty(props.cardTemplate.objectManager, {
+  props.cardTemplate.createNewVariant(name)
+  /*const variant = CardTemplateVariant.createNewEmpty(props.cardTemplate.objectManager, {
     name,
     cardTemplateId: props.cardTemplate.id,
   })
-  props.cardTemplate.objectManager.setObject(variant)
+  props.cardTemplate.objectManager.setObject(variant)*/
 }
 </script>
 

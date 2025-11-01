@@ -8,8 +8,8 @@ import AppFrameScreenLayout from '@/layouts/AppFrameScreenLayout.vue'
 import CodeMirrorEditor from '@/components/common/CodeMirrorEditor.vue'
 import TemplateEditorPreview from '@/components/template_editor/TemplateEditorPreview.vue'
 
-import VariantsMenu from '@/components/template_editor/VariantsMenu.vue'
-import BlocksMenu from '@/components/template_editor/BlocksMenu.vue'
+import BlocksMenuV2 from '@/components/template_editor/BlocksMenuV2.vue'
+import VariantsMenuV2 from '@/components/template_editor/VariantsMenuV2.vue'
 
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 import { useConfirmation } from '@/composables/useConfirmationDialog'
@@ -33,9 +33,28 @@ const breadcrumbs = computed(() => {
   ]
 })
 
+export type EditableObject =
+  | { obj: CardTemplateVariant; template: 'css' | 'front' | 'back' }
+  | {
+      obj: CardTemplateBlock
+      template: undefined
+    }
+  | undefined
+
 const editingObj = ref<CardTemplateBlock | CardTemplateVariant | undefined>(
   cardTemplate.getDefaultVariant(),
 )
+
+const editingObj2 = ref<EditableObject>({
+  obj: cardTemplate.getDefaultVariant(),
+  template: 'front',
+})
+
+const editingTemplate = ref<'css' | 'front' | 'back' | undefined>('front')
+watch(editingTemplate, () => {
+  if (editingTemplate.value) {
+  }
+})
 
 const templateOptions = [
   { id: 'css' as const, name: 'CSS' },
@@ -49,10 +68,49 @@ const selectedTemplateId = ref<(typeof templateOptions)[number]['id']>('css')
 
 const editorModel = computed({
   get: () => {
+    if (editingObj2.value?.obj instanceof CardTemplateVariant) {
+      switch (editingObj2.value.template!) {
+        case 'css':
+          return editingObj2.value.obj.css
+        case 'front':
+          return editingObj2.value.obj.front
+        case 'back':
+          return editingObj2.value.obj.back
+      }
+    } else if (editingObj2.value?.obj instanceof CardTemplateBlock) {
+      return editingObj2.value.obj.content
+    }
+    return ''
+  },
+  set: (content: string) => {
+    if (editingObj2.value?.obj instanceof CardTemplateVariant) {
+      switch (editingObj2.value.template!) {
+        case 'css':
+          editingObj2.value.obj.setCSS(content)
+          break
+        case 'front':
+          editingObj2.value.obj.setFront(content)
+          break
+        case 'back':
+          editingObj2.value.obj.setBack(content)
+          break
+      }
+    } else if (editingObj2.value?.obj instanceof CardTemplateBlock) {
+      return editingObj2.value.obj.setContent(content)
+    }
+  },
+})
+
+/*
+const editorModel = computed({
+  get: () => {
     if (editingObj.value instanceof CardTemplateBlock) {
       return editingObj.value!.content
-    } else if (editingObj.value instanceof CardTemplateVariant) {
-      switch (selectedTemplateId.value) {
+    } else if (
+      editingObj.value instanceof CardTemplateVariant &&
+      editingTemplate.value !== undefined
+    ) {
+      switch (editingTemplate.value) {
         case 'css':
           return editingObj.value.css
         case 'front':
@@ -66,8 +124,11 @@ const editorModel = computed({
   set: (content: string) => {
     if (editingObj.value instanceof CardTemplateBlock) {
       editingObj.value.setContent(content)
-    } else if (editingObj.value instanceof CardTemplateVariant) {
-      switch (selectedTemplateId.value) {
+    } else if (
+      editingObj.value instanceof CardTemplateVariant &&
+      editingTemplate.value !== undefined
+    ) {
+      switch (editingTemplate.value) {
         case 'css':
           editingObj.value.setCSS(content)
           break
@@ -81,6 +142,7 @@ const editorModel = computed({
     }
   },
 })
+*/
 
 const editorModeOptions = [
   { id: 'css' as const, name: 'CSS' },
@@ -166,8 +228,8 @@ watch(minimiseLeft, async (newVal) => {
               @click="minimiseLeft = true"
             />
           </div>
-          <VariantsMenu v-model="editingObj" :card-template="cardTemplate" />
-          <BlocksMenu class="mt-4" v-model="editingObj" :card-template="cardTemplate" />
+          <VariantsMenuV2 v-model="editingObj2" :card-template="cardTemplate" />
+          <BlocksMenuV2 class="mt-4" v-model="editingObj2" :card-template="cardTemplate" />
         </SplitterPanel>
         <SplitterPanel :size="60" :min-size="10" class="flex overflow-auto!">
           <div v-if="minimiseLeft" class="flex h-14 items-end py-2 pl-3">
