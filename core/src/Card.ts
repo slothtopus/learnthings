@@ -86,7 +86,9 @@ export class Card extends PersistableObject<SerialisedCard> {
   }
 
   getCardTemplateVariant() {
-    if (this.cardTemplateVariantId === undefined) return undefined;
+    const defaultVariant = this.getCardTemplate().getDefaultVariant();
+    if (this.cardTemplateVariantId === undefined) return defaultVariant;
+
     const variant = this.objectManager.getObjectById(
       this.cardTemplateVariantId
     ) as CardTemplateVariant;
@@ -95,9 +97,10 @@ export class Card extends PersistableObject<SerialisedCard> {
       variant.cardTemplateId !== this.cardTemplateId
     ) {
       this.setCardTemplateVariantId(undefined);
-      return undefined;
+      return defaultVariant
     }
-    return variant;
+
+    return variant ?? defaultVariant
   }
 
   renderFront(additionalContext: Record<string, string> = {}) {

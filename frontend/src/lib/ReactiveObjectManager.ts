@@ -17,6 +17,7 @@ import {
   CardTemplate,
   CardTemplateBlock,
   CardTemplateVariant,
+  CardWidgetSettings,
 } from 'core/CardTemplate.js'
 
 export class ReactiveObjectManager extends ObjectManager {
@@ -41,4 +42,5 @@ export const registerObjects = (om: ObjectManager) => {
     .register(CardTemplate)
     .register(CardTemplateBlock)
     .register(CardTemplateVariant)
+    .register(CardWidgetSettings)
 }

@@ -5,7 +5,9 @@ import type { NoteFieldContent } from "./NoteField";
 import type { NoteType } from "./NoteType";
 import { TextNoteFieldContent, AttachmentNoteFieldContent } from "./NoteField";
 import type { PersistedObject, NoReservedKeys } from "./PersistableObject";
+
 import Handlebars from "handlebars";
+import { isEqual } from "lodash-es";
 
 //##########################################################################
 export type RenderedContent = Record<string, string>;
@@ -112,8 +114,7 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
         this.objectManager,
         { name: "default", cardTemplateId: this.id }
       );
-      this.objectManager.setObject(defaultVariant);
-      return [defaultVariant];
+      return [this.objectManager.setObject(defaultVariant)];
     } else {
       return variants;
     }
@@ -157,8 +158,7 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
         });
         break;
     }
-    this.objectManager.setObject(block);
-    return block;
+    return this.objectManager.setObject(block);
   }
 
   createNewVariant(name: string) {
@@ -166,8 +166,7 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
       name,
       cardTemplateId: this.id,
     });
-    this.objectManager.setObject(variant);
-    return variant
+    return this.objectManager.setObject(variant);
   }
 
   serialise(includeObjects = true): SerialisedCardTemplate {
@@ -296,7 +295,7 @@ export class CardTemplateBlock extends PersistableObject<SerialisedCardTemplateB
   static doctype = "cardtemplateblock";
   static subtype = "base";
 
-  shouldPersistIfUnsaved = true
+  shouldPersistIfUnsaved = true;
 
   name!: string;
   cardTemplateId?: string;
@@ -395,12 +394,14 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
   static doctype = "cardtemplatevariant";
   static subtype = "base";
 
-  shouldPersistIfUnsaved = true
+  shouldPersistIfUnsaved = true;
 
   name!: string;
   cardTemplateId!: string;
   get cardTemplate() {
-    return this.objectManager.getObjectById(this.cardTemplateId) as CardTemplate
+    return this.objectManager.getObjectById(
+      this.cardTemplateId
+    ) as CardTemplate;
   }
 
   css!: string;
@@ -480,6 +481,141 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
   }
 
   isDefault() {
-    return this.cardTemplate.getDefaultVariant().id === this.id
+    return this.cardTemplate.getDefaultVariant().id === this.id;
+  }
+
+  @cacheByVersion(["cardwidgetsettings"])
+  getAllWidgetSettings() {
+    return this.objectManager.query({
+      include: {
+        doctype: "cardwidgetsettings",
+        cardTemplateVariantId: this.id,
+      },
+    }) as CardWidgetSettings<any>[];
+  }
+
+  getOrCreateWidgetSettings<T>(slug: string, defaultSettings: T) {
+    let widgetSettings = this.objectManager.getObjectById(
+      CardWidgetSettings.generateId(this.id, slug)
+    ) as CardWidgetSettings<T> | undefined;
+    if (widgetSettings === undefined) {
+      widgetSettings = CardWidgetSettings.createNewEmpty(this.objectManager, {
+        slug,
+        cardTemplateVariantId: this.id,
+        settings: defaultSettings,
+      });
+      widgetSettings = this.objectManager.setObject(widgetSettings);
+      console.log(
+        `created new widget settings with id ${
+          widgetSettings.id
+        } and meta ${widgetSettings.getMeta()}`
+      );
+    } else {
+      console.log(
+        `got existing widget settings with id ${
+          widgetSettings.id
+        } and meta ${widgetSettings.getMeta()}`
+      );
+    }
+    widgetSettings.setDefaultSettings(defaultSettings);
+    return widgetSettings
+  }
+
+  getWidgetSettingsContext() {
+    const settings = this.getAllWidgetSettings();
+    return settings.reduce((context, s) => {
+      context[s.slug] = s.settings;
+      return context;
+    }, {} as Record<string, any>);
+  }
+}
+
+export type SerialisedCardWidgetSettings<T> = {
+  slug: string;
+  cardTemplateVariantId: string;
+  settings: T;
+} & PersistedObject;
+
+export class CardWidgetSettings<T> extends PersistableObject<
+  SerialisedCardWidgetSettings<T>
+> {
+  static doctype = "cardwidgetsettings";
+  static subtype = "base";
+
+  shouldPersistIfUnsaved = true;
+
+  cardTemplateVariantId!: string;
+  slug!: string;
+
+  settings!: T;
+  _defaultSettings?: T;
+
+  static generateId(cardTemplateVariantId: string, slug: string) {
+    return [cardTemplateVariantId, slug].join("");
+  }
+
+  get relatedIds() {
+    return [this.cardTemplateVariantId];
+  }
+
+  static createNewEmpty<T>(
+    objectManager: ObjectManager,
+    options: {
+      slug: string;
+      cardTemplateVariantId: string;
+      settings: T;
+    }
+  ) {
+    return new CardWidgetSettings<T>(
+      {
+        ...PersistableObject.create(
+          CardWidgetSettings.generateId(
+            options.cardTemplateVariantId,
+            options.slug
+          )
+        ),
+        ...options,
+      },
+      objectManager
+    );
+  }
+
+  constructor(
+    serialised: SerialisedCardWidgetSettings<T>,
+    objectManager: ObjectManager
+  ) {
+    super(serialised, objectManager);
+    this.updateFrom(serialised);
+  }
+
+  updateFrom(serialised: NoReservedKeys<SerialisedCardWidgetSettings<T>>) {
+    const { slug, cardTemplateVariantId, settings } = serialised;
+    this.slug = slug;
+    this.cardTemplateVariantId = cardTemplateVariantId;
+    this.settings = settings;
+  }
+
+  updateSettings(settings: T) {
+    this.settings = settings;
+    this.markDirty();
+  }
+
+  setDefaultSettings(settings: T) {
+    this._defaultSettings = settings;
+  }
+
+  serialise(includeObjects?: boolean): SerialisedCardWidgetSettings<T> {
+    return {
+      ...super.serialise(includeObjects),
+      slug: this.slug,
+      settings: this.settings,
+      cardTemplateVariantId: this.cardTemplateVariantId,
+    };
+  }
+
+  shouldDelete() {
+    return (
+      super.shouldDelete() || isEqual(this.settings, this._defaultSettings)
+    );
   }
 }

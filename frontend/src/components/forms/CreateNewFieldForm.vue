@@ -3,8 +3,6 @@ import { computed } from 'vue'
 
 import { InputText, Button, Select } from 'primevue'
 
-//import type { FormData } from './CreateNewFieldForm.types'
-
 import { useFormDialogData } from '@/composables/useFormDialog'
 export type FormData = { name: string; fieldType: 'text' | 'image' }
 

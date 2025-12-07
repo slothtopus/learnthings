@@ -1,25 +1,144 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { CardTemplate, CardTemplateVariant } from 'core/CardTemplate.js'
+import type { EditableObject } from '@/views/CardTemplateEditorView.vue'
 
-import { Button } from 'primevue'
-
-import VariantMenuItem from './VariantMenuItem.vue'
+import MenuSection from './menu/MenuSection.vue'
+import ExtendedMenuItem from './menu/ExtendedMenuItem.vue'
+import type { ExtendedMenuItem as ExtendedMenuItemType } from './menu/ExtendedMenuItem.vue'
 import CreateNewNamedObjectForm from '@/components/forms/CreateNewNamedObjectForm.vue'
 import type { FormData } from '@/components/forms/CreateNewNamedObjectForm.vue'
-import { useFormDialog } from '@/composables/useFormDialog'
+import { useDynamicFormDialog, useFormDialog } from '@/composables/useFormDialog'
+import { useWidgetSettingsMenu } from '@/components/renderer/widgets/src/useWidgets'
 
-import type { CardTemplate } from 'core/CardTemplate.js'
-//import { CardTemplateVariant } from 'core/CardTemplate.js'
-import { PersistableObject } from 'core/PersistableObject.js'
+//import NextButtonSettingsForm from '@/components/renderer/widgets/src/NextButton/NextButtonSettingsForm.vue'
+//import type { FormData as NextButtonSettingFormData } from '@/components/renderer/widgets/src/NextButton/NextButtonSettingsForm.vue'
+//import { DEFAULT_SETTINGS } from '@/components/renderer/widgets/src/NextButton/NextButton.settings'
+
+import { PanelMenu } from 'primevue'
+import type { MenuItem as MenuItemType } from 'primevue/menuitem'
 
 interface Props {
   cardTemplate: CardTemplate
 }
 const props = defineProps<Props>()
 
-const allVariants = computed(() => props.cardTemplate.getAllVariants())
+const selectedObject = defineModel<EditableObject>()
 
-const selected = defineModel<PersistableObject<any> | undefined>()
+const isItemSelected = (item: MenuItemType) =>
+  selectedObject.value &&
+  item.id === `${selectedObject.value.obj.id}${selectedObject.value.template ?? ''}`
+
+const createVariantMenuItem = (variant: CardTemplateVariant) => {
+  return {
+    id: variant.id,
+    icon: 'pi pi-clone',
+    label: variant.name,
+    items: [
+      {
+        icon: 'pi pi-clone',
+        label: 'Templates',
+        items: [
+          {
+            id: variant.id + 'css',
+            icon: 'pi pi-clone',
+            label: 'CSS',
+            command: () => {
+              selectedObject.value = { obj: variant, template: 'css' }
+            },
+          },
+          {
+            id: variant.id + 'front',
+            icon: 'pi pi-clone',
+            label: 'Front',
+            command: () => {
+              selectedObject.value = { obj: variant, template: 'front' }
+            },
+          },
+          {
+            id: variant.id + 'back',
+            icon: 'pi pi-clone',
+            label: 'Back',
+            command: () => {
+              selectedObject.value = { obj: variant, template: 'back' }
+            },
+          },
+        ],
+      },
+      {
+        icon: 'pi pi-clone',
+        label: 'Widget settings',
+        menuControl: {
+          type: 'button',
+          icon: 'pi pi-plus',
+          command: () => {
+            console.log('add widget config')
+          },
+        },
+      },
+    ],
+    menuControl: createVariantContextMenu(variant),
+  } as ExtendedMenuItemType
+}
+
+//const { openDialog } = useDynamicFormDialog()
+const {generateWidgetSettingsMenu} = useWidgetSettingsMenu()
+
+const createVariantContextMenu = (variant: CardTemplateVariant) =>
+  variant.isDefault()
+    ? { type: 'icon', icon: 'pi pi-flag-fill' }
+    : {
+        type: 'menu',
+        items: [
+          {
+            label: 'Make default',
+            command: () => {
+              console.log('make default', variant.id)
+              props.cardTemplate.setDefaultVariantId(variant.id)
+            },
+          },
+          {
+            label: 'Delete',
+            command: async () => {
+              variant.flagShouldDelete(true)
+              await props.cardTemplate.deck.persist()
+              if (selectedObject.value?.obj.id === variant.id) {
+                selectedObject.value = undefined
+              }
+            },
+          },
+          {
+            label: 'Widget Settings',
+            items: generateWidgetSettingsMenu(variant)
+            /*[
+              {
+                label: 'Next button',
+                command: async () => {
+                  // TODO: create a composable that builds all these widget menu items
+                  const widgetSettings =
+                    variant.getOrCreateWidgetSettings<NextButtonSettingFormData>(
+                      'next-button',
+                      DEFAULT_SETTINGS,
+                    )
+                  const result = await openDialog<NextButtonSettingFormData>(
+                    NextButtonSettingsForm,
+                    'Next button settings',
+                    widgetSettings.settings,
+                  )
+                  if (!result.cancelled) {
+                    widgetSettings.updateSettings(result.data)
+                  }
+                  await widgetSettings.deck.persist()
+                },
+              },
+            ],*/
+          },
+        ],
+      }
+
+const items = computed<ExtendedMenuItemType[]>(() =>
+  props.cardTemplate.getAllVariants().map(createVariantMenuItem),
+)
 
 const { openDialog: openVariantDialog } = useFormDialog<FormData>(
   CreateNewNamedObjectForm,
@@ -31,30 +150,33 @@ const handleCreateNewVariant = async () => {
   if (result.cancelled) return
   const { name } = result.data
   props.cardTemplate.createNewVariant(name)
-  /*const variant = CardTemplateVariant.createNewEmpty(props.cardTemplate.objectManager, {
-    name,
-    cardTemplateId: props.cardTemplate.id,
-  })
-  props.cardTemplate.objectManager.setObject(variant)*/
+  await props.cardTemplate.deck.persist()
 }
 </script>
 
 <template>
-  <div>
-    <div class="flex gap-2 items-center px-2 mb-2 border-b-1 border-gray-700">
-      <h2 class="w-full truncate">Variants</h2>
-      <Button text icon="flex-0 pi pi-plus" @click="handleCreateNewVariant" />
-    </div>
-    <VariantMenuItem
-      v-for="variant in allVariants"
-      :key="variant.id"
-      :variant="variant"
-      :is-default="variant.id === cardTemplate.getDefaultVariant().id"
-      :is-selected="selected?.id === variant.id"
-      @click="selected = variant"
-      @make-default="cardTemplate.setDefaultVariantId(variant.id)"
-    />
-  </div>
+  <MenuSection title="Variants" icon="pi pi-plus" @clicked="handleCreateNewVariant">
+    <PanelMenu :model="items" :pt="{ panel: 'border-none!', root: 'gap-0!' }">
+      <template
+        #item="{
+          item,
+          active,
+          hasSubmenu,
+        }: {
+          item: ExtendedMenuItemType
+          active: boolean
+          hasSubmenu: boolean
+        }"
+      >
+        <ExtendedMenuItem
+          :item="item"
+          :active="active"
+          :has-submenu="hasSubmenu"
+          :selected="isItemSelected(item)"
+        />
+      </template>
+    </PanelMenu>
+  </MenuSection>
 </template>
 
 <style scoped></style>

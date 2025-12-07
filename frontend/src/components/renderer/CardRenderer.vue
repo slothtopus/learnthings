@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { defineComponent, toRefs, compile, provide, watchEffect, watch, shallowRef } from 'vue'
+import { defineComponent, toRef, toRefs, compile, provide, watchEffect, shallowRef } from 'vue'
 import type { PropType, Component } from 'vue'
 import Button from './widgets/src/ui/StandardButton.vue'
-import NextButton from './widgets/src/NextButton.vue'
-import RevealButton from './widgets/src/RevealButton.vue'
+import NextButton from './widgets/src/NextButton/NextButton.vue'
+import RevealButton from './widgets/src/RevealButton/RevealButton.vue'
 import RatingButtons from './widgets/src/RatingButtons.vue'
 import TextInput from './widgets/src/TextInput.vue'
 
@@ -15,6 +15,7 @@ import type { RenderedCard } from 'core/CardTemplate.js'
 
 interface Props {
   card?: RenderedCard
+  widgetSettings?: Record<string, any>
 }
 
 const props = defineProps<Props>()
@@ -35,7 +36,7 @@ function makeRuntimeComponent(template: string, components = {}) {
       },
     },
     setup(props) {
-      provide('ctx', props.ctx)
+      provide('ctx', toRef(props, 'ctx'))
       return { ...toRefs(props) }
     },
     render,
@@ -52,13 +53,6 @@ watchEffect(() => {
     TextInput,
   })
 })
-
-watch(
-  () => props.card?.context,
-  (newContext) => {
-    console.log('card context now:', newContext)
-  },
-)
 </script>
 
 <template>
@@ -67,7 +61,11 @@ watch(
       <component
         v-if="card"
         :is="compiledComponent"
-        :ctx="{ controller: new CardController(emit), context: card.context }"
+        :ctx="{
+          controller: new CardController(emit),
+          context: card.context,
+          settings: widgetSettings,
+        }"
       />
     </ShadowDom>
   </div>

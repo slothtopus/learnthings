@@ -8,8 +8,8 @@ import AppFrameScreenLayout from '@/layouts/AppFrameScreenLayout.vue'
 import CodeMirrorEditor from '@/components/common/CodeMirrorEditor.vue'
 import TemplateEditorPreview from '@/components/template_editor/TemplateEditorPreview.vue'
 
-import BlocksMenuV2 from '@/components/template_editor/BlocksMenuV2.vue'
-import VariantsMenuV2 from '@/components/template_editor/VariantsMenuV2.vue'
+import BlocksMenu from '@/components/template_editor/BlocksMenu.vue'
+import VariantsMenu from '@/components/template_editor/VariantsMenu.vue'
 
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 import { useConfirmation } from '@/composables/useConfirmationDialog'
@@ -41,11 +41,7 @@ export type EditableObject =
     }
   | undefined
 
-const editingObj = ref<CardTemplateBlock | CardTemplateVariant | undefined>(
-  cardTemplate.getDefaultVariant(),
-)
-
-const editingObj2 = ref<EditableObject>({
+const editingObj = ref<EditableObject>({
   obj: cardTemplate.getDefaultVariant(),
   template: 'front',
 })
@@ -56,105 +52,53 @@ watch(editingTemplate, () => {
   }
 })
 
-const templateOptions = [
-  { id: 'css' as const, name: 'CSS' },
-  { id: 'front' as const, name: 'Front' },
-  {
-    id: 'back' as const,
-    name: 'Back',
-  },
-]
-const selectedTemplateId = ref<(typeof templateOptions)[number]['id']>('css')
-
 const editorModel = computed({
   get: () => {
-    if (editingObj2.value?.obj instanceof CardTemplateVariant) {
-      switch (editingObj2.value.template!) {
+    if (editingObj.value?.obj instanceof CardTemplateVariant) {
+      switch (editingObj.value.template!) {
         case 'css':
-          return editingObj2.value.obj.css
+          return editingObj.value.obj.css
         case 'front':
-          return editingObj2.value.obj.front
+          return editingObj.value.obj.front
         case 'back':
-          return editingObj2.value.obj.back
+          return editingObj.value.obj.back
       }
-    } else if (editingObj2.value?.obj instanceof CardTemplateBlock) {
-      return editingObj2.value.obj.content
+    } else if (editingObj.value?.obj instanceof CardTemplateBlock) {
+      return editingObj.value.obj.content
     }
     return ''
   },
   set: (content: string) => {
-    if (editingObj2.value?.obj instanceof CardTemplateVariant) {
-      switch (editingObj2.value.template!) {
+    if (editingObj.value?.obj instanceof CardTemplateVariant) {
+      switch (editingObj.value.template!) {
         case 'css':
-          editingObj2.value.obj.setCSS(content)
+          editingObj.value.obj.setCSS(content)
           break
         case 'front':
-          editingObj2.value.obj.setFront(content)
+          editingObj.value.obj.setFront(content)
           break
         case 'back':
-          editingObj2.value.obj.setBack(content)
+          editingObj.value.obj.setBack(content)
           break
       }
-    } else if (editingObj2.value?.obj instanceof CardTemplateBlock) {
-      return editingObj2.value.obj.setContent(content)
+    } else if (editingObj.value?.obj instanceof CardTemplateBlock) {
+      return editingObj.value.obj.setContent(content)
     }
   },
 })
-
-/*
-const editorModel = computed({
-  get: () => {
-    if (editingObj.value instanceof CardTemplateBlock) {
-      return editingObj.value!.content
-    } else if (
-      editingObj.value instanceof CardTemplateVariant &&
-      editingTemplate.value !== undefined
-    ) {
-      switch (editingTemplate.value) {
-        case 'css':
-          return editingObj.value.css
-        case 'front':
-          return editingObj.value.front
-        case 'back':
-          return editingObj.value.back
-      }
-    }
-    return ''
-  },
-  set: (content: string) => {
-    if (editingObj.value instanceof CardTemplateBlock) {
-      editingObj.value.setContent(content)
-    } else if (
-      editingObj.value instanceof CardTemplateVariant &&
-      editingTemplate.value !== undefined
-    ) {
-      switch (editingTemplate.value) {
-        case 'css':
-          editingObj.value.setCSS(content)
-          break
-        case 'front':
-          editingObj.value.setFront(content)
-          break
-        case 'back':
-          editingObj.value.setBack(content)
-          break
-      }
-    }
-  },
-})
-*/
 
 const editorModeOptions = [
   { id: 'css' as const, name: 'CSS' },
   { id: 'html' as const, name: 'HTML' },
 ]
 const selectedEditorModeId = ref<(typeof editorModeOptions)[number]['id']>('css')
-const editorModeDisabled = computed(() => editingObj.value instanceof CardTemplateVariant)
-watch([editingObj, selectedTemplateId], ([newObj, newTemplateId]) => {
-  if (newObj instanceof CardTemplateBlock) {
+const editorModeDisabled = computed(() => editingObj.value?.obj instanceof CardTemplateVariant)
+
+watch(editingObj, (newObj) => {
+  if (newObj?.obj instanceof CardTemplateBlock) {
     selectedEditorModeId.value = 'html'
-  } else if (newObj instanceof CardTemplateVariant) {
-    switch (newTemplateId) {
+  } else if (newObj?.obj instanceof CardTemplateVariant) {
+    switch (newObj.template!) {
       case 'css':
         selectedEditorModeId.value = 'css'
         break
@@ -164,23 +108,21 @@ watch([editingObj, selectedTemplateId], ([newObj, newTemplateId]) => {
     }
   }
 })
-const editingDefaultVariant = computed(
-  () =>
-    editingObj.value !== undefined &&
-    editingObj.value instanceof CardTemplateVariant &&
-    editingObj.value.name === 'default',
-)
+
+const editorTitle = computed(() => {
+  if (editingObj.value === undefined) {
+    return ''
+  }
+  const { obj, template } = editingObj.value
+  if (obj instanceof CardTemplateVariant) {
+    return `Variant: ${obj.name}: ${template}`
+  } else {
+    return `Block: ${obj.name}`
+  }
+})
 
 const handleSaveObj = async () => {
   await cardTemplate.deck.persist()
-}
-
-const handleDeleteObj = async () => {
-  if (editingObj.value) {
-    editingObj.value.flagShouldDelete(true)
-    await cardTemplate.deck.persist()
-    editingObj.value = undefined
-  }
 }
 
 const { confirm } = useConfirmation()
@@ -228,8 +170,8 @@ watch(minimiseLeft, async (newVal) => {
               @click="minimiseLeft = true"
             />
           </div>
-          <VariantsMenuV2 v-model="editingObj2" :card-template="cardTemplate" />
-          <BlocksMenuV2 class="mt-4" v-model="editingObj2" :card-template="cardTemplate" />
+          <VariantsMenu v-model="editingObj" :card-template="cardTemplate" />
+          <BlocksMenu class="mt-4" v-model="editingObj" :card-template="cardTemplate" />
         </SplitterPanel>
         <SplitterPanel :size="60" :min-size="10" class="flex overflow-auto!">
           <div v-if="minimiseLeft" class="flex h-14 items-end py-2 pl-3">
@@ -242,7 +184,7 @@ watch(minimiseLeft, async (newVal) => {
           </div>
           <section class="@container flex flex-col w-full px-3 pb-3 min-w-80">
             <div class="flex flex-col @xl:flex-row gap-3 py-2 @xl:items-center">
-              <h1 class="@xl:text-lg w-full truncate">Editing: {{ editingObj?.name }}</h1>
+              <h1 class="@xl:text-lg w-full truncate">{{ editorTitle }}</h1>
               <div class="flex gap-3 items-center">
                 <FloatLabel class="w-28" variant="on">
                   <Select
@@ -257,41 +199,15 @@ watch(minimiseLeft, async (newVal) => {
                   />
                   <label for="template-select">Mode</label>
                 </FloatLabel>
-
-                <FloatLabel
-                  v-if="editingObj instanceof CardTemplateVariant"
-                  class="w-28"
-                  variant="on"
-                >
-                  <Select
-                    class="w-full"
-                    inputId="template-select"
-                    v-model="selectedTemplateId"
-                    :options="templateOptions"
-                    optionLabel="name"
-                    optionValue="id"
-                    size="small"
-                  />
-                  <label for="template-select">Template</label>
-                </FloatLabel>
                 <Button
                   v-if="editingObj !== undefined"
                   class="flex-none ml-auto @lg:ml-none"
-                  :disabled="!editingObj?.shouldPersist()"
+                  :disabled="!editingObj.obj.shouldPersist()"
                   :pt="{ label: 'hidden @lg:block' }"
                   text
                   icon="pi pi-save"
-                  label="Save"
+                  label="Save All"
                   @click="handleSaveObj"
-                />
-                <Button
-                  v-if="editingObj !== undefined && !editingDefaultVariant"
-                  class="flex-none"
-                  :pt="{ label: 'hidden @lg:block' }"
-                  text
-                  icon="pi pi-trash"
-                  label="Delete"
-                  @click="handleDeleteObj"
                 />
               </div>
             </div>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useTemplateRef } from 'vue'
 
-import { Button, Menu } from 'primevue'
+import { Button, TieredMenu } from 'primevue'
 import type { MenuItem } from 'primevue/menuitem'
 import {nanoid} from 'nanoid'
 
@@ -48,7 +48,7 @@ const toggleContextMenu = (event: Event) => {
         :aria-controls="`variant-${_id}-context-menu`"
         @click.stop="toggleContextMenu($event)"
       />
-      <Menu
+      <TieredMenu
         ref="contextMenu"
         :id="`variant-${_id}-context-menu`"
         :model="control.items"

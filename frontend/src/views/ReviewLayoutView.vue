@@ -96,6 +96,7 @@ const toggleContextMenu = (event: Event) => {
     <CardRenderer
       class="w-full h-full"
       :card="displayedCard"
+      :widgetSettings="card?.getCardTemplateVariant().getWidgetSettingsContext()"
       @card:reveal="handleReveal"
       @card:rate="handleRated"
       @card:next="handleNextCard"

@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 
 import { nanoid } from 'nanoid'
 
-import CardRenderer from './CardRenderer.vue'
 import type { RenderedCard } from 'core/CardTemplate.js'
 
 interface Props {
   previewWidth: number
   previewHeight: number
   card: RenderedCard
+  widgetSettings?: Record<string, any>
   align?: 'left' | 'right'
 }
 const props = defineProps<Props>()
@@ -66,6 +66,13 @@ onBeforeUnmount(() => {
   removeContainerQuery()
 })
 const scaleRatio = ref(0)
+
+const scaleStyle = computed(() => ({
+  width: `${props.previewWidth}px`,
+  height: `${props.previewHeight}px`,
+  transform: `scale(${scaleRatio.value})`
+
+}) )
 </script>
 
 <template>
@@ -77,11 +84,7 @@ const scaleRatio = ref(0)
         :class="className"
         :style="`aspect-ratio: ${previewWidth} / ${previewHeight}`"
       >
-        <CardRenderer
-          class="content bg-black"
-          :card="card"
-          :style="`width: ${previewWidth}px; height: ${previewHeight}px; transform: scale(${scaleRatio})`"
-        />
+      <slot :scaleStyle="scaleStyle"></slot>
       </div>
     </div>
   </div>
@@ -102,9 +105,5 @@ const scaleRatio = ref(0)
 }
 .preview-wrapper.left {
   justify-content: flex-start;
-}
-
-.content {
-  transform-origin: top left;
 }
 </style>

@@ -157,7 +157,7 @@ export class ObjectManager {
     return objClass;
   }
 
-  setObject(obj: PersistableObject<any>) {
+  setObject<T extends PersistableObject<any>> (obj: T) {
     const key = ObjectManager.generateObjectKey(obj);
     if (!(key in this.registry)) {
       throw new Error(`Cannot set unregistered object ${key}`);
@@ -167,6 +167,7 @@ export class ObjectManager {
     if (obj.shouldPersist()) {
       obj.markDirty();
     }
+    return this.getObjectById(obj.id) as T
   }
 
   async loadAll() {
@@ -557,6 +558,34 @@ export class ObjectManager {
 
   query(query: ObjectQuery, includeDeleted = false) {
     return this.getAllObjects().filter((o) => o.matches(query, includeDeleted));
+  }
+
+
+  _doctypeQueryCache: Record<string, CacheEntry<PersistableObject<any>[]>> = {}
+  doctypeCachedQuery<T extends PersistableObject<any>>(query: ObjectQuery, doctypes: string[] = ["default"]) {
+    /* TODO: implement a query cache that uses the doctype specified in the query
+    and recalculates on version change. This will also include the query with
+    all deleted objects and apply the filtering on the cached values so that updates
+    that toggle shouldDelete will also be reactive.
+
+    I'm not sure why I wanted to use this?
+    */
+
+    const currentVersion = pick(this.version, doctypes);
+    const cacheKey = JSON.stringify(query)
+    const entry = this._doctypeQueryCache[cacheKey] as CacheEntry<T[]> | undefined;
+
+    if(entry !== undefined && isEqual(entry.version, currentVersion)) {
+      return entry.result.filter((r) => !r.shouldDelete())
+    } else {
+      const result = this.query(query, true) as T[]
+      const newEntry: CacheEntry<T[]> = {
+        version: currentVersion,
+        result: result
+      }
+      this._doctypeQueryCache[cacheKey] = newEntry
+      return result
+    }
   }
 }
 
