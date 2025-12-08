@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, shallowRef, onMounted, useTemplateRef } from 'vue'
+import { ref, computed, shallowRef, onMounted, useTemplateRef } from 'vue'
 
-import { Button, Menu } from 'primevue'
+import { Button, TieredMenu } from 'primevue'
 import CardRenderer from '@/components/renderer/CardRenderer.vue'
 import ChangeCardVariantForm from '@/components/forms/ChangeCardVariantForm.vue'
 import type { FormData } from '@/components/forms/ChangeCardVariantForm.vue'
@@ -9,6 +9,7 @@ import type { FormData } from '@/components/forms/ChangeCardVariantForm.vue'
 import { useRouter } from 'vue-router'
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 import { useFormDialog } from '@/composables/useFormDialog'
+import { useWidgetSettingsMenu } from '@/components/renderer/widgets/src/useWidgets'
 
 import type { Card } from 'core/Card.js'
 import { RenderedCard } from 'core/CardTemplate.js'
@@ -84,8 +85,18 @@ const handleChangeVariant = async () => {
   await renderCard()
 }
 
+const variant = computed(() => card.value?.getCardTemplateVariant())
+
+const { generateWidgetSettingsMenu } = useWidgetSettingsMenu()
+
 const contextMenu = useTemplateRef('contextMenu')
-const contextMenuItems = [{ label: 'Change variant', command: handleChangeVariant }]
+const contextMenuItems = computed(() => [
+  { label: 'Change variant', command: handleChangeVariant },
+  {
+    label: 'Widget Settings',
+    items: variant.value ? generateWidgetSettingsMenu(variant.value) : [],
+  },
+])
 const toggleContextMenu = (event: Event) => {
   contextMenu.value?.toggle(event)
 }
@@ -96,7 +107,7 @@ const toggleContextMenu = (event: Event) => {
     <CardRenderer
       class="w-full h-full"
       :card="displayedCard"
-      :widgetSettings="card?.getCardTemplateVariant().getWidgetSettingsContext()"
+      :widgetSettings="variant?.getWidgetSettingsContext()"
       @card:reveal="handleReveal"
       @card:rate="handleRated"
       @card:next="handleNextCard"
@@ -111,7 +122,7 @@ const toggleContextMenu = (event: Event) => {
         aria-controls="context-menu"
         @click="toggleContextMenu"
       />
-      <Menu ref="contextMenu" id="context-menu" :model="contextMenuItems" :popup="true" />
+      <TieredMenu ref="contextMenu" id="context-menu" :model="contextMenuItems" :popup="true" />
     </div>
   </main>
 </template>

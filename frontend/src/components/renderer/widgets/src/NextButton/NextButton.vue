@@ -3,10 +3,6 @@ import Button from '../ui/StandardButton.vue'
 import { useCardController } from '../../../useCardController'
 import { useWidgetSettings } from '../useWidgets'
 
-export type NextButtonSettings = {
-  unstyled: boolean
-}
-
 const { controller } = useCardController()
 const { settings } = useWidgetSettings('next-button')
 </script>

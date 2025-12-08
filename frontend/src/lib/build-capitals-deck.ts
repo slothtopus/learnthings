@@ -32,6 +32,15 @@ h1 {
   color: white;
 }
 
+.correct {
+  color: green;
+}
+
+.incorrect {
+  color: red;
+  text-decoration: line-through;
+}
+
 .fade-in {
   animation: fadein 0.5s;
 }
@@ -61,9 +70,12 @@ const FRONT = `
 <div id="content">
   <h1 class="front fade-in">{{ front_field }}</h1>
   <hr />
+  {{#if textinput}}
+  <text-input answer="{{ back_field }}" style="align-self: flex-start"/>
+  {{/if}}
 </div>
 <div id="controls">
-  <reveal-button />
+  <reveal-button {{#if textinput}}style="visibility: hidden;"{{/if}} />
 </div>
 `
 
@@ -71,12 +83,26 @@ const BACK = `
 <div id="content">
   <h1 class="front">{{ front_field }}</h1>
   <hr />
-  <h1 class="back fade-in">{{ back_field }}</h1>
+  {{#if textinput}}
+    {{#if textinput:correct}}
+      <h1 class="back fade-in correct">{{ capital }}</h1>
+    {{else}}
+      <div style="align-self: flex-start">
+        <h1 class="back fade-in incorrect">{{ textinput:answer }}</h1>
+        <h1 class="back fade-in correct">{{ capital }}</h1>
+      </div>
+    {{/if}}
+  {{else}}
+    <h1 class="back fade-in">{{ back_field }}</h1>
+  {{/if}}
 </div>
 <div id="controls">
-  <rating-buttons />
+  {{#if textinput}}
+    <next-button />
+  {{else}}
+    <rating-buttons />
+  {{/if}}
 </div>
-
 `
 
 export const createCountriesAndCapitals = async (deck: Deck) => {
@@ -91,21 +117,36 @@ export const createCountriesAndCapitals = async (deck: Deck) => {
     capitalField.getOrCreateContent(note).setContent(capital)
   }
 
-  const co2caTemplate = noteType.createNewCardTemplate('country to capital')
-  co2caTemplate.createNewBlock('css', 'notetype').setContent(CSS)
-  co2caTemplate.createNewBlock('front', 'notetype').setContent(FRONT)
-  co2caTemplate.createNewBlock('back', 'notetype').setContent(BACK)
+  {
+    const template = noteType.createNewCardTemplate('country to capital')
+    template.createNewBlock('css', 'notetype').setContent(CSS)
+    template.createNewBlock('front', 'notetype').setContent(FRONT)
+    template.createNewBlock('back', 'notetype').setContent(BACK)
 
-  const co2caDefaultVariant = co2caTemplate.getDefaultVariant()
-  co2caDefaultVariant.setCSS('{{>css}}')
-  co2caDefaultVariant.setFront('{{>front front_field=country}}')
-  co2caDefaultVariant.setBack('{{>back front_field=country back_field=capital}}')
+    const defaultVariant = template.getDefaultVariant()
+    defaultVariant.setCSS('{{>css}}')
+    defaultVariant.setFront('{{>front front_field=country}}')
+    defaultVariant.setBack('{{>back front_field=country back_field=capital}}')
 
-  const ca2coTemplate = noteType.createNewCardTemplate('capital to country')
-  const ca2coDefaultVariant = ca2coTemplate.getDefaultVariant()
-  ca2coDefaultVariant.setCSS('{{>css}}')
-  ca2coDefaultVariant.setFront('{{>front front_field=capital}}')
-  ca2coDefaultVariant.setBack('{{>back front_field=capital back_field=country}}')
+    const textInputVariant = template.createNewVariant('text input')
+    textInputVariant.setCSS('{{>css}}')
+    textInputVariant.setFront('{{>front front_field=country back_field=capital textinput=true}}')
+    textInputVariant.setBack('{{>back front_field=country back_field=capital textinput=true}}')
+  }
+
+  {
+    const template = noteType.createNewCardTemplate('capital to country')
+
+    const defaultVariant = template.getDefaultVariant()
+    defaultVariant.setCSS('{{>css}}')
+    defaultVariant.setFront('{{>front front_field=capital}}')
+    defaultVariant.setBack('{{>back front_field=capital back_field=country}}')
+
+    const textInputVariant = template.createNewVariant('text input')
+    textInputVariant.setCSS('{{>css}}')
+    textInputVariant.setFront('{{>front front_field=capital back_field=capital textinput=true}}')
+    textInputVariant.setBack('{{>back front_field=capital back_field=country textinput=true}}')
+  }
 
   deck.createMissingCards()
   return deck

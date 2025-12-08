@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-import Button from './ui/StandardButton.vue'
-import InputText from './ui/InputText.vue'
+import Button from '../ui/StandardButton.vue'
+import InputText from '../ui/InputText.vue'
 
 import { pause } from '@/lib/utils'
-import { useCardController } from '../../useCardController'
+import { useCardController } from '../../../useCardController'
+import { useWidgetSettings } from '../useWidgets'
 
 interface Props {
   answer: string
@@ -14,6 +15,8 @@ const props = defineProps<Props>()
 
 const inputText = ref('')
 const { controller } = useCardController()
+
+const { settings } = useWidgetSettings('text-input')
 
 const isAnswered = ref(false)
 const handleCheck = async () => {
@@ -33,10 +36,22 @@ const removeDiacritics = (input: string): string => {
   return input.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 }
 
+const prepareText = (input: string) => {
+  let prepared = input
+  if(settings.value.ignorePunctuation) {
+    prepared = stripPunctuation(prepared)
+  }
+  if(settings.value.ignoreDiacritics) {
+    prepared = removeDiacritics(prepared)
+  }
+  return prepared
+}
+
 const compareText = (original: string, answer: string) => {
+  console.log('comparing: ', original, answer)
   return (
-    removeDiacritics(stripPunctuation(original)).toLowerCase().trim() ==
-    removeDiacritics(stripPunctuation(answer)).toLowerCase().trim()
+    prepareText(original).toLowerCase().trim() ==
+    prepareText(answer).toLowerCase().trim()
   )
 }
 </script>

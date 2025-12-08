@@ -8,7 +8,7 @@ import ExtendedMenuItem from './menu/ExtendedMenuItem.vue'
 import type { ExtendedMenuItem as ExtendedMenuItemType } from './menu/ExtendedMenuItem.vue'
 import CreateNewNamedObjectForm from '@/components/forms/CreateNewNamedObjectForm.vue'
 import type { FormData } from '@/components/forms/CreateNewNamedObjectForm.vue'
-import { useDynamicFormDialog, useFormDialog } from '@/composables/useFormDialog'
+import { useFormDialog } from '@/composables/useFormDialog'
 import { useWidgetSettingsMenu } from '@/components/renderer/widgets/src/useWidgets'
 
 //import NextButtonSettingsForm from '@/components/renderer/widgets/src/NextButton/NextButtonSettingsForm.vue'
@@ -110,28 +110,6 @@ const createVariantContextMenu = (variant: CardTemplateVariant) =>
           {
             label: 'Widget Settings',
             items: generateWidgetSettingsMenu(variant)
-            /*[
-              {
-                label: 'Next button',
-                command: async () => {
-                  // TODO: create a composable that builds all these widget menu items
-                  const widgetSettings =
-                    variant.getOrCreateWidgetSettings<NextButtonSettingFormData>(
-                      'next-button',
-                      DEFAULT_SETTINGS,
-                    )
-                  const result = await openDialog<NextButtonSettingFormData>(
-                    NextButtonSettingsForm,
-                    'Next button settings',
-                    widgetSettings.settings,
-                  )
-                  if (!result.cancelled) {
-                    widgetSettings.updateSettings(result.data)
-                  }
-                  await widgetSettings.deck.persist()
-                },
-              },
-            ],*/
           },
         ],
       }

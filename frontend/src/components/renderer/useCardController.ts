@@ -1,4 +1,5 @@
 import { inject } from 'vue'
+import type { Ref } from 'vue'
 
 export type CardEvents = {
   'card:next': []
@@ -39,9 +40,9 @@ export class CardController {
 }
 
 export const useCardController = () => {
-  const ctx = inject<{ controller: CardController }>('ctx')
+  const ctx = inject<Ref<{ controller: CardController }>>('ctx')
   if (ctx === undefined) {
     throw new Error(`ctx is undefined`)
   }
-  return { controller: ctx.controller }
+  return { controller: ctx.value.controller }
 }

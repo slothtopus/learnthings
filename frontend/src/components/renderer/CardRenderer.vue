@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import { defineComponent, toRef, toRefs, compile, provide, watchEffect, shallowRef } from 'vue'
 import type { PropType, Component } from 'vue'
-import Button from './widgets/src/ui/StandardButton.vue'
-import NextButton from './widgets/src/NextButton/NextButton.vue'
-import RevealButton from './widgets/src/RevealButton/RevealButton.vue'
-import RatingButtons from './widgets/src/RatingButtons.vue'
-import TextInput from './widgets/src/TextInput.vue'
 
 import ShadowDom from './ShadowDom.vue'
 
+import { WIDGET_COMPONENTS } from './widgets/src/useWidgets'
 import { CardController } from './useCardController'
 import type { CardEvents } from './useCardController'
 import type { RenderedCard } from 'core/CardTemplate.js'
@@ -45,13 +41,7 @@ function makeRuntimeComponent(template: string, components = {}) {
 
 const compiledComponent = shallowRef<Component | undefined>(undefined)
 watchEffect(() => {
-  compiledComponent.value = makeRuntimeComponent(props.card?.html ?? '', {
-    Button,
-    NextButton,
-    RevealButton,
-    RatingButtons,
-    TextInput,
-  })
+  compiledComponent.value = makeRuntimeComponent(props.card?.html ?? '', WIDGET_COMPONENTS)
 })
 </script>
 

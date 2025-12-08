@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import Button from './ui/StandardButton.vue'
-import InfoButton from './ui/InfoButton.vue'
-import DangerButton from './ui/DangerButton.vue'
-import WarningButton from './ui/WarningButton.vue'
+import Button from '../ui/StandardButton.vue'
+import InfoButton from '../ui/InfoButton.vue'
+import DangerButton from '../ui/DangerButton.vue'
+import WarningButton from '../ui/WarningButton.vue'
 
-import { useCardController } from '../../useCardController'
+import { useCardController } from '../../../useCardController'
 
 const { controller } = useCardController()
 
