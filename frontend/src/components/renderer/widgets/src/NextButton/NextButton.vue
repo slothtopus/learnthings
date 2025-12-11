@@ -8,6 +8,6 @@ const { settings } = useWidgetSettings('next-button')
 </script>
 
 <template>
-  <button v-if="settings.unstyled" @click="controller.next()"></button>
+  <button v-if="settings.unstyled" @click="controller.next()">Next</button>
   <Button v-else @click="controller.next()">Next</Button>
 </template>
