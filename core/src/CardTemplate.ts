@@ -360,9 +360,11 @@ export class CardTemplateBlock extends PersistableObject<SerialisedCardTemplateB
     }
   }
 
-  serialise(includeObjects?: boolean): SerialisedCardTemplateBlock {
+  serialise(
+    ...args: Parameters<PersistableObject<any>["serialise"]>
+  ): SerialisedCardTemplateBlock {
     const serialised: SerialisedCardTemplateBlock = {
-      ...super.serialise(includeObjects),
+      ...super.serialise(...args),
       name: this.name,
       content: this.content,
     };
@@ -472,9 +474,11 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
     }
   }
 
-  serialise(includeObjects?: boolean): SerialisedCardTemplateVariant {
+  serialise(
+    ...args: Parameters<PersistableObject<any>["serialise"]>
+  ): SerialisedCardTemplateVariant {
     return {
-      ...super.serialise(includeObjects),
+      ...super.serialise(...args),
       name: this.name,
       cardTemplateId: this.cardTemplateId,
       css: this.css,
@@ -607,9 +611,11 @@ export class CardWidgetSettings<T> extends PersistableObject<
     this._defaultSettings = settings;
   }
 
-  serialise(includeObjects?: boolean): SerialisedCardWidgetSettings<T> {
+  serialise(
+    ...args: Parameters<PersistableObject<any>["serialise"]>
+  ): SerialisedCardWidgetSettings<T> {
     return {
-      ...super.serialise(includeObjects),
+      ...super.serialise(...args),
       slug: this.slug,
       settings: this.settings,
       cardTemplateVariantId: this.cardTemplateVariantId,
