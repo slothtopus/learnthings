@@ -85,11 +85,11 @@ const BACK = `
   <hr />
   {{#if textinput}}
     {{#if textinput:correct}}
-      <h1 class="back fade-in correct">{{ capital }}</h1>
+      <h1 class="back fade-in correct">{{ back_field }}</h1>
     {{else}}
       <div style="align-self: flex-start">
         <h1 class="back fade-in incorrect">{{ textinput:answer }}</h1>
-        <h1 class="back fade-in correct">{{ capital }}</h1>
+        <h1 class="back fade-in correct">{{ back_field }}</h1>
       </div>
     {{/if}}
   {{else}}
