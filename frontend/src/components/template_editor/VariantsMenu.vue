@@ -11,10 +11,6 @@ import type { FormData } from '@/components/forms/CreateNewNamedObjectForm.vue'
 import { useFormDialog } from '@/composables/useFormDialog'
 import { useWidgetSettingsMenu } from '@/components/renderer/widgets/src/useWidgets'
 
-//import NextButtonSettingsForm from '@/components/renderer/widgets/src/NextButton/NextButtonSettingsForm.vue'
-//import type { FormData as NextButtonSettingFormData } from '@/components/renderer/widgets/src/NextButton/NextButtonSettingsForm.vue'
-//import { DEFAULT_SETTINGS } from '@/components/renderer/widgets/src/NextButton/NextButton.settings'
-
 import { PanelMenu } from 'primevue'
 import type { MenuItem as MenuItemType } from 'primevue/menuitem'
 
@@ -32,48 +28,31 @@ const isItemSelected = (item: MenuItemType) =>
 const createVariantMenuItem = (variant: CardTemplateVariant) => {
   return {
     id: variant.id,
-    icon: 'pi pi-clone',
+    icon: variant.isDefault() ? 'pi pi-flag-fill' : 'pi pi-flag',
     label: variant.name,
     items: [
       {
+        id: variant.id + 'css',
         icon: 'pi pi-clone',
-        label: 'Templates',
-        items: [
-          {
-            id: variant.id + 'css',
-            icon: 'pi pi-clone',
-            label: 'CSS',
-            command: () => {
-              selectedObject.value = { obj: variant, template: 'css' }
-            },
-          },
-          {
-            id: variant.id + 'front',
-            icon: 'pi pi-clone',
-            label: 'Front',
-            command: () => {
-              selectedObject.value = { obj: variant, template: 'front' }
-            },
-          },
-          {
-            id: variant.id + 'back',
-            icon: 'pi pi-clone',
-            label: 'Back',
-            command: () => {
-              selectedObject.value = { obj: variant, template: 'back' }
-            },
-          },
-        ],
+        label: 'CSS',
+        command: () => {
+          selectedObject.value = { obj: variant, template: 'css' }
+        },
       },
       {
+        id: variant.id + 'front',
         icon: 'pi pi-clone',
-        label: 'Widget settings',
-        menuControl: {
-          type: 'button',
-          icon: 'pi pi-plus',
-          command: () => {
-            console.log('add widget config')
-          },
+        label: 'Front',
+        command: () => {
+          selectedObject.value = { obj: variant, template: 'front' }
+        },
+      },
+      {
+        id: variant.id + 'back',
+        icon: 'pi pi-clone',
+        label: 'Back',
+        command: () => {
+          selectedObject.value = { obj: variant, template: 'back' }
         },
       },
     ],
@@ -81,38 +60,39 @@ const createVariantMenuItem = (variant: CardTemplateVariant) => {
   } as ExtendedMenuItemType
 }
 
-//const { openDialog } = useDynamicFormDialog()
-const {generateWidgetSettingsMenu} = useWidgetSettingsMenu()
+const { generateWidgetSettingsMenu } = useWidgetSettingsMenu()
 
-const createVariantContextMenu = (variant: CardTemplateVariant) =>
-  variant.isDefault()
-    ? { type: 'icon', icon: 'pi pi-flag-fill' }
-    : {
-        type: 'menu',
-        items: [
+const createVariantContextMenu = (variant: CardTemplateVariant) => ({
+  type: 'menu',
+  items: [
+    ...(variant.isDefault()
+      ? []
+      : [
           {
             label: 'Make default',
-            command: () => {
+            command: async () => {
               console.log('make default', variant.id)
               props.cardTemplate.setDefaultVariantId(variant.id)
-            },
-          },
-          {
-            label: 'Delete',
-            command: async () => {
-              variant.flagShouldDelete(true)
               await props.cardTemplate.deck.persist()
-              if (selectedObject.value?.obj.id === variant.id) {
-                selectedObject.value = undefined
-              }
             },
           },
-          {
-            label: 'Widget Settings',
-            items: generateWidgetSettingsMenu(variant)
-          },
-        ],
-      }
+        ]),
+    {
+      label: 'Delete',
+      command: async () => {
+        variant.flagShouldDelete(true)
+        await props.cardTemplate.deck.persist()
+        if (selectedObject.value?.obj.id === variant.id) {
+          selectedObject.value = undefined
+        }
+      },
+    },
+    {
+      label: 'Widget Settings',
+      items: generateWidgetSettingsMenu(variant),
+    },
+  ],
+})
 
 const items = computed<ExtendedMenuItemType[]>(() =>
   props.cardTemplate.getAllVariants().map(createVariantMenuItem),

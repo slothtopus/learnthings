@@ -157,17 +157,18 @@ export class ObjectManager {
     return objClass;
   }
 
-  setObject<T extends PersistableObject<any>> (obj: T) {
+  setObject<T extends PersistableObject<any>>(obj: T, checkUnsaved = true) {
     const key = ObjectManager.generateObjectKey(obj);
     if (!(key in this.registry)) {
       throw new Error(`Cannot set unregistered object ${key}`);
     }
 
     this.applyObject(obj);
-    if (obj.shouldPersist()) {
+
+    if (checkUnsaved && obj.shouldPersist()) {
       obj.markDirty();
     }
-    return this.getObjectById(obj.id) as T
+    return this.getObjectById(obj.id) as T;
   }
 
   async loadAll() {
@@ -201,7 +202,9 @@ export class ObjectManager {
     }
 
     const rootIdsToPersist = new Set<string>(
-      Array.from(schemaChange.toPersist.values()).map((id) => this.getObjectById(id).rootId)
+      Array.from(schemaChange.toPersist.values()).map(
+        (id) => this.getObjectById(id).rootId
+      )
     );
 
     let updates: OrderedObjectOperation[] = [];
@@ -292,13 +295,18 @@ export class ObjectManager {
       }
     }
 
+    /*
+    Handle the edge case of the same obj existing in another document (possible if a 
+    migration is not completed or fully synced). In these cases we keep the newest
+    obj, based on lastPersistedTimestamp
+    */
     timestampMap.set(obj, docLastPersistedTimestamp);
     const existingTimestamp = timestampMap.get(this.getObjectById(obj.id));
     if (
       existingTimestamp === undefined ||
       existingTimestamp < docLastPersistedTimestamp
     ) {
-      this.setObject(obj);
+      this.setObject(obj, false);
       schemaChange.docLevels[obj.id] = level;
     }
 
@@ -505,10 +513,9 @@ export class ObjectManager {
     //console.log("persisting", obj);
 
     const lastPersistedTimestamp = Date.now();
-    let res = await this.getDB().put({
-      ...pouchSerialise(obj.serialise()),
-      lastPersistedTimestamp,
-    });
+    let res = await this.getDB().put(
+      pouchSerialise(obj.serialise(true, lastPersistedTimestamp))
+    );
     //console.log("persisted", obj);
 
     if (obj.hasAttachment()) {
@@ -560,9 +567,11 @@ export class ObjectManager {
     return this.getAllObjects().filter((o) => o.matches(query, includeDeleted));
   }
 
-
-  _doctypeQueryCache: Record<string, CacheEntry<PersistableObject<any>[]>> = {}
-  doctypeCachedQuery<T extends PersistableObject<any>>(query: ObjectQuery, doctypes: string[] = ["default"]) {
+  _doctypeQueryCache: Record<string, CacheEntry<PersistableObject<any>[]>> = {};
+  doctypeCachedQuery<T extends PersistableObject<any>>(
+    query: ObjectQuery,
+    doctypes: string[] = ["default"]
+  ) {
     /* TODO: implement a query cache that uses the doctype specified in the query
     and recalculates on version change. This will also include the query with
     all deleted objects and apply the filtering on the cached values so that updates
@@ -572,19 +581,21 @@ export class ObjectManager {
     */
 
     const currentVersion = pick(this.version, doctypes);
-    const cacheKey = JSON.stringify(query)
-    const entry = this._doctypeQueryCache[cacheKey] as CacheEntry<T[]> | undefined;
+    const cacheKey = JSON.stringify(query);
+    const entry = this._doctypeQueryCache[cacheKey] as
+      | CacheEntry<T[]>
+      | undefined;
 
-    if(entry !== undefined && isEqual(entry.version, currentVersion)) {
-      return entry.result.filter((r) => !r.shouldDelete())
+    if (entry !== undefined && isEqual(entry.version, currentVersion)) {
+      return entry.result.filter((r) => !r.shouldDelete());
     } else {
-      const result = this.query(query, true) as T[]
+      const result = this.query(query, true) as T[];
       const newEntry: CacheEntry<T[]> = {
         version: currentVersion,
-        result: result
-      }
-      this._doctypeQueryCache[cacheKey] = newEntry
-      return result
+        result: result,
+      };
+      this._doctypeQueryCache[cacheKey] = newEntry;
+      return result;
     }
   }
 }

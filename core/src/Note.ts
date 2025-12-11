@@ -47,17 +47,19 @@ export class Note extends PersistableObject<SerialisedNote> {
     this.order = order;
   }
 
-  serialise(includeObjects = true): SerialisedNote {
+  serialise(
+    ...args: Parameters<PersistableObject<any>["serialise"]>
+  ): SerialisedNote {
     return {
-      ...super.serialise(includeObjects),
+      ...super.serialise(...args),
       noteTypeId: this.noteTypeId,
-      order: this.order
+      order: this.order,
     };
   }
 
   setOrder(order: number) {
     this.order = order;
-    this.markDirty()
+    this.markDirty();
   }
 
   getFieldByName(name: string) {
@@ -85,7 +87,7 @@ export class Note extends PersistableObject<SerialisedNote> {
   }
 
   getInternalContext() {
-    return this.order !== undefined ? {'note:order': this.order} : {}
+    return this.order !== undefined ? { "note:order": this.order } : {};
   }
 
   /*getAllContent() {

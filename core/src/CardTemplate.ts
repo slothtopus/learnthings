@@ -169,10 +169,13 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     return this.objectManager.setObject(variant);
   }
 
-  serialise(includeObjects = true): SerialisedCardTemplate {
+  serialise(
+    ...args: Parameters<PersistableObject<any>["serialise"]>
+  ): SerialisedCardTemplate {
     return {
-      ...super.serialise(includeObjects),
+      ...super.serialise(...args),
       noteTypeId: this.noteTypeId,
+      defaultVariantId: this.defaultVariantId,
       name: this.name,
     };
   }
@@ -518,7 +521,7 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
       );
     }
     widgetSettings.setDefaultSettings(defaultSettings);
-    return widgetSettings
+    return widgetSettings;
   }
 
   getWidgetSettingsContext() {

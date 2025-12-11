@@ -60,9 +60,11 @@ export class Card extends PersistableObject<SerialisedCard> {
     this.cardTemplateVariantId = cardTemplateVariantId;
   }
 
-  serialise(includeObjects = true): SerialisedCard {
+  serialise(
+    ...args: Parameters<PersistableObject<any>["serialise"]>
+  ): SerialisedCard {
     return {
-      ...super.serialise(includeObjects),
+      ...super.serialise(...args),
       noteId: this.noteId,
       cardTemplateId: this.cardTemplateId,
       cardTemplateVariantId: this.cardTemplateVariantId,
@@ -97,10 +99,10 @@ export class Card extends PersistableObject<SerialisedCard> {
       variant.cardTemplateId !== this.cardTemplateId
     ) {
       this.setCardTemplateVariantId(undefined);
-      return defaultVariant
+      return defaultVariant;
     }
 
-    return variant ?? defaultVariant
+    return variant ?? defaultVariant;
   }
 
   renderFront(additionalContext: Record<string, string> = {}) {

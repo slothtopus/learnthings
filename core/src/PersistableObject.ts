@@ -51,7 +51,7 @@ export class PersistableObject<S extends PersistedObject> {
   static filterReservedKeys<S extends PersistedObject>(s: S) {
     return pickBy(
       s,
-      (v, k) => !RESERVED_KEYS.includes(k as any)
+      (v, k) => !RESERVED_KEYS.includes(k as any) && v !== undefined
     ) as NoReservedKeys<S>;
   }
 
@@ -172,23 +172,26 @@ export class PersistableObject<S extends PersistedObject> {
     this._embeddedObjects = undefined;
   }
 
-  serialise(includeObjects = true): PersistedObject {
+  serialise(
+    includeObjects = true,
+    lastPersistedTimestamp?: number
+  ): PersistedObject {
     return {
       _id: this.id,
-      //_meta: this.isEmbedded() ? null : this._meta,
       _meta: this._meta,
-      lastPersistedTimestamp: this.isEmbedded()
-        ? null
-        : this.lastPersistedTimestamp,
+      lastPersistedTimestamp:
+        lastPersistedTimestamp || this.lastPersistedTimestamp,
       doctype: this.doctype,
       subtype: this.subtype,
       objects: includeObjects
-        ? this.getEmbeddedObjects().map((o) => o.serialise())
+        ? this.getEmbeddedObjects().map((o) =>
+            o.serialise(includeObjects, lastPersistedTimestamp)
+          )
         : [],
     };
   }
 
-  updateAfterPersist(_meta: any, lastPersistedTimestamp: number | null) {
+  updateAfterPersist(_meta: any, lastPersistedTimestamp: number) {
     this._meta = _meta;
     this.flagShouldPersist(false);
     this.lastPersistedTimestamp = lastPersistedTimestamp;
@@ -196,7 +199,7 @@ export class PersistableObject<S extends PersistedObject> {
       PersistableObject.filterReservedKeys(this.serialise(false) as S)
     );
     this.getEmbeddedObjects().forEach((o) =>
-      o.updateAfterPersist({ saved: true }, null)
+      o.updateAfterPersist(null, lastPersistedTimestamp)
     );
   }
 
@@ -212,7 +215,15 @@ export class PersistableObject<S extends PersistedObject> {
   }
 
   isUnsaved(): boolean {
-    return this.getMeta() === null;
+    if (this.isEmbedded()) {
+      return (
+        this.lastPersistedTimestamp === null ||
+        this.rootObj.lastPersistedTimestamp === null ||
+        this.lastPersistedTimestamp < this.rootObj.lastPersistedTimestamp
+      );
+    } else {
+      return this.lastPersistedTimestamp === null;
+    }
   }
 
   _shouldDelete = false;

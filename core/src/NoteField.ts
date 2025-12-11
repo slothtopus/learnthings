@@ -44,9 +44,11 @@ export abstract class NoteField<
     this.name = name;
   }
 
-  serialise(includeObjects = true): SerialisedNoteField {
+  serialise(
+    ...args: Parameters<PersistableObject<any>["serialise"]>
+  ): SerialisedNoteField {
     return {
-      ...super.serialise(includeObjects),
+      ...super.serialise(...args),
       noteTypeId: this.noteTypeId,
       name: this.name,
     };
@@ -128,9 +130,11 @@ export abstract class NoteFieldContent<
     this.fieldId = fieldId;
   }
 
-  serialise(includeObjects = true): SerialisedNoteFieldContent {
+  serialise(
+    ...args: Parameters<PersistableObject<any>["serialise"]>
+  ): SerialisedNoteFieldContent {
     return {
-      ...super.serialise(includeObjects),
+      ...super.serialise(...args),
       noteId: this.noteId,
       fieldId: this.fieldId,
     };
@@ -229,8 +233,10 @@ export class TextNoteFieldContent extends NoteFieldContent<
     return super.shouldDelete() || this.content === null;
   }*/
 
-  serialise(includeObjects = true): SerialisedTextNoteFieldContent {
-    return { ...super.serialise(includeObjects), content: this.content };
+  serialise(
+    ...args: Parameters<PersistableObject<any>["serialise"]>
+  ): SerialisedTextNoteFieldContent {
+    return { ...super.serialise(...args), content: this.content };
   }
 
   isEmpty() {
@@ -300,8 +306,8 @@ export class AttachmentNoteField extends NoteField<AttachmentNoteFieldContent> {
     return content;
   }
 
-  serialise(includeObjects = true) {
-    return { ...super.serialise(includeObjects), mimetype: this.mimetype };
+  serialise(...args: Parameters<PersistableObject<any>["serialise"]>) {
+    return { ...super.serialise(...args), mimetype: this.mimetype };
   }
 }
 
@@ -375,9 +381,9 @@ export class AttachmentNoteFieldContent extends NoteFieldContent<
     this.setContent(await createAttachmentFromURL(url));
   }
 
-  serialise(includeObjects = true) {
+  serialise(...args: Parameters<PersistableObject<any>["serialise"]>) {
     return {
-      ...super.serialise(includeObjects),
+      ...super.serialise(...args),
       attachment: this.attachment,
     };
   }
@@ -408,7 +414,7 @@ export class AttachmentNoteFieldContent extends NoteFieldContent<
   }
 
   _lastPersistedData: Blob | undefined;
-  updateAfterPersist(_meta: any, lastPersistedTimestamp: number | null) {
+  updateAfterPersist(_meta: any, lastPersistedTimestamp: number) {
     super.updateAfterPersist(_meta, lastPersistedTimestamp);
     this._lastPersistedData = this._data;
   }

@@ -41,9 +41,11 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
     this.name = name;
   }
 
-  serialise(includeObjects = true): SerialisedNoteType {
+  serialise(
+    ...args: Parameters<PersistableObject<any>["serialise"]>
+  ): SerialisedNoteType {
     return {
-      ...super.serialise(includeObjects),
+      ...super.serialise(...args),
       name: this.name,
     };
   }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AccountButton from '@/components/auth/AccountButton.vue'
-import DebugButton from '@/components/common/DebugButton.vue'
+import DebugButton from '@/components/debug/DebugButton.vue'
 import { Breadcrumb } from 'primevue'
 
 interface Props {

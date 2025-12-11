@@ -49,8 +49,8 @@ export class Deck extends PersistableObject<SerialisedDeck> {
   }
 
   setName(name: string) {
-    this.name = name
-    this.markDirty()
+    this.name = name;
+    this.markDirty();
   }
 
   createNewNoteType(name: string) {
@@ -85,9 +85,11 @@ export class Deck extends PersistableObject<SerialisedDeck> {
     return this.objectManager.persist(progressMonitor);
   }
 
-  serialise(includeObjects = true): SerialisedDeck {
+  serialise(
+    ...args: Parameters<PersistableObject<any>["serialise"]>
+  ): SerialisedDeck {
     return {
-      ...super.serialise(includeObjects),
+      ...super.serialise(...args),
       name: this.name,
       schedulerId: this.schedulerId,
     };

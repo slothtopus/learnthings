@@ -331,9 +331,11 @@ export class FSRSScheduler extends PersistableObject<SerialisedFSRSScheduler> {
     this.fsrs = fsrs(parameters);
   }
 
-  serialise(includeObjects = true): SerialisedFSRSScheduler {
+  serialise(
+    ...args: Parameters<PersistableObject<any>["serialise"]>
+  ): SerialisedFSRSScheduler {
     return {
-      ...super.serialise(includeObjects),
+      ...super.serialise(...args),
       options: this.options,
       parameters: this.parameters,
       currentSession: this.currentSession.serialise(),
