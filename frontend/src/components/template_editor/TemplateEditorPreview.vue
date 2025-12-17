@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, watchEffect } from 'vue'
 
 import { SelectButton, Select, FloatLabel } from 'primevue'
 
@@ -7,7 +7,7 @@ import { useNoteTypeDetails } from '@/composables/useObjectDetails'
 
 import AspectPreview from '@/components/renderer/AspectPreview.vue'
 import CardRenderer from '@/components/renderer/CardRenderer.vue'
-import type { CardTemplate, RenderedContent } from 'core/CardTemplate.js'
+import { RenderedCard, type CardTemplate, type RenderedContent } from 'core/CardTemplate.js'
 
 interface Props {
   template: CardTemplate
@@ -37,6 +37,23 @@ const selectedVariant = computed(
   () => props.template.getAllVariants().find((v) => v.id === selectedVariantId.value)!,
 )
 
+const renderedCards = ref<RenderedCard[]>([])
+watchEffect(async () => {
+  const cards = await Promise.all([
+    props.template.renderCard(
+      selectedVariant.value.front,
+      selectedVariant.value.css,
+      renderedContent.value ?? {},
+    ),
+    props.template.renderCard(
+      selectedVariant.value.back,
+      selectedVariant.value.css,
+      renderedContent.value ?? {},
+    ),
+  ])
+  renderedCards.value = cards
+})
+/*
 const renderedCards = computed(() => {
   return [
     props.template.renderCard(
@@ -50,7 +67,7 @@ const renderedCards = computed(() => {
       renderedContent.value ?? {},
     ),
   ]
-})
+})*/
 
 const sideOptions = ['Front', 'Back']
 const displayedSide = ref(sideOptions[0])
@@ -75,6 +92,7 @@ const displayedSide = ref(sideOptions[0])
     </div>
     <AspectPreview
       class="w-full"
+      v-if="renderedCards.length == 2"
       :card="renderedCards[displayedSide == 'Front' ? 0 : 1]"
       :previewWidth="1280"
       :previewHeight="720"

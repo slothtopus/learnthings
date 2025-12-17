@@ -14,7 +14,7 @@ import {
   TextNoteField,
 } from "../NoteField.js";
 import { TextNoteFieldContent } from "../NoteField.js";
-import { FSRSScheduler } from "../FSRSScheduler.js";
+import { FSRSScheduler } from "../schedulers/FSRSScheduler.js";
 
 import capitals from "../data/capitals.json";
 import { getOrCreateLocalDeckDB } from "../service/PouchDB.js";
@@ -115,7 +115,7 @@ export const setupObjectManager = async (deckId: string, userId: string) => {
 export const createNewDeck = async (userId: string, name: string) => {
   const deckId = generateId();
   const om = await setupObjectManager(deckId, userId);
-  om.setObject(Deck.createNewEmpty(om, { id: deckId, name }));
+  om.setObject(Deck.createNew(om, { id: deckId, name }));
   const deck = om.getDeck();
   await deck.persist();
   return deck;

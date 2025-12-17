@@ -162,7 +162,7 @@ export class TextNoteField extends NoteField<TextNoteFieldContent> {
   static doctype = "notefield";
   static subtype = "text";
 
-  static createNewEmpty(
+  static createNew(
     objectManager: ObjectManager,
     { name, noteTypeId }: { name: string; noteTypeId: string }
   ) {
@@ -177,7 +177,7 @@ export class TextNoteField extends NoteField<TextNoteFieldContent> {
   }
 
   contentFactory(note: Note) {
-    const content = TextNoteFieldContent.createNewEmpty(this.objectManager, {
+    const content = TextNoteFieldContent.createNew(this.objectManager, {
       noteId: note.id,
       fieldId: this.id,
     });
@@ -197,7 +197,7 @@ export class TextNoteFieldContent extends NoteFieldContent<
   static doctype = "notefieldcontent";
   static subtype = "text";
 
-  static createNewEmpty(
+  static createNew(
     objectManager: ObjectManager,
     options: { noteId: string; fieldId: string }
   ) {
@@ -261,7 +261,7 @@ export class AttachmentNoteField extends NoteField<AttachmentNoteFieldContent> {
   static doctype = "notefield";
   static subtype = "attachment";
 
-  static createNewEmpty(
+  static createNew(
     objectManager: ObjectManager,
     {
       name,
@@ -292,7 +292,7 @@ export class AttachmentNoteField extends NoteField<AttachmentNoteFieldContent> {
   }
 
   contentFactory(note: Note) {
-    const content = AttachmentNoteFieldContent.createNewEmpty(
+    const content = AttachmentNoteFieldContent.createNew(
       this.objectManager,
       {
         noteId: note.id,
@@ -332,7 +332,7 @@ export class AttachmentNoteFieldContent extends NoteFieldContent<
   attachment: SerialisedAttachmentData | undefined;
   _data?: Blob;
 
-  static createNewEmpty(
+  static createNew(
     objectManager: ObjectManager,
     options: { noteId: string; fieldId: string }
   ) {

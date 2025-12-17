@@ -6,8 +6,8 @@ import type {
   Grade as FSRSGrade,
   FSRSParameters,
 } from "ts-fsrs";
-import type { Card } from "./Card";
-import { floorDateTime } from "./utils/time";
+import type { Card } from "../Card";
+import { floorDateTime } from "../utils/time";
 
 import { DateTime } from "luxon";
 import { sample, shuffle } from "lodash-es";
@@ -17,8 +17,9 @@ import {
   Rating as FSRSRating,
   generatorParameters,
 } from "ts-fsrs";
-import { PersistableObject, PersistedObject } from "./PersistableObject";
-import type { ObjectManager } from "./ObjectManager";
+import { PersistableObject, PersistedObject } from "../PersistableObject";
+import type { ObjectManager } from "../ObjectManager";
+import {Scheduler} from './Scheduler'
 
 export enum SchedulerErrorType {
   NO_CARDS_LEFT = "NO_CARDS_LEFT",
@@ -291,10 +292,15 @@ export type SerialisedFSRSScheduler = PersistedObject & {
   currentSession: SerialisedReviewSession;
 };
 
-export class FSRSScheduler extends PersistableObject<SerialisedFSRSScheduler> {
-  static doctype = "scheduler";
-  static subtype = "fsrs";
+export class FSRSScheduler extends Scheduler<SerialisedFSRSScheduler> {
+  static doctype = "scheduler" as const;
+  static subtype = "fsrs" as const;
   shouldPersistIfUnsaved = true;
+
+  static label = "FSRS Scheduler";
+  get label() {
+    return FSRSScheduler.label
+  }
 
   options: FRSROptions;
   parameters: FSRSParameters;
@@ -307,7 +313,7 @@ export class FSRSScheduler extends PersistableObject<SerialisedFSRSScheduler> {
 
   fsrs: FSRS;
 
-  static createNewEmpty(objectManager: ObjectManager) {
+  static createNew(objectManager: ObjectManager) {
     return new FSRSScheduler(
       {
         ...PersistableObject.create(),
@@ -340,6 +346,10 @@ export class FSRSScheduler extends PersistableObject<SerialisedFSRSScheduler> {
       parameters: this.parameters,
       currentSession: this.currentSession.serialise(),
     };
+  }
+
+  shouldDelete() {
+    return super.shouldDelete() || this.deck.activeSchedulerId !== this.id;
   }
 
   getMetaKey(): string {

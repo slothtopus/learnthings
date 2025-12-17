@@ -35,7 +35,7 @@ export class Card extends PersistableObject<SerialisedCard> {
     return combineIds([this.noteId, this.cardTemplateId]);
   }
 
-  static createNewEmpty(
+  static createNew(
     objectManager: ObjectManager,
     options: { cardTemplateId: string; noteId: string }
   ) {

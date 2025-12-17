@@ -18,7 +18,7 @@ export const useDecks = () => {
     const deckId = generateId()
     const om = markRaw(new ReactiveObjectManager(deckId))
     registerObjects(om)
-    const deck = Deck.createNewEmpty(om, { id: deckId, name })
+    const deck = Deck.createNew(om, { id: deckId, name })
     om.setObject(deck)
     om.db = await registry.initialiseDB(deckId)
     await deck.persist()

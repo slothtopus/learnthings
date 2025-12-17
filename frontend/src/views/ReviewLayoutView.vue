@@ -19,7 +19,7 @@ const router = useRouter()
 const { getDeck } = useRouteMetaObjects()
 
 const deck = getDeck()
-const scheduler = deck.getScheduler()
+const scheduler = deck.getActiveScheduler()
 const revealed = ref(false)
 
 const card = shallowRef<Card | undefined>(undefined)

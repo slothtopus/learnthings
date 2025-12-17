@@ -1,16 +1,29 @@
 import type { Deck } from 'core/Deck.js'
 import { TextNoteField } from 'core/NoteField.js'
 import littlePrince from 'core/data/little_prince_first_3_chapters_chunks.json'
+import { createAttachmentFromURL } from 'core/utils/attachments.js'
+
+import littlePrinceImageURL from '@/assets/little_prince_background.jpg'
 
 const BLOCK_CSS = `
 main#root {
   display: flex;
   flex-direction: column;
-  background-color: #003153;
-  background-image: linear-gradient(315deg, #003153 0%, #1B1B1B 74%);
+  background-image: url('{{ 'attachment:little_prince_background.jpg' }}');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center top;
   font-family: helvetica;
   color: white;
   padding: 2rem;
+}
+
+main#root::before {
+  position: absolute;
+  content: '';
+  inset: 0;
+  z-index: 0;
+  background-color: rgba(0,0,0,0.5);
 }
 
 hr {
@@ -28,12 +41,14 @@ hr {
   place-items: flex-start;
   flex-grow: 1;
   margin: 0 auto;
+  z-index: 1;
 }
 
 .sentence {
   width: 100%;
   display: flex;
   gap: 1rem;
+  color: #ADADC2;
 }
 
 .sentence + .sentence {
@@ -42,7 +57,7 @@ hr {
 
 .inactive {
   font-weight: 100;
-  color: grey;
+  color: #68688D;
 }
 
 .index {
@@ -152,9 +167,14 @@ export const createLittlePrince = async (deck: Deck) => {
   }
 
   const template = noteType.createNewCardTemplate('prompt to next')
+
+  const attachmentURL = new URL(littlePrinceImageURL, window.location.origin).toString()
+  const attachmentData = await createAttachmentFromURL(attachmentURL)
+  template.createNewAttachment({...attachmentData, filename: 'little_prince_background.jpg'})
+
   template.createNewBlock('css', 'template').setContent(BLOCK_CSS)
-    template.createNewBlock('frame', 'template').setContent(BLOCK_FRAME)
-        template.createNewBlock('sentence', 'template').setContent(BLOCK_SENTENCE)
+  template.createNewBlock('frame', 'template').setContent(BLOCK_FRAME)
+  template.createNewBlock('sentence', 'template').setContent(BLOCK_SENTENCE)
 
   const defaultVariant = template.getDefaultVariant()
   defaultVariant.setCSS('{{>css}}')
@@ -201,8 +221,6 @@ export const createLittlePrince = async (deck: Deck) => {
   {{/inline}}
   {{/frame}}
   `)
-
-
 
   deck.createMissingCards()
   return deck

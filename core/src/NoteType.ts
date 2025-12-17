@@ -28,7 +28,7 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
     return this.id;
   }
 
-  static createNewEmpty(
+  static createNew(
     objectManager: ObjectManager,
     { name }: { name: string }
   ) {
@@ -58,7 +58,7 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
     fieldClass: PersistableObjectConstructor<T, any, O>,
     options: Omit<O, "name" | "noteTypeId"> & { __brand?: never }
   ) {
-    const field = fieldClass.createNewEmpty(this.objectManager, {
+    const field = fieldClass.createNew(this.objectManager, {
       ...(options ?? {}),
       name,
       noteTypeId: this.id,
@@ -66,7 +66,7 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
     this.objectManager.setObject(field);
     return field as T;
     /*console.log(this.objectManager.getRegistryOrThrow({ doctype: 'notefield', subtype }));
-    return this.objectManager.createNewEmpty(
+    return this.objectManager.createNew(
       { doctype: 'notefield', subtype },
       { name, noteTypeId: this.id }
     ) as T;*/
@@ -94,7 +94,7 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
   }
 
   createNewNote() {
-    const note = Note.createNewEmpty(this.objectManager, {
+    const note = Note.createNew(this.objectManager, {
       noteTypeId: this.id,
     });
     this.objectManager.setObject(note);
@@ -102,11 +102,11 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
       note.getOrCreateCardForTemplate(c.id)
     );
     return note;
-    //return this.objectManager.createNewEmpty({ doctype: 'note' }, { noteTypeId: this.id }) as Note;
+    //return this.objectManager.createNew({ doctype: 'note' }, { noteTypeId: this.id }) as Note;
   }
 
   createNewCardTemplate(name: string) {
-    const template = CardTemplate.createNewEmpty(this.objectManager, {
+    const template = CardTemplate.createNew(this.objectManager, {
       name,
       noteTypeId: this.id,
     });

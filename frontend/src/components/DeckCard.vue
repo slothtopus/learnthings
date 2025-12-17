@@ -20,14 +20,8 @@ const handleExport = () => {
   console.log('handleExport')
 }
 
-const { cards, cardCount, noteCount, noteTypes } = useDeckDetails(() => props.deck)
+const { cardCount, noteCount, noteTypes } = useDeckDetails(() => props.deck)
 
-const statistics = computed(() => {
-  console.log('DeckCard.statistics computed')
-  console.log('scheduler currentSession:', props.deck.getScheduler().serialise())
-  return props.deck.getScheduler().getStatistics(cards.value)
-})
-const dueCards = computed(() => statistics.value.due.new)
 
 const router = useRouter()
 const noteMenuItems = computed(() => {
@@ -122,25 +116,12 @@ const toggleNoteMenu = (event: any) => {
           <Button
             class="sm:ml-auto h-12"
             outlined
-            :label="`Review ${dueCards} Cards`"
+            :label="`Review Cards`"
             :pt:label="'text-nowrap'"
             size="small"
             @click="$router.push({ name: 'review_start', params: { deckId: deck.id } })"
           />
         </div>
-        <!--<pre>{{ statistics }}</pre>-->
-        <!--<MeterGroup
-          class="mt-6"
-          :value="[
-            { label: 'New', color: '#34d399', value: 0 },
-            {
-              label: 'Seen',
-              color: '#60a5fa',
-              value: 0,
-            },
-          ]"
-          :pt="{ labelText: 'text-sm font-thin' }"
-        />-->
       </div>
     </template>
   </Card>

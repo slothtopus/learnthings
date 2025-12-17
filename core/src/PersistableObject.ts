@@ -30,7 +30,7 @@ export type PersistableObjectConstructor<
   S extends PersistedObject = any,
   O = any
 > = {
-  createNewEmpty(objectManager: ObjectManager, options: O): T;
+  createNew(objectManager: ObjectManager, options?: O): T;
   new (serialised: S, objectManager: ObjectManager): T;
   doctype: string;
   subtype: string;
@@ -210,10 +210,6 @@ export class PersistableObject<S extends PersistedObject> {
     });
   }
 
-  setUnsaved() {
-    this._meta = null;
-  }
-
   isUnsaved(): boolean {
     if (this.isEmbedded()) {
       return (
@@ -246,8 +242,7 @@ export class PersistableObject<S extends PersistedObject> {
     return !isEqual(
       this._lastPersisted,
       PersistableObject.filterReservedKeys(this.serialise(false))
-    ); //||
-    //this.getEmbeddedObjects(true).some((o) => o.hasChanged() || o.shouldDelete())
+    );
   }
 
   shouldPersistIfUnsaved = false;

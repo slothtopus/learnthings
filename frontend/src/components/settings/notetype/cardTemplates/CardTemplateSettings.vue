@@ -27,7 +27,7 @@ const { openDialog } = useFormDialog<FormData>(CreateCardTemplateForm, 'Create n
 const handleCreateNew = async () => {
   const result = await openDialog()
   if (!result.cancelled) {
-    const template = CardTemplate.createNewEmpty(props.noteType.objectManager, {
+    const template = CardTemplate.createNew(props.noteType.objectManager, {
       name: result.data.name,
       noteTypeId: props.noteType.id,
     })

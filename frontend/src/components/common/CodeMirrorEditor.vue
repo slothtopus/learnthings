@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 
-import { EditorState } from '@codemirror/state'
+import { EditorState, EditorSelection } from '@codemirror/state'
 import { EditorView, basicSetup } from 'codemirror'
 import { html } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
@@ -30,19 +30,24 @@ const updateHandler = EditorView.updateListener.of((v) => {
   }
 })
 
-/*
-Doesn't work properly for some reason
 
-const isFocused = ref(false)
-const focusHandler = EditorView.domEventHandlers({
-  focus: () => {
-    isFocused.value = true
-  },
-  blur: () => {
-    isFocused.value = false
-  }
+const insertAtCursor = (text: string) => {
+  if (!editor) return
+
+  // Replace selection(s) with text; place cursor after inserted text
+  editor.dispatch(
+    editor.state.changeByRange((range) => ({
+      changes: { from: range.from, to: range.to, insert: text },
+      range: EditorSelection.cursor(range.from + text.length),
+    })),
+  )
+
+  editor.focus()
+}
+
+defineExpose({
+  insertAtCursor,
 })
-*/
 
 const createState = () => {
   const extensions = [

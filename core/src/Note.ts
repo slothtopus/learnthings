@@ -30,7 +30,7 @@ export class Note extends PersistableObject<SerialisedNote> {
 
   order: number | undefined;
 
-  static createNewEmpty(
+  static createNew(
     objectManager: ObjectManager,
     { noteTypeId }: { noteTypeId: string }
   ) {
@@ -90,12 +90,6 @@ export class Note extends PersistableObject<SerialisedNote> {
     return this.order !== undefined ? { "note:order": this.order } : {};
   }
 
-  /*getAllContent() {
-    return this.noteType.getAllFields().map((f) => ({
-      name: f.name,
-      content: f.getContent(this).content,
-    }));
-  }*/
 
   getCardForTemplate(cardTemplateId: string) {
     return this.objectManager.getObjectById(
@@ -106,7 +100,7 @@ export class Note extends PersistableObject<SerialisedNote> {
   getOrCreateCardForTemplate(cardTemplateId: string) {
     let card = this.getCardForTemplate(cardTemplateId);
     if (card === undefined) {
-      card = Card.createNewEmpty(this.objectManager, {
+      card = Card.createNew(this.objectManager, {
         noteId: this.id,
         cardTemplateId,
       });

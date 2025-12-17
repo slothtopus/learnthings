@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { defineModel } from 'vue'
-
 import { InputNumber, Checkbox } from 'primevue'
 
-import type { FRSROptions } from 'core/FSRSScheduler.js'
+import type { FRSROptions } from 'core/schedulers/FSRSScheduler.js'
 
 const options = defineModel<FRSROptions>({ required: true })
 </script>

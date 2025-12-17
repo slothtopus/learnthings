@@ -6,7 +6,7 @@ import { isEqual } from 'lodash-es'
 
 import FSRSSettingsForm from './forms/FSRSSettingsForm.vue'
 
-import { FSRSScheduler } from 'core/FSRSScheduler.js'
+import { FSRSScheduler } from 'core/schedulers/FSRSScheduler.js'
 import RoundedContainer from './common/RoundedContainer.vue'
 
 interface Props {

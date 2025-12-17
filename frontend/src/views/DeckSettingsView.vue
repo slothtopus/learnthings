@@ -3,6 +3,7 @@ import { computed } from 'vue'
 
 import AppFrameScrollLayout from '@/layouts/AppFrameScrollLayout.vue'
 import DeckInfoSettings from '@/components/settings/DeckInfoSettings.vue'
+import SchedulerSettings from '@/components/settings/SchedulerSettings.vue'
 import NoteTypeSettingsSection from '@/components/settings/notetype/NoteTypeSettingsSection.vue'
 
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
@@ -21,6 +22,7 @@ const breadcrumbs = computed(() => {
   <AppFrameScrollLayout :breadcrumbs="breadcrumbs">
     <template #content>
       <DeckInfoSettings :deck="deck" />
+      <SchedulerSettings :deck="deck" />
       <NoteTypeSettingsSection :deck="deck" />
     </template>
   </AppFrameScrollLayout>

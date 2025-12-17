@@ -8,6 +8,9 @@ import type { PersistedObject, NoReservedKeys } from "./PersistableObject";
 
 import Handlebars from "handlebars";
 import { isEqual } from "lodash-es";
+import type { AttachmentData } from "./utils/attachments";
+import { AttachmentDocument } from "./Attachment";
+import type { SerialisedAttachmentDocument } from "./Attachment";
 
 //##########################################################################
 export type RenderedContent = Record<string, string>;
@@ -52,7 +55,7 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     return this.objectManager.getObjectById(this.noteTypeId) as NoteType;
   }
 
-  static createNewEmpty(
+  static createNew(
     objectManager: ObjectManager,
     options: {
       name: string;
@@ -104,16 +107,23 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     }) as CardTemplateBlock[];
   }
 
+  @cacheByVersion(["cardtemplateattachment"])
+  getAllAttachments() {
+    return this.objectManager.query({
+      include: { doctype: "cardtemplateattachment", cardTemplateId: this.id },
+    }) as CardTemplateAttachment[];
+  }
+
   @cacheByVersion(["cardtemplatevariant"])
   getAllVariants() {
     const variants = this.objectManager.query({
       include: { doctype: "cardtemplatevariant", cardTemplateId: this.id },
     }) as CardTemplateVariant[];
     if (variants.length === 0) {
-      const defaultVariant = CardTemplateVariant.createNewEmpty(
-        this.objectManager,
-        { name: "default", cardTemplateId: this.id }
-      );
+      const defaultVariant = CardTemplateVariant.createNew(this.objectManager, {
+        name: "default",
+        cardTemplateId: this.id,
+      });
       return [this.objectManager.setObject(defaultVariant)];
     } else {
       return variants;
@@ -140,19 +150,19 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     let block: CardTemplateBlock;
     switch (scope) {
       case "deck":
-        block = CardTemplateBlock.createNewEmpty(this.objectManager, {
+        block = CardTemplateBlock.createNew(this.objectManager, {
           name,
           deckId: this.deck.id,
         });
         break;
       case "notetype":
-        block = CardTemplateBlock.createNewEmpty(this.objectManager, {
+        block = CardTemplateBlock.createNew(this.objectManager, {
           name,
           noteTypeId: this.noteTypeId,
         });
         break;
       case "template":
-        block = CardTemplateBlock.createNewEmpty(this.objectManager, {
+        block = CardTemplateBlock.createNew(this.objectManager, {
           name,
           cardTemplateId: this.id,
         });
@@ -162,11 +172,20 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
   }
 
   createNewVariant(name: string) {
-    const variant = CardTemplateVariant.createNewEmpty(this.objectManager, {
+    const variant = CardTemplateVariant.createNew(this.objectManager, {
       name,
       cardTemplateId: this.id,
     });
     return this.objectManager.setObject(variant);
+  }
+
+  createNewAttachment(attachment: AttachmentData) {
+    const cta = CardTemplateAttachment.createNew(this.objectManager, {
+      cardTemplateId: this.id,
+      attachment,
+    });
+    this.markDirty();
+    return this.objectManager.setObject(cta);
   }
 
   serialise(
@@ -231,7 +250,14 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     });
   }
 
-  renderCard(
+  async renderAllAttachments() {
+    const attachments = await Promise.all(
+      this.getAllAttachments().map((a) => a.renderContext())
+    );
+    return Object.assign({}, ...attachments);
+  }
+
+  async renderCard(
     template: string,
     css: string,
     renderedContent: RenderedContent,
@@ -240,9 +266,10 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     let renderedCard = new RenderedCard({ html: "", css: css, context: {} });
     try {
       this.registerAllPartials();
+      const attachments = await this.renderAllAttachments()
       const compiledCSS = this.handlebars.compile(css);
       const compiledTemplate = this.handlebars.compile(template);
-      const context = { ...renderedContent, ...additionalContext };
+      const context = { ...renderedContent, ...additionalContext, ...attachments };
       renderedCard = new RenderedCard({
         html: compiledTemplate(context),
         css: compiledCSS(context),
@@ -318,7 +345,7 @@ export class CardTemplateBlock extends PersistableObject<SerialisedCardTemplateB
     }
   }
 
-  static createNewEmpty(
+  static createNew(
     objectManager: ObjectManager,
     options: {
       name: string;
@@ -417,7 +444,7 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
     return [this.cardTemplateId];
   }
 
-  static createNewEmpty(
+  static createNew(
     objectManager: ObjectManager,
     options: {
       name: string;
@@ -506,7 +533,7 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
       CardWidgetSettings.generateId(this.id, slug)
     ) as CardWidgetSettings<T> | undefined;
     if (widgetSettings === undefined) {
-      widgetSettings = CardWidgetSettings.createNewEmpty(this.objectManager, {
+      widgetSettings = CardWidgetSettings.createNew(this.objectManager, {
         slug,
         cardTemplateVariantId: this.id,
         settings: defaultSettings,
@@ -565,7 +592,7 @@ export class CardWidgetSettings<T> extends PersistableObject<
     return [this.cardTemplateVariantId];
   }
 
-  static createNewEmpty<T>(
+  static createNew<T>(
     objectManager: ObjectManager,
     options: {
       slug: string;
@@ -626,5 +653,63 @@ export class CardWidgetSettings<T> extends PersistableObject<
     return (
       super.shouldDelete() || isEqual(this.settings, this._defaultSettings)
     );
+  }
+}
+
+export type SerialisedCardTemplateAttachment = SerialisedAttachmentDocument & {
+  cardTemplateId: string;
+};
+
+export class CardTemplateAttachment extends AttachmentDocument {
+  static doctype = "cardtemplateattachment";
+  static subtype = "base";
+
+  shouldPersistIfUnsaved = true;
+
+  cardTemplateId: string;
+
+  static createNew(
+    objectManager: ObjectManager,
+    options: { cardTemplateId: string; attachment: AttachmentData }
+  ) {
+    const { data, ...attachmentData } = options.attachment;
+    const doc = new CardTemplateAttachment(
+      {
+        ...PersistableObject.create(),
+        cardTemplateId: options.cardTemplateId,
+        attachment: attachmentData,
+      },
+      objectManager
+    );
+    doc._data = data;
+    return doc;
+  }
+
+  constructor(
+    serialised: SerialisedCardTemplateAttachment,
+    objectManager: ObjectManager
+  ) {
+    super(serialised, objectManager);
+    const { cardTemplateId } = serialised;
+    this.cardTemplateId = cardTemplateId;
+  }
+
+  serialise(
+    ...args: Parameters<PersistableObject<any>["serialise"]>
+  ): SerialisedCardTemplateAttachment {
+    return {
+      ...super.serialise(...args),
+      cardTemplateId: this.cardTemplateId,
+    };
+  }
+
+  getTemplateTag() {
+    return `attachment:${this.attachment.filename}`;
+  }
+
+  async renderContext() {
+    return {
+      [this.getTemplateTag()]: await this.getObjectURL(),
+    };
   }
 }

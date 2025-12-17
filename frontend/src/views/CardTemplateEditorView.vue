@@ -10,6 +10,7 @@ import TemplateEditorPreview from '@/components/template_editor/TemplateEditorPr
 
 import BlocksMenu from '@/components/template_editor/BlocksMenu.vue'
 import VariantsMenu from '@/components/template_editor/VariantsMenu.vue'
+import AttachmentsMenu from '@/components/template_editor/AttachmentsMenu.vue'
 
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 import { useConfirmation } from '@/composables/useConfirmationDialog'
@@ -150,6 +151,12 @@ watch(minimiseLeft, async (newVal) => {
     splitterRef.value?.resetState()
   }
 })
+
+
+const cm = ref<InstanceType<typeof CodeMirrorEditor> | null>(null)
+function insertText(text: string) {
+  cm.value?.insertAtCursor(text)
+}
 </script>
 
 <template>
@@ -172,6 +179,7 @@ watch(minimiseLeft, async (newVal) => {
           </div>
           <VariantsMenu v-model="editingObj" :card-template="cardTemplate" />
           <BlocksMenu class="mt-4" v-model="editingObj" :card-template="cardTemplate" />
+          <AttachmentsMenu class="mt-4" :card-template="cardTemplate" @insert="insertText($event)"/>
         </SplitterPanel>
         <SplitterPanel :size="60" :min-size="10" class="flex overflow-auto!">
           <div v-if="minimiseLeft" class="flex h-14 items-end py-2 pl-3">
@@ -213,6 +221,7 @@ watch(minimiseLeft, async (newVal) => {
             </div>
             <CodeMirrorEditor
               v-if="editingObj"
+              ref="cm"
               v-model="editorModel"
               :mode="selectedEditorModeId"
             />
