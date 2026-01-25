@@ -29,6 +29,7 @@ const note = reactive(noteType.createNewNote())
 const router = useRouter()
 const route = useRoute()
 const handleSaveNote = async () => {
+    await note.generateAll()
   await deck.persist()
   router.push({ name: 'edit_note', params: { ...route.params, noteId: note.id } })
 }

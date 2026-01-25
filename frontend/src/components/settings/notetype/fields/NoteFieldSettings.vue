@@ -9,6 +9,7 @@ import type { NoteType } from 'core/NoteType.js'
 import { AttachmentNoteField, TextNoteField } from 'core/NoteField.js'
 
 import { useNoteTypeDetails } from '@/composables/useObjectDetails'
+import { TextToSpeechNoteField } from 'core/fields/GeneratedNoteField.js'
 
 interface Props {
   noteType: NoteType
@@ -30,6 +31,8 @@ const handleCreateNew = async () => {
       case 'image':
         props.noteType.createNewField(name, AttachmentNoteField, { mimetype: 'image/*' })
         break
+      case 'text_to_speech':
+        props.noteType.createNewField(name, TextToSpeechNoteField, {})
     }
     props.noteType.deck.persist()
   }

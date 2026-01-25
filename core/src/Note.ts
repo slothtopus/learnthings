@@ -7,6 +7,7 @@ import type { NoteFieldContent } from "./NoteField";
 import type { NoteType } from "./NoteType";
 
 import { combineIds } from "./utils/ids";
+import { GeneratedNoteField } from "./fields/GeneratedNoteField";
 
 export type SerialisedNote = {
   noteTypeId: string;
@@ -32,11 +33,11 @@ export class Note extends PersistableObject<SerialisedNote> {
 
   static createNew(
     objectManager: ObjectManager,
-    { noteTypeId }: { noteTypeId: string }
+    { noteTypeId }: { noteTypeId: string },
   ) {
     return new Note(
       { ...PersistableObject.create(), noteTypeId, order: undefined },
-      objectManager
+      objectManager,
     );
   }
 
@@ -77,7 +78,7 @@ export class Note extends PersistableObject<SerialisedNote> {
       {
         include: { doctype: "notefieldcontent", noteId: this.id },
       },
-      includeDeleted
+      includeDeleted,
     ) as NoteFieldContent<any, any>[];
   }
 
@@ -90,10 +91,9 @@ export class Note extends PersistableObject<SerialisedNote> {
     return this.order !== undefined ? { "note:order": this.order } : {};
   }
 
-
   getCardForTemplate(cardTemplateId: string) {
     return this.objectManager.getObjectById(
-      combineIds([this.id, cardTemplateId])
+      combineIds([this.id, cardTemplateId]),
     ) as Card;
   }
 
@@ -128,7 +128,7 @@ export class Note extends PersistableObject<SerialisedNote> {
         {
           include: { doctype: "notefieldcontent", noteId: this.id },
         },
-        true
+        true,
       )
       .forEach((o) => o.flagShouldDelete(true));
     this.objectManager
@@ -136,12 +136,29 @@ export class Note extends PersistableObject<SerialisedNote> {
         {
           include: { doctype: "card", noteId: this.id },
         },
-        true
+        true,
       )
       .forEach((o) => o.flagShouldDelete(true));
   }
 
   resetToLastPersisted() {
     this.getAllFieldContent().forEach((c) => c.resetToLastPersisted());
+  }
+
+  get isGenerating() {
+    return this.noteType
+      .getAllFields()
+      .filter((f) => f instanceof GeneratedNoteField)
+      .some((f) => f.isGenerating);
+  }
+
+  async generateAll() {
+    const generatedFields = this.noteType
+      .getAllFields()
+      .filter((f) => f instanceof GeneratedNoteField);
+    const toGenerate = generatedFields.filter(
+      (f) => f.canGenerate(this) && f.shouldGenerate(this),
+    );
+    await Promise.all(toGenerate.map((f) => f.generate(this)));
   }
 }

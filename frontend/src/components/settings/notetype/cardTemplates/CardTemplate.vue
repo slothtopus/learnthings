@@ -27,7 +27,8 @@ const handleEdit = () => {
 const { confirm } = useConfirmation()
 const handleDelete = async () => {
   if (await confirm('Are you sure?', `Delete card template "${props.cardTemplate.name}?"`)) {
-    console.error('Delete not implemented yet')
+    props.cardTemplate.delete()
+    await props.cardTemplate.deck.persist()
   }
 }
 </script>

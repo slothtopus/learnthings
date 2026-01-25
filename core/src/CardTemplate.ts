@@ -266,10 +266,14 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     let renderedCard = new RenderedCard({ html: "", css: css, context: {} });
     try {
       this.registerAllPartials();
-      const attachments = await this.renderAllAttachments()
+      const attachments = await this.renderAllAttachments();
       const compiledCSS = this.handlebars.compile(css);
       const compiledTemplate = this.handlebars.compile(template);
-      const context = { ...renderedContent, ...additionalContext, ...attachments };
+      const context = {
+        ...renderedContent,
+        ...additionalContext,
+        ...attachments,
+      };
       renderedCard = new RenderedCard({
         html: compiledTemplate(context),
         css: compiledCSS(context),
@@ -309,6 +313,17 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
       content,
       Object.assign(additionalContext, note.getInternalContext())
     );
+  }
+
+  delete() {
+    this.flagShouldDelete(true);
+    this.objectManager
+      .query({
+        include: {
+          cardTemplateId: this.id,
+        },
+      })
+      .forEach((c) => c.flagShouldDelete(true));
   }
 }
 

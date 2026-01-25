@@ -12,6 +12,7 @@ import {
   TextNoteField,
 } from 'core/NoteField.js'
 import { TextNoteFieldContent } from 'core/NoteField.js'
+import { TextToSpeechNoteField, GeneratedAttachmentNoteFieldContent } from 'core/fields/GeneratedNoteField.js'
 import { FSRSScheduler } from 'core/schedulers/FSRSScheduler.js'
 import { FSRSSequence } from 'core/schedulers/FSRSSequence.js'
 import {
@@ -47,4 +48,6 @@ export const registerObjects = (om: ObjectManager) => {
     .register(CardTemplateVariant)
     .register(CardWidgetSettings)
     .register(CardTemplateAttachment)
+    .register(TextToSpeechNoteField)
+    .register(GeneratedAttachmentNoteFieldContent)
 }

@@ -37,7 +37,6 @@ const updateUserCSS = (css: string) => {
   if (userSheet === null) {
     userSheet = new CSSStyleSheet()
   }
-  console.log('updating user css', css)
   userSheet.replaceSync(css)
   return userSheet
 }

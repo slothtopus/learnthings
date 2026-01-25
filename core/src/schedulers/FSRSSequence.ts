@@ -181,7 +181,7 @@ export class FSRSSequence extends Scheduler<SerialisedFSRSSequence> {
 
   static label = "FSRS Sequence Scheduler";
   get label() {
-    return FSRSSequence.label
+    return FSRSSequence.label;
   }
 
   options: FSRSSequenceOptions;
@@ -242,8 +242,7 @@ export class FSRSSequence extends Scheduler<SerialisedFSRSSequence> {
   setCards(cards: Card[]) {
     this.allCardsByCardId = cards.reduce((allCardsByCardId, card) => {
       const cardMeta =
-        FSRSCardMeta.fromCardIfExists(card) ||
-        FSRSCardMeta.createEmpty(card);
+        FSRSCardMeta.fromCardIfExists(card) || FSRSCardMeta.createEmpty(card);
 
       cardMeta.order = card.getNote().order;
 
@@ -266,16 +265,40 @@ export class FSRSSequence extends Scheduler<SerialisedFSRSSequence> {
       this._currentCardIndex === undefined ||
       this._lapses >= this.options.maxLapses
     ) {
+      console.log(
+        "Resetting to earliest due: now =",
+        DateTime.now()
+          .plus({ minutes: this.options.dueTimeOffset })
+          .toFormat("yyyy-LL-dd HH:mm:ss")
+      );
       // find the earliest due card to start at
-      const firstIndex = this.allCards.findIndex((c) =>
+      nextIndex = this.allCards.findIndex((c) =>
         c.isDue(DateTime.now().plus({ minutes: this.options.dueTimeOffset }))
       );
-      nextIndex = Math.max(0, firstIndex);
-      this._lapses = 0
+
+      // If no cards due, find the card with the earliest due date
+      if (nextIndex == -1) {
+        const dueMillis = this.allCards.map((c) => c.due.toMillis());
+        const earliestDue = Math.min(...dueMillis);
+        nextIndex = dueMillis.findIndex((x) => x === earliestDue);
+        console.log(
+          `No cards due. Choosing card with earliest due date (due = ${this.allCards[nextIndex].due})`
+        );
+      } else {
+        console.log(
+          `Choosing earliest due card (due = ${this.allCards[nextIndex].due})`
+        );
+      }
+
+      nextIndex = Math.max(0, nextIndex);
+      this._lapses = 0;
     } else {
+      console.log("Moving to next card");
       nextIndex = (this._currentCardIndex + 1) % this.allCards.length;
     }
     this._currentCardIndex = nextIndex;
+    const cardMeta = this.allCards[nextIndex];
+    console.log(`Found card ${cardMeta.card.id}: due ${cardMeta.due}`);
     return this.allCards[nextIndex].card;
   }
 
@@ -291,7 +314,7 @@ export class FSRSSequence extends Scheduler<SerialisedFSRSSequence> {
 
     if (ratingValue <= 0) {
       rating = FSRSRating.Again;
-      this._lapses += 1
+      this._lapses += 1;
     } else if (ratingValue > 0 && ratingValue < 0.5) {
       rating = FSRSRating.Hard;
     } else if (ratingValue >= 0.5 && ratingValue < 1) {
@@ -300,7 +323,7 @@ export class FSRSSequence extends Scheduler<SerialisedFSRSSequence> {
       rating = FSRSRating.Easy;
     }
 
-    if (cardMeta.isDue(ratedAt)) {
+    if (cardMeta.isDue(ratedAt.plus({ minutes: this.options.dueTimeOffset }))) {
       const { card } = this.fsrs.next(
         cardMeta.toFSRSCard(ratedAt),
         ratedAt.toISO(),

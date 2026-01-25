@@ -18,6 +18,7 @@ const note = getNote()
 const deck = getDeck()
 
 const handleSaveNote = async () => {
+  await note.generateAll()
   await deck.persist()
 }
 
