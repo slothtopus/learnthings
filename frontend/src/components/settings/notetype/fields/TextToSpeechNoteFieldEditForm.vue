@@ -1,21 +1,23 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { InputText, Button, Select, Textarea } from 'primevue'
+import { computed } from 'vue'
+import { InputText, Button, Select } from 'primevue'
 
 import { useFormDialogData } from '@/composables/useFormDialog'
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 import { TextNoteField } from 'core/NoteField.js'
 import { NoteType } from 'core/NoteType.js'
-import { LOCALE_INSTRUCTIONS } from 'core/generators/OpenAI_tts.js'
+
+import { VOICES, LANGUAGES } from 'core/generators/google_tts.js'
+import type { GeminiTtsOptions } from 'core/fields/GeneratedNoteField.js'
 
 const { getDeck } = useRouteMetaObjects()
 const deck = getDeck()
 
-export type FormData = { name: string; sourceFieldId?: string; prompt?: string }
+export type FormData = { name: string; sourceFieldId?: string; options: GeminiTtsOptions }
 const { formData, otherData, hasChanged } = useFormDialogData<FormData, { noteTypeId: string }>({
   name: '',
   sourceFieldId: undefined,
-  prompt: undefined,
+  options: { voiceName: 'Achernar', languageCode: 'en-GB' },
 })
 const textFields = computed(() => {
   const noteType = deck.objectManager.getObjectById(otherData.value?.noteTypeId)
@@ -49,17 +51,27 @@ const selectedSourceField = computed({
   },
 })
 
-const promptOptions: SelectOption[] = Object.keys(LOCALE_INSTRUCTIONS).map((i) => ({
-  id: i,
-  name: i,
+const voiceOptions = VOICES.map((v) => ({ id: v, name: v }))
+const selectedVoiceOption = computed({
+  get: () => {
+    return voiceOptions.find((v) => v.id === formData.value.options?.voiceName)
+  },
+  set: (opt: (typeof voiceOptions)[number]) => {
+    formData.value.options['voiceName'] = opt.id
+  },
+})
+
+const languageOptions = Object.entries(LANGUAGES).map(([k, v]) => ({
+  id: k as keyof typeof LANGUAGES,
+  name: v,
 }))
-const selectedPrompt = ref<SelectOption | undefined>()
-watch(selectedPrompt, (newPrompt) => {
-  if (newPrompt) {
-    console.log('setting formData.value.prompt')
-    formData.value.prompt = LOCALE_INSTRUCTIONS[newPrompt.id as keyof typeof LOCALE_INSTRUCTIONS]
-        console.log('new formData.value = ', formData.value)
-  }
+const selectedLanguageOption = computed({
+  get: () => {
+    return languageOptions.find((v) => v.id === formData.value.options?.languageCode)
+  },
+  set: (opt: (typeof languageOptions)[number]) => {
+    formData.value.options['languageCode'] = opt.id
+  },
 })
 </script>
 
@@ -79,9 +91,24 @@ watch(selectedPrompt, (newPrompt) => {
       />
     </div>
     <div>
-      <label for="new-field-name" class="font-thin block mb-2">Prompt</label>
-      <Select v-model="selectedPrompt" :options="promptOptions" optionLabel="name" fluid placeholder="Select language"/>
-      <Textarea class="mt-4" v-model="formData.prompt" inputId="prompt-input" rows="4" fluid />
+      <label for="new-field-name" class="font-thin block mb-2">Voice</label>
+      <Select
+        v-model="selectedVoiceOption"
+        :options="voiceOptions"
+        optionLabel="name"
+        fluid
+        placeholder="Select voice"
+      />
+    </div>
+    <div>
+      <label for="new-field-name" class="font-thin block mb-2">Language</label>
+      <Select
+        v-model="selectedLanguageOption"
+        :options="languageOptions"
+        optionLabel="name"
+        fluid
+        placeholder="Select voice"
+      />
     </div>
     <div class="flex gap-4 justify-end">
       <Button

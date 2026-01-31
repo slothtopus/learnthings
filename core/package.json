@@ -41,7 +41,8 @@
     "pouchdb-find": "^9.0.0",
     "setimmediate": "^1.0.5",
     "ts-fsrs": "^4.7.1",
-    "vite-plugin-node-polyfills": "^0.23.0"
+    "vite-plugin-node-polyfills": "^0.23.0",
+    "zod": "^4.3.6"
   },
   "overrides": {
     "pouchdb-adapter-memory": {

@@ -106,7 +106,7 @@ export class ObjectManager {
   updateObjectAfterPersist(
     id: string,
     meta: any,
-    lastPersistedTimestamp: number
+    lastPersistedTimestamp: number,
   ) {
     //console.log("updateObjectAfterPersist", id, meta, lastPersistedTimestamp);
     this.getObjectById(id).updateAfterPersist(meta, lastPersistedTimestamp);
@@ -197,14 +197,14 @@ export class ObjectManager {
         pouchDeserialise(doc),
         schemaChange,
         timestampMap,
-        count
+        count,
       );
     }
 
     const rootIdsToPersist = new Set<string>(
       Array.from(schemaChange.toPersist.values()).map(
-        (id) => this.getObjectById(id).rootId
-      )
+        (id) => this.getObjectById(id).rootId,
+      ),
     );
 
     let updates: OrderedObjectOperation[] = [];
@@ -233,7 +233,7 @@ export class ObjectManager {
             order: schemaChange.docLevels[obj.id],
           };
           return o;
-        })
+        }),
       );
     }
 
@@ -254,7 +254,7 @@ export class ObjectManager {
       docLevels: Record<string, number>;
     },
     timestampMap: Map<PersistableObject<any>, number>,
-    count: Record<string, number>
+    count: Record<string, number>,
   ) {
     const { objects: serialisedEmbeddedObjs, ...serialisedObj } = serialisedDoc;
     serialisedEmbeddedObjs.forEach((o: any) =>
@@ -266,8 +266,8 @@ export class ObjectManager {
         o,
         schemaChange,
         timestampMap,
-        count
-      )
+        count,
+      ),
     );
     const objectClass = this.getObjectClass(serialisedObj);
     const obj = new objectClass(serialisedObj, this);
@@ -331,15 +331,18 @@ export class ObjectManager {
     // rootId to update order lookup
     const levels = g.assignLevels(true);
 
-    const operations = objectsToUpdate.reduce((reduced, obj) => {
-      const rootObj = obj.rootObj;
-      reduced[obj.rootId] = {
-        obj: rootObj,
-        order: levels[rootObj.id],
-        operation: rootObj.shouldDelete() ? "delete" : "persist",
-      };
-      return reduced;
-    }, {} as Record<string, OrderedObjectOperation>);
+    const operations = objectsToUpdate.reduce(
+      (reduced, obj) => {
+        const rootObj = obj.rootObj;
+        reduced[obj.rootId] = {
+          obj: rootObj,
+          order: levels[rootObj.id],
+          operation: rootObj.shouldDelete() ? "delete" : "persist",
+        };
+        return reduced;
+      },
+      {} as Record<string, OrderedObjectOperation>,
+    );
 
     return Array.from(Object.values(operations));
   }
@@ -347,7 +350,7 @@ export class ObjectManager {
   async applyOperations(
     operations: OrderedObjectOperation[],
     sort = true,
-    progressMonitor?: ProgressMonitor
+    progressMonitor?: ProgressMonitor,
   ) {
     if (progressMonitor) progressMonitor.total = operations.length;
 
@@ -514,7 +517,7 @@ export class ObjectManager {
 
     const lastPersistedTimestamp = Date.now();
     let res = await this.getDB().put(
-      pouchSerialise(obj.serialise(true, lastPersistedTimestamp))
+      pouchSerialise(obj.serialise(true, lastPersistedTimestamp)),
     );
     //console.log("persisted", obj);
 
@@ -529,14 +532,14 @@ export class ObjectManager {
         "attachment",
         res.rev,
         isNode ? await blobToBuffer(attachment.data) : attachment.data,
-        attachment.mimetype
+        attachment.mimetype,
       );
     }
 
     this.updateObjectAfterPersist(
       obj.id,
       { _rev: res.rev },
-      lastPersistedTimestamp
+      lastPersistedTimestamp,
     );
   }
 
@@ -559,7 +562,7 @@ export class ObjectManager {
 
   async deletePersistedObj(obj: PersistableObject<any>) {
     await this.getDB().remove(
-      pouchSerialise(obj.serialise()) as PouchSerialisedSaved<PersistedObject>
+      pouchSerialise(obj.serialise()) as PouchSerialisedSaved<PersistedObject>,
     );
   }
 
@@ -570,7 +573,7 @@ export class ObjectManager {
   _doctypeQueryCache: Record<string, CacheEntry<PersistableObject<any>[]>> = {};
   doctypeCachedQuery<T extends PersistableObject<any>>(
     query: ObjectQuery,
-    doctypes: string[] = ["default"]
+    doctypes: string[] = ["default"],
   ) {
     /* TODO: implement a query cache that uses the doctype specified in the query
     and recalculates on version change. This will also include the query with
@@ -618,10 +621,10 @@ type CacheEntry<T> = { version: Record<string, number>; result: T };
 export function cacheByVersion(doctypes: string[] = ["default"]) {
   return function <
     This extends PersistableObject<any>,
-    Ret extends PersistableObject<any>[]
+    Ret extends PersistableObject<any>[],
   >(
     original: (this: This) => Ret,
-    context: ClassMethodDecoratorContext<This, (this: This) => Ret>
+    context: ClassMethodDecoratorContext<This, (this: This) => Ret>,
   ) {
     if (context.kind !== "method") {
       throw new Error("@cacheByVersion must be used on a method");
@@ -643,7 +646,7 @@ export function cacheByVersion(doctypes: string[] = ["default"]) {
         result,
       } as CacheEntry<Ret>;
       console.log(
-        `caching ${String(prop)} for version ${JSON.stringify(currentVersion)}`
+        `caching ${String(prop)} for version ${JSON.stringify(currentVersion)}`,
       );
       return result;
     };

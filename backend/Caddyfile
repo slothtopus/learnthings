@@ -2,3 +2,8 @@
   encode zstd gzip
   reverse_proxy couch-proxy:3000
 }
+
+{$GENERATION_API_HOST} {
+  encode zstd gzip
+  reverse_proxy generation:5001
+}

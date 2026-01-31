@@ -6,7 +6,8 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      - API_HOST=${API_HOST}  
+      - API_HOST=${API_HOST}
+      - GENERATION_API_HOST=${GENERATION_API_HOST}
     volumes:
       - caddy_data:/data
       - caddy_config:/config
@@ -47,6 +48,18 @@ services:
       - COUCHDB_URL=http://couchdb:5984
       - COUCHDB_USER=${COUCH_USER}
       - COUCHDB_PASSWORD=${COUCH_PASSWORD}
+      - FIREBASE_CONFIG_JSON=${FIREBASE_CONFIG_JSON}
+    networks:
+      - internal
+
+  generation:
+    build: ./generation
+    env_file:
+      - .env
+    ports:
+      - "5001:5001"
+    restart: always
+    environment:
       - FIREBASE_CONFIG_JSON=${FIREBASE_CONFIG_JSON}
     networks:
       - internal

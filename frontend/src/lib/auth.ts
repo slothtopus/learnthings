@@ -2,6 +2,8 @@ import { auth } from './firebase'
 
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
 
+import {config} from 'core/config.js'
+
 export const getPersistedLoginState = async (): Promise<{
   username: string
   userId: string
@@ -34,6 +36,7 @@ export const signOutUser = async (): Promise<void> => {
 export const tokenGenerator = async () => {
   return await auth.currentUser?.getIdToken()
 }
+config.tokenGenerator = tokenGenerator
 
 export const registerUser = async (username: string, password: string) => {
   const res = await fetch(`${import.meta.env['VITE_COUCH_HOST']}/register`, {

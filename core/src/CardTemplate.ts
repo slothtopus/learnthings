@@ -11,6 +11,7 @@ import { isEqual } from "lodash-es";
 import type { AttachmentData } from "./utils/attachments";
 import { AttachmentDocument } from "./Attachment";
 import type { SerialisedAttachmentDocument } from "./Attachment";
+import { GeneratedAttachmentNoteFieldContent } from "./fields/GeneratedNoteField";
 
 //##########################################################################
 export type RenderedContent = Record<string, string>;
@@ -60,20 +61,20 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     options: {
       name: string;
       noteTypeId: string;
-    }
+    },
   ) {
     return new CardTemplate(
       {
         ...PersistableObject.create(),
         ...options,
       },
-      objectManager
+      objectManager,
     );
   }
 
   constructor(
     serialised: SerialisedCardTemplate,
-    objectManager: ObjectManager
+    objectManager: ObjectManager,
   ) {
     super(serialised, objectManager);
     this.updateFrom(serialised);
@@ -203,7 +204,10 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     const name = fieldContent.field.name;
     if (fieldContent instanceof TextNoteFieldContent) {
       return { name, content: fieldContent.content || "" };
-    } else if (fieldContent instanceof AttachmentNoteFieldContent) {
+    } else if (
+      fieldContent instanceof AttachmentNoteFieldContent ||
+      fieldContent instanceof GeneratedAttachmentNoteFieldContent
+    ) {
       const attachment = await fieldContent.fetchAttachment();
       if (attachment) {
         const { data } = attachment;
@@ -252,7 +256,7 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
 
   async renderAllAttachments() {
     const attachments = await Promise.all(
-      this.getAllAttachments().map((a) => a.renderContext())
+      this.getAllAttachments().map((a) => a.renderContext()),
     );
     return Object.assign({}, ...attachments);
   }
@@ -261,7 +265,7 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     template: string,
     css: string,
     renderedContent: RenderedContent,
-    additionalContext: Record<string, string> = {}
+    additionalContext: Record<string, string> = {},
   ) {
     let renderedCard = new RenderedCard({ html: "", css: css, context: {} });
     try {
@@ -288,7 +292,7 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
   async renderFront(
     note: Note,
     additionalContext: Record<string, string>,
-    _variant?: CardTemplateVariant
+    _variant?: CardTemplateVariant,
   ) {
     const variant = _variant ?? this.getDefaultVariant();
     const content = await this.renderAllFieldContent(note);
@@ -296,14 +300,14 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
       variant.front,
       variant.css,
       content,
-      Object.assign(additionalContext, note.getInternalContext())
+      Object.assign(additionalContext, note.getInternalContext()),
     );
   }
 
   async renderBack(
     note: Note,
     additionalContext: Record<string, string>,
-    _variant?: CardTemplateVariant
+    _variant?: CardTemplateVariant,
   ) {
     const variant = _variant ?? this.getDefaultVariant();
     const content = await this.renderAllFieldContent(note);
@@ -311,7 +315,7 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
       variant.back,
       variant.css,
       content,
-      Object.assign(additionalContext, note.getInternalContext())
+      Object.assign(additionalContext, note.getInternalContext()),
     );
   }
 
@@ -367,7 +371,7 @@ export class CardTemplateBlock extends PersistableObject<SerialisedCardTemplateB
       deckId?: string;
       cardTemplateId?: string;
       noteTypeId?: string;
-    }
+    },
   ) {
     return new CardTemplateBlock(
       {
@@ -375,13 +379,13 @@ export class CardTemplateBlock extends PersistableObject<SerialisedCardTemplateB
         ...options,
         content: "",
       },
-      objectManager
+      objectManager,
     );
   }
 
   constructor(
     serialised: SerialisedCardTemplateBlock,
-    objectManager: ObjectManager
+    objectManager: ObjectManager,
   ) {
     super(serialised, objectManager);
     this.updateFrom(serialised);
@@ -447,7 +451,7 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
   cardTemplateId!: string;
   get cardTemplate() {
     return this.objectManager.getObjectById(
-      this.cardTemplateId
+      this.cardTemplateId,
     ) as CardTemplate;
   }
 
@@ -464,7 +468,7 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
     options: {
       name: string;
       cardTemplateId: string;
-    }
+    },
   ) {
     return new CardTemplateVariant(
       {
@@ -474,13 +478,13 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
         front: "",
         back: "",
       },
-      objectManager
+      objectManager,
     );
   }
 
   constructor(
     serialised: SerialisedCardTemplateVariant,
-    objectManager: ObjectManager
+    objectManager: ObjectManager,
   ) {
     super(serialised, objectManager);
     this.updateFrom(serialised);
@@ -545,7 +549,7 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
 
   getOrCreateWidgetSettings<T>(slug: string, defaultSettings: T) {
     let widgetSettings = this.objectManager.getObjectById(
-      CardWidgetSettings.generateId(this.id, slug)
+      CardWidgetSettings.generateId(this.id, slug),
     ) as CardWidgetSettings<T> | undefined;
     if (widgetSettings === undefined) {
       widgetSettings = CardWidgetSettings.createNew(this.objectManager, {
@@ -557,13 +561,13 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
       console.log(
         `created new widget settings with id ${
           widgetSettings.id
-        } and meta ${widgetSettings.getMeta()}`
+        } and meta ${widgetSettings.getMeta()}`,
       );
     } else {
       console.log(
         `got existing widget settings with id ${
           widgetSettings.id
-        } and meta ${widgetSettings.getMeta()}`
+        } and meta ${widgetSettings.getMeta()}`,
       );
     }
     widgetSettings.setDefaultSettings(defaultSettings);
@@ -572,10 +576,13 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
 
   getWidgetSettingsContext() {
     const settings = this.getAllWidgetSettings();
-    return settings.reduce((context, s) => {
-      context[s.slug] = s.settings;
-      return context;
-    }, {} as Record<string, any>);
+    return settings.reduce(
+      (context, s) => {
+        context[s.slug] = s.settings;
+        return context;
+      },
+      {} as Record<string, any>,
+    );
   }
 }
 
@@ -613,25 +620,25 @@ export class CardWidgetSettings<T> extends PersistableObject<
       slug: string;
       cardTemplateVariantId: string;
       settings: T;
-    }
+    },
   ) {
     return new CardWidgetSettings<T>(
       {
         ...PersistableObject.create(
           CardWidgetSettings.generateId(
             options.cardTemplateVariantId,
-            options.slug
-          )
+            options.slug,
+          ),
         ),
         ...options,
       },
-      objectManager
+      objectManager,
     );
   }
 
   constructor(
     serialised: SerialisedCardWidgetSettings<T>,
-    objectManager: ObjectManager
+    objectManager: ObjectManager,
   ) {
     super(serialised, objectManager);
     this.updateFrom(serialised);
@@ -685,7 +692,7 @@ export class CardTemplateAttachment extends AttachmentDocument {
 
   static createNew(
     objectManager: ObjectManager,
-    options: { cardTemplateId: string; attachment: AttachmentData }
+    options: { cardTemplateId: string; attachment: AttachmentData },
   ) {
     const { data, ...attachmentData } = options.attachment;
     const doc = new CardTemplateAttachment(
@@ -694,7 +701,7 @@ export class CardTemplateAttachment extends AttachmentDocument {
         cardTemplateId: options.cardTemplateId,
         attachment: attachmentData,
       },
-      objectManager
+      objectManager,
     );
     doc._data = data;
     return doc;
@@ -702,7 +709,7 @@ export class CardTemplateAttachment extends AttachmentDocument {
 
   constructor(
     serialised: SerialisedCardTemplateAttachment,
-    objectManager: ObjectManager
+    objectManager: ObjectManager,
   ) {
     super(serialised, objectManager);
     const { cardTemplateId } = serialised;

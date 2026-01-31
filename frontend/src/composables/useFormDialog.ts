@@ -2,7 +2,7 @@ import { computed, inject, ref } from 'vue'
 import type { Component } from 'vue'
 
 import { useDialog } from 'primevue'
-import { cloneDeep, isEqual } from 'lodash-es'
+import { cloneDeep, isEqual} from 'lodash-es'
 
 export const useDynamicFormDialog = () => {
   const dialog = useDialog()
@@ -55,7 +55,12 @@ export const useFormDialogData = <T, P = undefined>(defaultValues: T) => {
   if (dialogRef === undefined) {
     throw new Error('initialData not provided')
   }
+
   const initialFormData = dialogRef.value.data.formData || defaultValues
+  /*const initialFormData = {
+    ...defaultValues,
+    ...omitBy(dialogRef.value.data.formData || {}, isUndefined),
+  }*/
   const formData = ref(cloneDeep(initialFormData))
   const otherData = computed(() => dialogRef.value.data.otherData)
 

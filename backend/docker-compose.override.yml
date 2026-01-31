@@ -23,6 +23,13 @@ services:
     environment:
       - FIREBASE_AUTH_EMULATOR_HOST=firebase-auth:9099
 
+  # Expose the couch proxy backend directly
+  generation:
+    ports:
+      - "5001:5001"
+    environment:
+      - FIREBASE_AUTH_EMULATOR_HOST=firebase-auth:9099
+
   couchdb:
     restart: unless-stopped
 

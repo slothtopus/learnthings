@@ -44,7 +44,7 @@ const handleEdit = async () => {
         formData: {
           name: props.field.name,
           sourceFieldId: props.field.sourceFieldId,
-          prompt: props.field.prompt,
+          options: props.field.options,
         },
         otherData: { noteTypeId: props.noteType.id },
       },
@@ -52,15 +52,13 @@ const handleEdit = async () => {
       'md',
     )
     if (!result.cancelled) {
-      const { name, sourceFieldId, prompt } = result.data
+      const { name, sourceFieldId, options } = result.data
       props.field.setName(name)
       if (sourceFieldId) {
         props.field.setSource(sourceFieldId)
       }
-      if (prompt) {
-        props.field.setPrompt(prompt)
-      }
-      props.field.deck.persist()
+      props.field.setOptions(options)
+      await props.field.deck.persist()
     }
   }
 }

@@ -105,7 +105,6 @@ export class Note extends PersistableObject<SerialisedNote> {
         cardTemplateId,
       });
       this.objectManager.setObject(card);
-      console.log("getOrCreateCardForTemplate: created card", card.toString());
     }
     return card;
   }

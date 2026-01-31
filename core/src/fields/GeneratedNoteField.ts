@@ -8,12 +8,19 @@ import { NoteFieldContent } from "../NoteField";
 import type { Note } from "../Note";
 import type { ObjectManager } from "../ObjectManager";
 import { PersistableObject } from "../PersistableObject";
-import { AttachmentData } from "../utils/attachments";
-import { generateAudioFromPrompt } from "../generators/OpenAI_tts";
+import { AttachmentData, bufferToBlob } from "../utils/attachments";
+import { GeminiTtsRequestInput } from "../generators/google_tts";
+import { generateTextToSpeech } from "../generators/google_tts";
+import { isEqual } from "lodash-es";
 
-export type SerialisedAttachmentNoteField = SerialisedNoteField & {
+export type GeminiTtsOptions = Pick<
+  GeminiTtsRequestInput,
+  "languageCode" | "voiceName"
+>;
+
+export type SerialisedTextToSpeechNoteField = SerialisedNoteField & {
   sourceFieldId?: string;
-  prompt?: string;
+  options: GeminiTtsOptions;
 };
 
 export abstract class GeneratedNoteField<
@@ -43,13 +50,17 @@ export class TextToSpeechNoteField extends GeneratedNoteField<TextToSpeechNoteFi
         name,
         noteTypeId,
         sourceFieldId,
+        options: {
+          languageCode: "en-GB",
+          voiceName: "Achernar",
+        },
       },
       objectManager,
     );
   }
 
   sourceFieldId?: string;
-  prompt?: string;
+  options: GeminiTtsOptions;
 
   get sourceField() {
     if (!this.sourceFieldId) {
@@ -62,13 +73,13 @@ export class TextToSpeechNoteField extends GeneratedNoteField<TextToSpeechNoteFi
   }
 
   constructor(
-    serialised: SerialisedAttachmentNoteField,
+    serialised: SerialisedTextToSpeechNoteField,
     objectManager: ObjectManager,
   ) {
     super(serialised, objectManager);
-    const { sourceFieldId, prompt } = serialised;
+    const { sourceFieldId, options } = serialised;
     this.sourceFieldId = sourceFieldId;
-    this.prompt = prompt;
+    this.options = options;
   }
 
   getSourceContentOrThrow(note: Note) {
@@ -104,18 +115,26 @@ export class TextToSpeechNoteField extends GeneratedNoteField<TextToSpeechNoteFi
     const sourceText = this.getSourceContentOrThrow(note);
     try {
       this.isGenerating = true;
-      const uint8Array = await generateAudioFromPrompt(
+
+      const { audio } = await generateTextToSpeech({
+        text: sourceText,
+        languageCode: "af-ZA",
+        voiceName: "Achird",
+        ssml: false,
+        audioEncoding: "MP3",
+      });
+      /*const uint8Array = await generateAudioFromPrompt(
         sourceText,
         this.prompt ?? "",
-      );
-      const blob = new Blob([uint8Array]);
+      );*/
+      const blob = bufferToBlob(audio);
       const attachment = {
         filename: "generated.mp3",
         mimetype: "audio/*",
         data: blob,
       };
       this.getOrCreateContent(note).setContent({
-        sourceContent: { prompt: this.prompt, sourceText },
+        sourceContent: { options: this.options, sourceText },
         attachment,
       });
     } finally {
@@ -127,7 +146,7 @@ export class TextToSpeechNoteField extends GeneratedNoteField<TextToSpeechNoteFi
     return {
       ...super.serialise(...args),
       sourceFieldId: this.sourceFieldId,
-      prompt: this.prompt,
+      options: this.options,
     };
   }
 
@@ -138,9 +157,9 @@ export class TextToSpeechNoteField extends GeneratedNoteField<TextToSpeechNoteFi
     }
   }
 
-  setPrompt(prompt: string) {
-    if (this.prompt !== prompt) {
-      this.prompt = prompt;
+  setOptions(options: GeminiTtsOptions) {
+    if (!isEqual(options, this.options)) {
+      this.options = options;
       this.markDirty();
     }
   }
@@ -168,7 +187,7 @@ export class TextToSpeechNoteField extends GeneratedNoteField<TextToSpeechNoteFi
         this.canGenerate(note) &&
         (generatedContent?.sourceContent?.sourceText !==
           sourceContent?.content ||
-          generatedContent?.sourceContent?.prompt !== this.prompt)
+          !isEqual(generatedContent?.sourceContent?.options, this.options))
       );
     } else {
       return false;
@@ -282,15 +301,14 @@ export class GeneratedAttachmentNoteFieldContent<
     super.resetToLastPersisted();
     if (this._lastPersisted) {
       this.attachment = this._lastPersisted.attachment;
-      this.sourceContent = this._lastPersisted.sourceContent
+      this.sourceContent = this._lastPersisted.sourceContent;
       this._data = this._lastPersistedData;
     }
   }
-
 }
 
 export class TextToSpeechNoteFieldContent extends GeneratedAttachmentNoteFieldContent<{
-  prompt?: string;
+  options: GeminiTtsOptions;
   sourceText: string;
 }> {
   static createNew(

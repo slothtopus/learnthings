@@ -10,6 +10,9 @@ import Aura from '@primeuix/themes/aura'
 
 import '@/assets/main.css'
 
+import { config } from 'core/config.js'
+config.GENERATION_API_URL = import.meta.env['VITE_GENERATION_API_URL']
+
 const app = createApp(App)
 app.use(PrimeVue, {
   theme: {
