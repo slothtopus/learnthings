@@ -123,10 +123,6 @@ export class TextToSpeechNoteField extends GeneratedNoteField<TextToSpeechNoteFi
         ssml: false,
         audioEncoding: "MP3",
       });
-      /*const uint8Array = await generateAudioFromPrompt(
-        sourceText,
-        this.prompt ?? "",
-      );*/
       const blob = bufferToBlob(audio);
       const attachment = {
         filename: "generated.mp3",

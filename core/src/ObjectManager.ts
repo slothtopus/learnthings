@@ -606,6 +606,12 @@ export class ObjectManager {
 export class ProgressMonitor {
   total: number | undefined;
   completed = 0;
+  message?: string
+  
+
+  setMessage(message?: string) {
+    this.message = message
+  }
 
   getProgress() {
     if (this.total) {

@@ -2,14 +2,18 @@
 import { useFormDialog } from '@/composables/useFormDialog'
 import { Button } from 'primevue'
 
-import NoteField from './NoteField.vue'
-import CreateNewFieldForm from '../../../forms/CreateNewFieldForm.vue'
-import type { FormData } from '../../../forms/CreateNewFieldForm.vue'
+import CreateNewFieldForm from './CreateNewFieldForm.vue'
+import type { FormData } from './CreateNewFieldForm.vue'
+
+import TextToSpeechFieldSettingsCard from '@/components/fields/text_to_speech/TextToSpeechFieldSettingsCard.vue'
+import TextFieldSettingsCard from '@/components/fields/text/TextFieldSettingsCard.vue'
+import ImageFieldSettingsCard from '@/components/fields/image/ImageFieldSettingsCard.vue'
+
 import type { NoteType } from 'core/NoteType.js'
-import { AttachmentNoteField, TextNoteField } from 'core/NoteField.js'
+import { AttachmentNoteField, NoteField, TextNoteField } from 'core/NoteField.js'
+import { TextToSpeechNoteField } from 'core/fields/GeneratedNoteField.js'
 
 import { useNoteTypeDetails } from '@/composables/useObjectDetails'
-import { TextToSpeechNoteField } from 'core/fields/GeneratedNoteField.js'
 
 interface Props {
   noteType: NoteType
@@ -37,11 +41,33 @@ const handleCreateNew = async () => {
     props.noteType.deck.persist()
   }
 }
+
+const isTextToSpeechField = (field: NoteField<any>): field is TextToSpeechNoteField =>
+  field instanceof TextToSpeechNoteField
+
+const isTextField = (field: NoteField<any>): field is TextNoteField =>
+  field instanceof TextNoteField
+
+const isImageField = (field: NoteField<any>): field is AttachmentNoteField =>
+  field instanceof AttachmentNoteField && field.mimetype.startsWith('image/')
 </script>
 
 <template>
   <div class="flex flex-col gap-4 mt-4">
-    <NoteField v-for="field in fields" :key="field.id" :field="field" :note-type="noteType" />
+    <template v-for="field in fields" :key="field.id">
+      <TextToSpeechFieldSettingsCard
+        v-if="isTextToSpeechField(field)"
+        :field="field"
+        :note-type="noteType"
+      />
+      <ImageFieldSettingsCard
+        v-else-if="isImageField(field)"
+        :field="field"
+        :note-type="noteType"
+      />
+      <TextFieldSettingsCard v-else-if="isTextField(field)" :field="field" :note-type="noteType" />
+    </template>
+
     <div class="flex w-full items-center">
       <Button text icon="pi pi-plus" label="New field" size="small" @click="handleCreateNew" />
     </div>

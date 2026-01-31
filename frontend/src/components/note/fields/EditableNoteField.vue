@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import EditableTextField from './EditableTextField.vue'
-import EditableImageField from './EditableImageField.vue'
-import EditableTextToSpeechField from './EditableTextToSpeechField.vue'
+import EditableTextField from '@/components/fields/text/EditableTextField.vue'
+import EditableImageField from '@/components/fields/image/EditableImageField.vue'
+import EditableTextToSpeechField from '@/components/fields/text_to_speech/EditableTextToSpeechField.vue'
 
 import type { NoteField } from 'core/NoteField.js'
 import { TextNoteField, AttachmentNoteField } from 'core/NoteField.js'

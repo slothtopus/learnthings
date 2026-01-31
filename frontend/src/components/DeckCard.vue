@@ -16,9 +16,11 @@ const props = defineProps<Props>()
 
 defineEmits(['delete'])
 
+/*
 const handleExport = () => {
   console.log('handleExport')
 }
+*/
 
 const { cardCount, noteCount, noteTypes } = useDeckDetails(() => props.deck)
 
@@ -61,7 +63,7 @@ const toggleNoteMenu = (event: any) => {
     <template #header>
       <div class="flex p-5 pb-0">
         <h2 class="justify-center sm:text-2xl text-xl dark:text-gray-300">{{ deck.name }}</h2>
-        <Button
+        <!--<Button
           class="ml-auto"
           text
           rounded
@@ -69,8 +71,9 @@ const toggleNoteMenu = (event: any) => {
           size="small"
           icon="pi pi-file-export"
           @click="handleExport"
-        />
+        />-->
         <Button
+        class="ml-auto"
           text
           rounded
           severity="secondary"

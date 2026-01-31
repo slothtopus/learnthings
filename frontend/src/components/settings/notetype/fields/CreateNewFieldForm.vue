@@ -43,7 +43,12 @@ const selectedFieldType = computed({
       <Select v-model="selectedFieldType" :options="mutableFields" optionLabel="name" fluid />
     </div>
     <div class="mt-6 flex gap-4 justify-end">
-      <Button label="Create" size="small" @click="$emit('update', formData)" />
+      <Button
+        label="Create"
+        size="small"
+        :disabled="formData.name.length === 0"
+        @click="$emit('update', formData)"
+      />
       <Button label="Cancel" size="small" severity="secondary" @click="$emit('cancel')" />
     </div>
   </div>
