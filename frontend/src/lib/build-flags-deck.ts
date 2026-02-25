@@ -1,5 +1,5 @@
 import type { Deck } from 'core/Deck.js'
-import { TextField, ImageAttachmentField } from 'core/fields/v6/fields.js'
+import { TextField, ImageAttachmentField } from 'core/fields/fields.js'
 import { createAttachmentFromURL } from 'core/utils/attachments.js'
 import flags from 'core/data/flags.json'
 

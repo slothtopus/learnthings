@@ -5,7 +5,7 @@ import { Button } from 'primevue'
 import LabelledFormContainer from '@/components/common/LabelledFormContainer.vue'
 
 import type { Note } from 'core/Note.js'
-import { ImageAttachmentField } from 'core/fields/v6/fields.js'
+import { ImageAttachmentField } from 'core/fields/fields.js'
 
 import { useFileDialog } from '@vueuse/core'
 import type { AttachmentData } from 'core/utils/attachments.js'

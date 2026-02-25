@@ -3,9 +3,9 @@ import EditableTextField from '@/components/fields/text/EditableTextField.vue'
 import EditableImageField from '@/components/fields/image/EditableImageField.vue'
 import EditableTextToSpeechField from '@/components/fields/text_to_speech/EditableTextToSpeechField.vue'
 
-import type { AnyNoteField } from 'core/fields/v6/base.js'
-import { TextField, ImageAttachmentField } from 'core/fields/v6/fields.js'
-import { TextToSpeechField } from 'core/fields/v6/generated.js'
+import type { AnyNoteField } from 'core/fields/base.js'
+import { TextField, ImageAttachmentField } from 'core/fields/fields.js'
+import { TextToSpeechField } from 'core/fields/generated.js'
 import type { Note } from 'core/Note.js'
 
 interface Props {

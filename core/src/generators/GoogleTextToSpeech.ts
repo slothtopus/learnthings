@@ -197,6 +197,7 @@ export class GoogleTextToSpeech extends PersistableObject<SerialisedGoogleTextTo
     opts: GeminiTtsRequestInput,
     timeoutMs = 30_000,
   ): Promise<{ audio: Buffer; contentType: string }> {
+    console.log('generateTextToSpeech:', opts)
     const tokenGenerator = this.getTokenGenerator();
     const token = await tokenGenerator();
     if (token === undefined) {

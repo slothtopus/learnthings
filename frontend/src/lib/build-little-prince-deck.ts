@@ -1,5 +1,5 @@
 import type { Deck } from 'core/Deck.js'
-import { TextField } from 'core/fields/v6/fields.js'
+import { TextField } from 'core/fields/fields.js'
 import littlePrince from 'core/data/little_prince_first_3_chapters_chunks.json'
 import { createAttachmentFromURL } from 'core/utils/attachments.js'
 

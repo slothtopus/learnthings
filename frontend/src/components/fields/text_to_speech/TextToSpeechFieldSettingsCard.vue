@@ -11,7 +11,7 @@ import FieldContainer from '@/components/common/FieldContainer.vue'
 import { useDynamicFormDialog } from '@/composables/useFormDialog'
 import { useConfirmation } from '@/composables/useConfirmationDialog'
 
-import { TextToSpeechField } from 'core/fields/v6/generated.js'
+import { TextToSpeechField } from 'core/fields/generated.js'
 import type { NoteType } from 'core/NoteType.js'
 import { useProgress } from '@/composables/useProgress'
 

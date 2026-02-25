@@ -6,7 +6,7 @@ import type {
   PersistedObject,
   CreatablePersistableObjectConstructor
 } from "./object_manager/PersistableObject";
-import { AnyNoteField } from "./fields/v6/base";
+import { AnyNoteField } from "./fields/base";
 import { Note } from "./Note";
 import { CardTemplate } from "./CardTemplate";
 

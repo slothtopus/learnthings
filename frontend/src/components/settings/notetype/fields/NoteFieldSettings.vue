@@ -11,9 +11,9 @@ import ImageFieldSettingsCard from '@/components/fields/image/ImageFieldSettings
 
 import type { NoteType } from 'core/NoteType.js'
 
-import type { AnyNoteField } from 'core/fields/v6/base.js'
-import { TextField, ImageAttachmentField } from 'core/fields/v6/fields.js'
-import { TextToSpeechField } from 'core/fields/v6/generated.js'
+import type { AnyNoteField } from 'core/fields/base.js'
+import { TextField, ImageAttachmentField } from 'core/fields/fields.js'
+import { TextToSpeechField } from 'core/fields/generated.js'
 
 //import { AttachmentNoteField, NoteField, TextNoteField } from 'core/fields/NoteField.js'
 //import { TextToSpeechNoteField } from 'core/fields/GeneratedNoteField.js'

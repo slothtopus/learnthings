@@ -12,7 +12,7 @@ import { isInstanceOrThrow } from '@/lib/utils'
 import { ReactiveObjectManager, registerObjects } from '@/lib/ReactiveObjectManager'
 import { registerServiceObjects, SERVICE_REGISTRY } from '@/lib/services'
 import type { ServiceKey } from '@/lib/services'
-import { TextToSpeechField } from 'core/fields/v6/generated.js'
+import { TextToSpeechField } from 'core/fields/generated.js'
 
 const registry = new PouchDeckRegistry(
   import.meta.env['VITE_COUCH_HOST'],

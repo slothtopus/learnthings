@@ -4,11 +4,11 @@ import {
 } from "./base";
 import { TextField } from "./fields";
 
-import { Note } from "../../Note";
+import { Note } from "../Note";
 
-import { GeminiTtsRequestInput } from "../../generators/GoogleTextToSpeech";
-import { GoogleTextToSpeech } from "../../generators/GoogleTextToSpeech";
-import { bufferToBlob } from "../../utils/attachments";
+import { GeminiTtsRequestInput } from "../generators/GoogleTextToSpeech";
+import { GoogleTextToSpeech } from "../generators/GoogleTextToSpeech";
+import { bufferToBlob } from "../utils/attachments";
 
 import { omit, isEqual } from "lodash-es";
 
@@ -67,8 +67,8 @@ export class TextToSpeechField extends GeneratedAttachmentField<
 
       const { audio } = await TextToSpeechField.service.generateTextToSpeech({
         text: sourceText,
-        languageCode: "af-ZA",
-        voiceName: "Achird",
+        languageCode: this.options.languageCode,
+        voiceName: this.options.voiceName,
         ssml: false,
         audioEncoding: "MP3",
       });
@@ -87,7 +87,7 @@ export class TextToSpeechField extends GeneratedAttachmentField<
     }
   }
 
-  canGenerate(note: Note) {
+  canGenerate(note: Note) { 
     try {
       this.getSourceTextOrThrow(note);
       return true;

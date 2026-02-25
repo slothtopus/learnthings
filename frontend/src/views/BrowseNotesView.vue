@@ -13,8 +13,8 @@ import { useDeckDetails, useNoteTypeDetails } from '@/composables/useObjectDetai
   TextNoteFieldContent,
   AttachmentNoteFieldContent,
 } from 'core/fields/NoteField.js'*/
- import { TextFieldContent, ImageAttachmentField} from 'core/fields/v6/fields.js'
-import type { AnyNoteFieldContent } from 'core/fields/v6/base.js'
+ import { TextFieldContent, ImageAttachmentField} from 'core/fields/fields.js'
+import type { AnyNoteFieldContent } from 'core/fields/base.js'
 
 const { getDeck } = useRouteMetaObjects()
 const deck = getDeck()

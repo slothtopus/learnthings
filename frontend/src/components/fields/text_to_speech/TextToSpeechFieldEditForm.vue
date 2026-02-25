@@ -4,11 +4,11 @@ import { InputText, Button, Select } from 'primevue'
 
 import { useFormDialogData } from '@/composables/useFormDialog'
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
-import { TextField } from 'core/fields/v6/fields.js'
+import { TextField } from 'core/fields/fields.js'
 import { NoteType } from 'core/NoteType.js'
 
 import { VOICES, LANGUAGES } from 'core/generators/GoogleTextToSpeech.js'
-import type { TextToSpeechOptions } from 'core/fields/v6/generated.js'
+import type { TextToSpeechOptions } from 'core/fields/generated.js'
 
 const { getDeck } = useRouteMetaObjects()
 const deck = getDeck()

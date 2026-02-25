@@ -3,7 +3,7 @@ import { ref, watchEffect, onMounted } from 'vue'
 
 import { Button } from 'primevue'
 import LabelledFormContainer from '@/components/common/LabelledFormContainer.vue'
-import type { TextToSpeechField } from 'core/fields/v6/generated.js'
+import type { TextToSpeechField } from 'core/fields/generated.js'
 import type { Note } from 'core/Note.js'
 
 interface Props {

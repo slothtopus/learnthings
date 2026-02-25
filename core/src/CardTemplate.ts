@@ -2,12 +2,12 @@ import { PersistableObject } from "./object_manager/PersistableObject";
 import { ObjectManager } from "./object_manager/ObjectManager";
 import { cacheByVersion } from "./object_manager/utils";
 import type { Note } from "./Note";
-import type { NoteFieldContent } from "./fields/v6/base";
+import type { NoteFieldContent } from "./fields/base";
 import type { NoteType } from "./NoteType";
 import {
   TextFieldContent,
-} from "./fields/v6/fields";
-import { AttachmentFieldContent, GeneratedAttachmentFieldContent } from "./fields/v6/base";
+} from "./fields/fields";
+import { AttachmentFieldContent, GeneratedAttachmentFieldContent } from "./fields/base";
 import type {
   PersistedObject,
   NoReservedKeys,

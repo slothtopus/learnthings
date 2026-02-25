@@ -8,7 +8,7 @@ import { NoteType } from "../NoteType.js";
 import { Note } from "../Note.js";
 import { CardTemplate } from "../CardTemplate";
 import { Card } from "../Card.js";
-import { TextField, TextFieldContent, ImageAttachmentField, ImageAttachmentContent } from "../fields/v6/fields";
+import { TextField, TextFieldContent, ImageAttachmentField, ImageAttachmentContent } from "../fields/fields";
 import { FSRSScheduler } from "../schedulers/FSRSScheduler.js";
 
 import capitals from "../data/capitals.json";

@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 
 import type { Note } from 'core/Note.js'
-import type { TextField } from 'core/fields/v6/fields.js'
+import type { TextField } from 'core/fields/fields.js'
 
 import LabelledTextInput from '@/components/common/LabelledTextInput.vue'
 

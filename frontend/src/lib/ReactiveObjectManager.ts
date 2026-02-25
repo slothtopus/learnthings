@@ -14,8 +14,8 @@ import { Card } from 'core/Card.js'
 import { TextNoteFieldContent } from 'core/fields/NoteField.js'
 import { TextToSpeechNoteField, GeneratedAttachmentNoteFieldContent } from 'core/fields/GeneratedNoteField.js'*/
 
-import { TextField, TextFieldContent, ImageAttachmentField, ImageAttachmentContent } from 'core/fields/v6/fields.js'
-import { TextToSpeechField, TextToSpeechFieldContent } from 'core/fields/v6/generated.js'
+import { TextField, TextFieldContent, ImageAttachmentField, ImageAttachmentContent } from 'core/fields/fields.js'
+import { TextToSpeechField, TextToSpeechFieldContent } from 'core/fields/generated.js'
 import { FSRSScheduler } from 'core/schedulers/FSRSScheduler.js'
 import { FSRSSequence } from 'core/schedulers/FSRSSequence.js'
 import {

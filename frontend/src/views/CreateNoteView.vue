@@ -35,7 +35,9 @@ const handleSaveNote = async () => {
   router.push({ name: 'edit_note', params: { ...route.params, noteId: note.id } })
 }
 
-const canSave = computed(() => note.shouldPersist())
+const canSave = computed(
+  () => note.shouldPersist() || note.getAllFieldContent().some((f) => f.shouldPersist()),
+)
 
 const { confirm } = useConfirmation()
 onBeforeRouteLeave(async () => {

@@ -34,7 +34,9 @@ const handleNew = () => {
   router.push({ name: 'new_note', params: { deckId: deck.id, noteTypeId: note.noteTypeId } })
 }
 
-const canSave = computed(() => note.shouldPersist())
+const canSave = computed(
+  () => note.shouldPersist() || note.getAllFieldContent().some((f) => f.shouldPersist()),
+)
 
 const { confirm } = useConfirmation()
 onBeforeRouteLeave(async () => {
