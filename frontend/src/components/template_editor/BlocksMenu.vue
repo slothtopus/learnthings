@@ -27,7 +27,7 @@ const selectedObject = defineModel<EditableObject>()
 const { openDialog } = useDynamicFormDialog()
 
 const handleCreateNewBlock = async (scope: 'template' | 'deck' | 'notetype') => {
-  const result = await openDialog<FormData>(CreateNewNamedObjectForm, `Create new ${scope} block`)
+  const result = await openDialog<FormData>(CreateNewNamedObjectForm, `Create new ${scope} block`, {})
   if (!result.cancelled) {
     const { name } = result.data
     console.log(name, scope)

@@ -1,9 +1,21 @@
 <script setup lang="ts">
-import { watch, onMounted, markRaw } from 'vue'
+import { onMounted } from 'vue'
 
 import DynamicDialog from 'primevue/dynamicdialog'
 import Toast from 'primevue/toast'
 
+import { useAuth } from './composables/useAuth'
+import { usePouchRegistry } from './composables/usePouchRegistry'
+
+const { initialiseAuth } = useAuth()
+const { startUserWatcher } = usePouchRegistry()
+
+onMounted(async () => {
+  startUserWatcher()
+  await initialiseAuth()
+})
+
+/*
 import { useAuth } from './composables/useAuth'
 import { useDecks } from './composables/useDecks'
 import { tokenGenerator } from './lib/auth'
@@ -36,7 +48,7 @@ watch(userId, async (newUserId, oldUserId) => {
     loadedDecks.forEach((d) => d.createMissingCards())
     decks.value = loadedDecks
   }
-})
+})*/
 
 /*
 

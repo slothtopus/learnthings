@@ -10,15 +10,14 @@ import FieldContainer from '@/components/common/FieldContainer.vue'
 
 import { useDynamicFormDialog } from '@/composables/useFormDialog'
 import { useConfirmation } from '@/composables/useConfirmationDialog'
-import { usePersistDeck } from '@/composables/useDecks'
 
-import { TextToSpeechNoteField } from 'core/fields/GeneratedNoteField.js'
+import { TextToSpeechField } from 'core/fields/v6/generated.js'
 import type { NoteType } from 'core/NoteType.js'
 import { useProgress } from '@/composables/useProgress'
 
 interface Props {
   noteType: NoteType
-  field: TextToSpeechNoteField
+  field: TextToSpeechField
 }
 const props = defineProps<Props>()
 
@@ -30,7 +29,7 @@ const handleEdit = async () => {
     {
       formData: {
         name: props.field.name,
-        sourceFieldId: props.field.sourceFieldId,
+        //sourceFieldId: props.field.options.sourceFieldId,
         options: props.field.options,
       },
       otherData: { noteTypeId: props.noteType.id },
@@ -39,24 +38,21 @@ const handleEdit = async () => {
     'md',
   )
   if (!result.cancelled) {
-    const { name, sourceFieldId, options } = result.data
+    const { name, options } = result.data
     props.field.setName(name)
-    if (sourceFieldId) {
-      props.field.setSource(sourceFieldId)
-    }
     props.field.setOptions(options)
     await props.field.deck.persist()
   }
 }
 
-const { persistDeck } = usePersistDeck()
+const { progressMonitor: deletionProgressMonitor } = useProgress('Deleting')
 const { confirm } = useConfirmation()
 const handleDelete = async () => {
   const confirmedDelete = await confirm('Are you sure?', `Delete field "${props.field.name}?"`)
   console.log('confirmedDelete = ', confirmedDelete)
   if (confirmedDelete) {
     props.field.delete()
-    await persistDeck(props.field.deck)
+    props.field.deck.persist(deletionProgressMonitor)
   }
 }
 
@@ -64,22 +60,22 @@ const notesToGenerate = computed(() =>
   props.noteType.getAllNotes().filter((n) => props.field.shouldGenerate(n)),
 )
 
-const { progressMonitor } = useProgress('Generating audio')
+const { progressMonitor: generationProgressMonitor } = useProgress('Generating audio')
 const handleGenerateAll = async () => {
-  progressMonitor.total = notesToGenerate.value.length
+  generationProgressMonitor.total = notesToGenerate.value.length
   await Promise.all(
     notesToGenerate.value.map(async (n) => {
       try {
         await props.field.generate(n)
         await props.field.deck.persist()
-        progressMonitor.completed += 1
+        generationProgressMonitor.completed += 1
       } catch (err) {
         console.error(err)
       }
     }),
   )
-  progressMonitor.total = undefined
-  progressMonitor.completed = 0
+  generationProgressMonitor.total = undefined
+  generationProgressMonitor.completed = 0
 }
 </script>
 

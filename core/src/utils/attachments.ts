@@ -58,9 +58,9 @@ export const blobToBuffer = async (blob: Blob) => {
   return Buffer.from(arrayBuffer);
 };
 
-export const bufferToBlob = (buffer: Buffer) => {
+export const bufferToBlob = (buffer: Buffer, mimeType?: string) => {
   const uint8Array = new Uint8Array(buffer);
-  return new Blob([uint8Array]);
+  return new Blob([uint8Array], {type: mimeType});
 };
 
 export const blobToBase64 = async (blob: Blob) => {

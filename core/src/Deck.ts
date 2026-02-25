@@ -1,13 +1,11 @@
-import {
-  cacheByVersion,
-  type ObjectManager,
-  type ProgressMonitor,
-} from "./ObjectManager";
+import type { ObjectManager } from "./object_manager/ObjectManager";
+import { cacheByVersion } from "./object_manager/utils";
+import type { ProgressMonitor } from "./object_manager/utils";
 import {
   PersistableObject,
-  PersistableObjectConstructor,
+  type CreatablePersistableObjectConstructor,
   type PersistedObject,
-} from "./PersistableObject";
+} from "./object_manager/PersistableObject";
 import { NoteType } from "./NoteType";
 import type { Note } from "./Note";
 import type { Card } from "./Card";
@@ -36,11 +34,11 @@ export class Deck extends PersistableObject<SerialisedDeck> {
       this.markDirty();
     }
     return this.objectManager.getObjectById(
-      this.activeSchedulerId
+      this.activeSchedulerId,
     ) as Scheduler<any>;
   }
 
-  setActiveScheduler(cls: PersistableObjectConstructor) {
+  setActiveScheduler(cls: CreatablePersistableObjectConstructor<any, any>) {
     if (this.activeSchedulerId) {
       this.objectManager.markDirtyIds(this.activeSchedulerId);
     }
@@ -51,7 +49,7 @@ export class Deck extends PersistableObject<SerialisedDeck> {
 
   static createNew(
     objectManager: ObjectManager,
-    { id, name }: { id?: string; name: string }
+    { id, name }: { id?: string; name: string },
   ) {
     return new Deck({ ...PersistableObject.create(id), name }, objectManager);
   }

@@ -1,9 +1,11 @@
 import { z } from "zod";
 
-// https://docs.cloud.google.com/text-to-speech/docs/gemini-tts#voice_options
-
-import { config, throwIfUndefined } from "../config";
-
+import {
+  PersistableObject,
+  PersistedObject,
+} from "../object_manager/PersistableObject";
+import { ObjectManager } from "../object_manager/ObjectManager";
+import type { TokenGenerator } from "../service/registry";
 
 export const VOICES = [
   "Achernar",
@@ -150,64 +152,100 @@ export const GeminiTtsRequestSchema = z.object({
   volumeGainDb: z.number().min(-96).max(16).optional(),
 });
 
-export type GeminiTtsRequestInput =
-  z.input<typeof GeminiTtsRequestSchema>;
+export type GeminiTtsRequestInput = z.input<typeof GeminiTtsRequestSchema>;
 export type GeminiTtsRequest = z.infer<typeof GeminiTtsRequestSchema>;
 
-export async function generateTextToSpeech(
-  opts: GeminiTtsRequestInput,
-  timeoutMs = 30_000,
-): Promise<{ audio: Buffer; contentType: string }> {
-  const GENERATION_API_URL = throwIfUndefined(config.GENERATION_API_URL)
-  const tokenGenerator = throwIfUndefined(config.tokenGenerator)
+export type SerialisedGoogleTextToSpeech = PersistedObject & { apiUrl: string };
 
-  const token = await tokenGenerator()
-  if(token === undefined) {
-    throw new Error('Could not create Generation API token')
+export class GoogleTextToSpeech extends PersistableObject<SerialisedGoogleTextToSpeech> {
+  static createNew(
+    objectManager: ObjectManager,
+    options: {
+      apiUrl: string;
+    },
+  ) {
+    return new GoogleTextToSpeech(
+      { ...PersistableObject.create("google-tts"), ...options },
+      objectManager,
+    );
   }
 
-  const url = new URL("/tts", GENERATION_API_URL);
-  url.searchParams.set("raw", "1");
+  apiUrl: string;
+  tokenGenerator?: TokenGenerator;
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  constructor(
+    serialised: SerialisedGoogleTextToSpeech,
+    objectManager: ObjectManager,
+  ) {
+    super(serialised, objectManager);
+    const { apiUrl } = serialised;
+    this.apiUrl = apiUrl;
+  }
 
-  try {
-    const resp = await fetch(url.toString(), {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(opts),
-    });
+  shouldPersist() {
+    return false;
+  }
 
-    if (!resp.ok) {
-      // Try to read JSON error from your backend; fall back to text.
-      let detail: any = undefined;
-      const ct = resp.headers.get("content-type") ?? "";
-      try {
-        detail = ct.includes("application/json")
-          ? await resp.json()
-          : await resp.text();
-      } catch {
-        // ignore
-      }
-      const msg =
-        typeof detail === "string"
-          ? detail
-          : detail?.message || detail?.error || `HTTP ${resp.status}`;
-      throw new Error(`TTS request failed: ${msg}`);
+  getTokenGenerator() {
+    if (this.tokenGenerator === undefined) {
+      throw new Error("Token generator is not defined");
+    }
+    return this.tokenGenerator;
+  }
+
+  async generateTextToSpeech(
+    opts: GeminiTtsRequestInput,
+    timeoutMs = 30_000,
+  ): Promise<{ audio: Buffer; contentType: string }> {
+    const tokenGenerator = this.getTokenGenerator();
+    const token = await tokenGenerator();
+    if (token === undefined) {
+      throw new Error("Could not create Generation API token");
     }
 
-    const arrayBuf = await resp.arrayBuffer();
-    const audio = Buffer.from(arrayBuf);
-    const contentType =
-      resp.headers.get("content-type") ?? "application/octet-stream";
+    const url = new URL("/tts", this.apiUrl);
+    url.searchParams.set("raw", "1");
 
-    return { audio, contentType };
-  } finally {
-    clearTimeout(timeout);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const resp = await fetch(url.toString(), {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(opts),
+      });
+
+      if (!resp.ok) {
+        // Try to read JSON error from your backend; fall back to text.
+        let detail: any = undefined;
+        const ct = resp.headers.get("content-type") ?? "";
+        try {
+          detail = ct.includes("application/json")
+            ? await resp.json()
+            : await resp.text();
+        } catch {
+          // ignore
+        }
+        const msg =
+          typeof detail === "string"
+            ? detail
+            : detail?.message || detail?.error || `HTTP ${resp.status}`;
+        throw new Error(`TTS request failed: ${msg}`);
+      }
+
+      const arrayBuf = await resp.arrayBuffer();
+      const audio = Buffer.from(arrayBuf);
+      const contentType =
+        resp.headers.get("content-type") ?? "application/octet-stream";
+
+      return { audio, contentType };
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 }

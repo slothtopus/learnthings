@@ -3,22 +3,22 @@ import EditableTextField from '@/components/fields/text/EditableTextField.vue'
 import EditableImageField from '@/components/fields/image/EditableImageField.vue'
 import EditableTextToSpeechField from '@/components/fields/text_to_speech/EditableTextToSpeechField.vue'
 
-import type { NoteField } from 'core/NoteField.js'
-import { TextNoteField, AttachmentNoteField } from 'core/NoteField.js'
-import { TextToSpeechNoteField } from 'core/fields/GeneratedNoteField.js'
+import type { AnyNoteField } from 'core/fields/v6/base.js'
+import { TextField, ImageAttachmentField } from 'core/fields/v6/fields.js'
+import { TextToSpeechField } from 'core/fields/v6/generated.js'
 import type { Note } from 'core/Note.js'
 
 interface Props {
-  field: NoteField<any>
+  field: AnyNoteField
   note: Note
 }
 defineProps<Props>()
 
-const isTextField = (f: NoteField<any>): f is TextNoteField => f instanceof TextNoteField
-const isAttachmentField = (f: NoteField<any>): f is AttachmentNoteField =>
-  f instanceof AttachmentNoteField
-const isTextToSpeechField = (f: NoteField<any>): f is TextToSpeechNoteField =>
-  f instanceof TextToSpeechNoteField
+const isTextField = (f: AnyNoteField): f is TextField => f instanceof TextField
+const isAttachmentField = (f: AnyNoteField): f is ImageAttachmentField =>
+  f instanceof ImageAttachmentField
+const isTextToSpeechField = (f: AnyNoteField): f is TextToSpeechField =>
+  f instanceof TextToSpeechField
 </script>
 
 <template>

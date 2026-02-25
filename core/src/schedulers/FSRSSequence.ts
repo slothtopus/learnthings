@@ -15,9 +15,9 @@ import type {
 
 import { DateTime } from "luxon";
 
-import { PersistableObject } from "../PersistableObject";
-import type { PersistedObject } from "../PersistableObject";
-import type { ObjectManager } from "../ObjectManager";
+import { PersistableObject } from "../object_manager/PersistableObject";
+import type { PersistedObject } from "../object_manager/PersistableObject";
+import type { ObjectManager } from "../object_manager/ObjectManager";
 import type { Card } from "../Card";
 import { Scheduler } from "./Scheduler";
 

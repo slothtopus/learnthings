@@ -1,17 +1,23 @@
-import { PersistableObject } from "./PersistableObject";
-import { cacheByVersion, ObjectManager } from "./ObjectManager";
+import { PersistableObject } from "./object_manager/PersistableObject";
+import { ObjectManager } from "./object_manager/ObjectManager";
+import { cacheByVersion } from "./object_manager/utils";
 import type { Note } from "./Note";
-import type { NoteFieldContent } from "./NoteField";
+import type { NoteFieldContent } from "./fields/v6/base";
 import type { NoteType } from "./NoteType";
-import { TextNoteFieldContent, AttachmentNoteFieldContent } from "./NoteField";
-import type { PersistedObject, NoReservedKeys } from "./PersistableObject";
+import {
+  TextFieldContent,
+} from "./fields/v6/fields";
+import { AttachmentFieldContent, GeneratedAttachmentFieldContent } from "./fields/v6/base";
+import type {
+  PersistedObject,
+  NoReservedKeys,
+} from "./object_manager/PersistableObject";
 
 import Handlebars from "handlebars";
 import { isEqual } from "lodash-es";
 import type { AttachmentData } from "./utils/attachments";
 import { AttachmentDocument } from "./Attachment";
 import type { SerialisedAttachmentDocument } from "./Attachment";
-import { GeneratedAttachmentNoteFieldContent } from "./fields/GeneratedNoteField";
 
 //##########################################################################
 export type RenderedContent = Record<string, string>;
@@ -200,15 +206,15 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     };
   }
 
-  async renderFieldContent(fieldContent: NoteFieldContent<any, any>) {
+  async renderFieldContent(fieldContent: NoteFieldContent<any, any, any, any>) {
     const name = fieldContent.field.name;
-    if (fieldContent instanceof TextNoteFieldContent) {
-      return { name, content: fieldContent.content || "" };
+    if (fieldContent instanceof TextFieldContent) {
+      return { name, content: fieldContent.getContent() || "" };
     } else if (
-      fieldContent instanceof AttachmentNoteFieldContent ||
-      fieldContent instanceof GeneratedAttachmentNoteFieldContent
+      fieldContent instanceof AttachmentFieldContent ||
+      fieldContent instanceof GeneratedAttachmentFieldContent
     ) {
-      const attachment = await fieldContent.fetchAttachment();
+      const attachment = await fieldContent.getContent();
       if (attachment) {
         const { data } = attachment;
         return {

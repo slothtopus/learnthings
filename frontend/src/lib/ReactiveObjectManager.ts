@@ -1,18 +1,21 @@
 import { reactive } from 'vue'
 
-import { ObjectManager } from 'core/ObjectManager.js'
+import { ObjectManager } from 'core/object_manager/ObjectManager.js'
 
 import { Deck } from 'core/Deck.js'
 import { NoteType } from 'core/NoteType.js'
 import { Note } from 'core/Note.js'
 import { Card } from 'core/Card.js'
-import {
+/*import {
   AttachmentNoteField,
   AttachmentNoteFieldContent,
   TextNoteField,
-} from 'core/NoteField.js'
-import { TextNoteFieldContent } from 'core/NoteField.js'
-import { TextToSpeechNoteField, GeneratedAttachmentNoteFieldContent } from 'core/fields/GeneratedNoteField.js'
+} from 'core/fields/NoteField.js'
+import { TextNoteFieldContent } from 'core/fields/NoteField.js'
+import { TextToSpeechNoteField, GeneratedAttachmentNoteFieldContent } from 'core/fields/GeneratedNoteField.js'*/
+
+import { TextField, TextFieldContent, ImageAttachmentField, ImageAttachmentContent } from 'core/fields/v6/fields.js'
+import { TextToSpeechField, TextToSpeechFieldContent } from 'core/fields/v6/generated.js'
 import { FSRSScheduler } from 'core/schedulers/FSRSScheduler.js'
 import { FSRSSequence } from 'core/schedulers/FSRSSequence.js'
 import {
@@ -37,10 +40,10 @@ export const registerObjects = (om: ObjectManager) => {
     .register(NoteType)
     .register(Note)
     .register(Card)
-    .register(TextNoteField)
-    .register(TextNoteFieldContent)
-    .register(AttachmentNoteField)
-    .register(AttachmentNoteFieldContent)
+    .register(TextField)
+    .register(TextFieldContent)
+    .register(ImageAttachmentField)
+    .register(ImageAttachmentContent)
     .register(FSRSScheduler)
     .register(FSRSSequence)
     .register(CardTemplate)
@@ -48,6 +51,6 @@ export const registerObjects = (om: ObjectManager) => {
     .register(CardTemplateVariant)
     .register(CardWidgetSettings)
     .register(CardTemplateAttachment)
-    .register(TextToSpeechNoteField)
-    .register(GeneratedAttachmentNoteFieldContent)
+    .register(TextToSpeechField)
+    .register(TextToSpeechFieldContent)
 }

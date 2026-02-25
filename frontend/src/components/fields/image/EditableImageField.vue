@@ -5,20 +5,20 @@ import { Button } from 'primevue'
 import LabelledFormContainer from '@/components/common/LabelledFormContainer.vue'
 
 import type { Note } from 'core/Note.js'
-import { AttachmentNoteField } from 'core/NoteField.js'
+import { ImageAttachmentField } from 'core/fields/v6/fields.js'
 
 import { useFileDialog } from '@vueuse/core'
 import type { AttachmentData } from 'core/utils/attachments.js'
 
 interface Props {
-  field: AttachmentNoteField
+  field: ImageAttachmentField
   note: Note
 }
 const props = defineProps<Props>()
 
 const fetched = ref(false)
 onMounted(async () => {
-  await props.field.getContent(props.note)?.fetchAttachment()
+  await props.field.getContent(props.note)?.getContent()
   fetched.value = true
 })
 
@@ -36,7 +36,7 @@ const fieldContent = computed({
   },
   set: (attachment: AttachmentData) => {
     const content = props.field.getOrCreateContent(props.note)
-    content.setContent(attachment)
+    content.setContent({ attachment })
   },
 })
 

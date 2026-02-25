@@ -9,7 +9,7 @@ import type { FormData } from '@/components/forms/CreateNewNamedObjectForm.vue'
 import DeckCard from '@/components/DeckCard.vue'
 
 import { freezeAll, unfreezeAll } from '@/composables/useObjectDetails'
-import { useDecks, usePersistDeck } from '@/composables/useDecks'
+import { useDecks, usePersistDeck } from '@/composables/usePouchRegistry'
 import { createCountriesAndCapitals } from '@/lib/build-capitals-deck'
 import { createFlagsDeck } from '@/lib/build-flags-deck'
 import { useFormDialog } from '@/composables/useFormDialog'
@@ -67,7 +67,7 @@ const createTestDeck = async (name: 'countries' | 'flags' | 'prince') => {
   } else {
     await createLittlePrince(deck)
   }
-  await persistDeck(deck, 'Importing')
+  await persistDeck(deck)
   unfreezeAll()
 }
 

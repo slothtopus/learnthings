@@ -1,5 +1,5 @@
 import type { Deck } from 'core/Deck.js'
-import { TextNoteField } from 'core/NoteField.js'
+import { TextField } from 'core/fields/v6/fields.js'
 import capitals from 'core/data/capitals.json'
 
 const CSS = `
@@ -108,8 +108,8 @@ const BACK = `
 export const createCountriesAndCapitals = async (deck: Deck) => {
   deck.setName('Countries and Capitals')
   const noteType = deck.createNewNoteType('Countries and Capitals')
-  const countryField = noteType.createNewField('country', TextNoteField, {})
-  const capitalField = noteType.createNewField('capital', TextNoteField, {})
+  const countryField = noteType.createNewField('country', TextField, {})
+  const capitalField = noteType.createNewField('capital', TextField, {})
 
   for (const { country, capital } of capitals) {
     const note = noteType.createNewNote()

@@ -1,6 +1,6 @@
-import { PersistableObject } from "./PersistableObject";
-import type { PersistedObject } from "./PersistableObject";
-import type { ObjectManager } from "./ObjectManager";
+import { PersistableObject } from "./object_manager/PersistableObject";
+import type { PersistedObject } from "./object_manager/PersistableObject";
+import type { ObjectManager } from "./object_manager/ObjectManager";
 import { combineIds } from "./utils/ids";
 import { Note } from "./Note";
 import { CardTemplate, CardTemplateVariant } from "./CardTemplate";

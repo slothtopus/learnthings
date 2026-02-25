@@ -1,13 +1,13 @@
-import { PersistableObject } from "./PersistableObject";
-import type { PersistedObject } from "./PersistableObject";
-import type { ObjectManager } from "./ObjectManager";
+import { PersistableObject } from "./object_manager/PersistableObject";
+import type { PersistedObject } from "./object_manager/PersistableObject";
+import type { ObjectManager } from "./object_manager/ObjectManager";
 
 import { Card } from "./Card";
-import type { NoteFieldContent } from "./NoteField";
+import type { NoteFieldContent } from "./fields/v6/base";
 import type { NoteType } from "./NoteType";
 
 import { combineIds } from "./utils/ids";
-import { GeneratedNoteField } from "./fields/GeneratedNoteField";
+import { GeneratedField } from "./fields/v6/base";
 
 export type SerialisedNote = {
   noteTypeId: string;
@@ -79,7 +79,7 @@ export class Note extends PersistableObject<SerialisedNote> {
         include: { doctype: "notefieldcontent", noteId: this.id },
       },
       includeDeleted,
-    ) as NoteFieldContent<any, any>[];
+    ) as NoteFieldContent<any, any, any, any>[];
   }
 
   getFieldContentByName(name: string) {
@@ -140,6 +140,10 @@ export class Note extends PersistableObject<SerialisedNote> {
       .forEach((o) => o.flagShouldDelete(true));
   }
 
+  hasChanged(): boolean {
+    return super.hasChanged() || this.getAllFieldContent().some((f) => f.hasChanged())
+  }
+
   resetToLastPersisted() {
     this.getAllFieldContent().forEach((c) => c.resetToLastPersisted());
   }
@@ -147,14 +151,14 @@ export class Note extends PersistableObject<SerialisedNote> {
   get isGenerating() {
     return this.noteType
       .getAllFields()
-      .filter((f) => f instanceof GeneratedNoteField)
+      .filter((f) => f instanceof GeneratedField)
       .some((f) => f.isGenerating);
   }
 
   async generateAll() {
     const generatedFields = this.noteType
       .getAllFields()
-      .filter((f) => f instanceof GeneratedNoteField);
+      .filter((f) => f instanceof GeneratedField);
     const toGenerate = generatedFields.filter(
       (f) => f.canGenerate(this) && f.shouldGenerate(this),
     );

@@ -1,34 +1,60 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, watchEffect, onMounted } from 'vue'
 
 import { Button } from 'primevue'
 import LabelledFormContainer from '@/components/common/LabelledFormContainer.vue'
-import type { TextToSpeechNoteField } from 'core/fields/GeneratedNoteField.js'
+import type { TextToSpeechField } from 'core/fields/v6/generated.js'
 import type { Note } from 'core/Note.js'
 
 interface Props {
-  field: TextToSpeechNoteField
+  field: TextToSpeechField
   note: Note
 }
 const props = defineProps<Props>()
 
 const fetched = ref(false)
 onMounted(async () => {
-  await props.field.getContent(props.note)?.fetchAttachment()
+  await props.field.getContent(props.note)?.getContent()
   fetched.value = true
 })
 
-const fieldContent = computed(() => {
+
+const fieldContent = ref<string | undefined>(undefined)
+
+watchEffect(async (onCleanup) => {
   if (!fetched.value) {
-    return undefined
+    fieldContent.value = undefined
+    return
   }
+
   const attachment = props.field.getContent(props.note)?.getAttachment()
-  if (attachment) {
-    return URL.createObjectURL(attachment.data)
-  } else {
-    return undefined
+  const blob = attachment?.data
+
+  if (!blob) {
+    fieldContent.value = undefined
+    return
+  }
+
+  let cancelled = false
+  onCleanup(() => {
+    cancelled = true
+  })
+
+  const dataUrl = await blobToDataUrl(blob)
+
+  if (!cancelled) {
+    fieldContent.value = dataUrl
   }
 })
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(reader.error ?? new Error("FileReader failed"))
+    reader.readAsDataURL(blob)
+  })
+}
 </script>
 
 <template>
@@ -38,7 +64,7 @@ const fieldContent = computed(() => {
         :class="
           fieldContent === undefined || field.isGenerating ? 'opacity-75 pointer-events-none' : ''
         "
-        :disabled="!fieldContent || true"
+        :disabled="!fieldContent"
         controls
         :src="fieldContent"
       ></audio>

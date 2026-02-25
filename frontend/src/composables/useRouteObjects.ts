@@ -1,6 +1,6 @@
 import { useRoute } from 'vue-router'
 import type { NavigationGuardNext, RouteLocationNormalizedGeneric } from 'vue-router'
-import { useDecks } from './useDecks'
+import { useDecks } from './usePouchRegistry'
 import { Deck } from 'core/Deck.js'
 import { NoteType } from 'core/NoteType.js'
 import { CardTemplate } from 'core/CardTemplate.js'

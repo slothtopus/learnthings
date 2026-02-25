@@ -16,3 +16,10 @@ export const downloadJson = (data: object, filename: string = 'data.json') => {
 
   URL.revokeObjectURL(url) // clean up
 }
+
+export const isInstanceOrThrow = <T>(val: unknown, cls: new (...args: any[]) => T): T => {
+  if (!(val instanceof cls)) {
+    throw new Error(`Object is not an instance of ${cls.name}`)
+  }
+  return val
+}

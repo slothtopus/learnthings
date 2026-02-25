@@ -1,5 +1,5 @@
 import type { Deck } from 'core/Deck.js'
-import { TextNoteField, AttachmentNoteField } from 'core/NoteField.js'
+import { TextField, ImageAttachmentField } from 'core/fields/v6/fields.js'
 import { createAttachmentFromURL } from 'core/utils/attachments.js'
 import flags from 'core/data/flags.json'
 
@@ -100,13 +100,15 @@ export const createFlagsDeck = async (deck: Deck) => {
 
   const noteType = deck.createNewNoteType('Flag and Country')
 
-  const countryField = noteType.createNewField('country', TextNoteField, {})
-  const flagField = noteType.createNewField('flag', AttachmentNoteField, { mimetype: 'image/*' })
+  const countryField = noteType.createNewField('country', TextField, {})
+  const flagField = noteType.createNewField('flag', ImageAttachmentField, {})
 
   for (const { country, url } of flags) {
     const note = noteType.createNewNote()
     countryField.getOrCreateContent(note).setContent(country)
-    flagField.getOrCreateContent(note).setContent(await createAttachmentFromURL(url))
+    flagField
+      .getOrCreateContent(note)
+      .setContent({ attachment: await createAttachmentFromURL(url) })
   }
 
   const cardTemplate = noteType.createNewCardTemplate('Flag to Country')

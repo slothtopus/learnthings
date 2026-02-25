@@ -12,6 +12,7 @@ scp .env.staging root@206.189.211.160:/app/.env
 
 ssh root@206.189.211.160 'bash -s' <<'EOF'
 cd /app
+docker compose down
 docker compose build --no-cache
 docker compose up -d
 EOF

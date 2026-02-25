@@ -1,17 +1,16 @@
-import { NoteField, TextNoteField } from "../NoteField";
-import type {
-  SerialisedNoteField,
-  SerialisedNoteFieldContent,
-  SerialisedAttachmentData,
-} from "../NoteField";
-import { NoteFieldContent } from "../NoteField";
+import { TextNoteField } from "./NoteField";
+import type { SerialisedNoteField } from "./NoteField";
 import type { Note } from "../Note";
-import type { ObjectManager } from "../ObjectManager";
-import { PersistableObject } from "../PersistableObject";
-import { AttachmentData, bufferToBlob } from "../utils/attachments";
-import { GeminiTtsRequestInput } from "../generators/google_tts";
-import { generateTextToSpeech } from "../generators/google_tts";
+import type { ObjectManager } from "../object_manager/ObjectManager";
+import { PersistableObject } from "../object_manager/PersistableObject";
+import { bufferToBlob } from "../utils/attachments";
+import { GeminiTtsRequestInput } from "../generators/GoogleTextToSpeech";
 import { isEqual } from "lodash-es";
+import { GoogleTextToSpeech } from "../generators/GoogleTextToSpeech";
+import {
+  GeneratedNoteField,
+  GeneratedAttachmentNoteFieldContent,
+} from "./GeneratedNoteField";
 
 export type GeminiTtsOptions = Pick<
   GeminiTtsRequestInput,
@@ -23,18 +22,9 @@ export type SerialisedTextToSpeechNoteField = SerialisedNoteField & {
   options: GeminiTtsOptions;
 };
 
-export abstract class GeneratedNoteField<
-  TContent extends NoteFieldContent<any, any>,
-> extends NoteField<TContent> {
-  abstract generate(note: Note): Promise<void>;
-  abstract canGenerate(note: Note): boolean;
-  abstract shouldGenerate(note: Note): boolean;
-  isGenerating: boolean = false;
-}
-
 export class TextToSpeechNoteField extends GeneratedNoteField<TextToSpeechNoteFieldContent> {
   static doctype = "notefield";
-  static subtype = "generated_attachment";
+  static subtype = "text_to_speech";
 
   static createNew(
     objectManager: ObjectManager,
@@ -58,6 +48,8 @@ export class TextToSpeechNoteField extends GeneratedNoteField<TextToSpeechNoteFi
       objectManager,
     );
   }
+
+  static service?: GoogleTextToSpeech;
 
   sourceFieldId?: string;
   options: GeminiTtsOptions;
@@ -116,17 +108,23 @@ export class TextToSpeechNoteField extends GeneratedNoteField<TextToSpeechNoteFi
     try {
       this.isGenerating = true;
 
-      const { audio } = await generateTextToSpeech({
-        text: sourceText,
-        languageCode: "af-ZA",
-        voiceName: "Achird",
-        ssml: false,
-        audioEncoding: "MP3",
-      });
-      const blob = bufferToBlob(audio);
+      if (TextToSpeechNoteField.service === undefined) {
+        throw new Error("service is missing");
+      }
+
+      const { audio } =
+        await TextToSpeechNoteField.service.generateTextToSpeech({
+          text: sourceText,
+          languageCode: "af-ZA",
+          voiceName: "Achird",
+          ssml: false,
+          audioEncoding: "MP3",
+        });
+        debugger
+      const blob = bufferToBlob(audio, "audio/mpeg");
       const attachment = {
         filename: "generated.mp3",
-        mimetype: "audio/*",
+        mimetype: "audio/mpeg",
         data: blob,
       };
       this.getOrCreateContent(note).setContent({
@@ -191,122 +189,17 @@ export class TextToSpeechNoteField extends GeneratedNoteField<TextToSpeechNoteFi
   }
 }
 
-export type SerialisedGeneratedAttachmentNoteFieldContent<TSource> =
-  SerialisedNoteFieldContent & {
-    sourceContent?: TSource;
-    attachment?: SerialisedAttachmentData;
-  };
-
-export class GeneratedAttachmentNoteFieldContent<
-  TSource,
-> extends NoteFieldContent<
-  { sourceContent: TSource; attachment: AttachmentData },
-  SerialisedGeneratedAttachmentNoteFieldContent<TSource>
-> {
-  static doctype = "notefieldcontent";
-  static subtype = "generated_attachment";
-
-  get parentId() {
-    return this.id;
-  }
-
-  get field() {
-    return super.field as TextToSpeechNoteField;
-  }
-
-  sourceContent?: TSource;
-  attachment?: SerialisedAttachmentData;
-  _data?: Blob;
-
-  static createNew(
-    objectManager: ObjectManager,
-    options: { noteId: string; fieldId: string },
-  ) {
-    return new GeneratedAttachmentNoteFieldContent(
-      {
-        ...PersistableObject.create(),
-        ...options,
-        attachment: undefined,
-      },
-      objectManager,
-    );
-  }
-
-  constructor(
-    serialised: SerialisedGeneratedAttachmentNoteFieldContent<TSource>,
-    objectManager: ObjectManager,
-  ) {
-    super(serialised, objectManager);
-    const { sourceContent, attachment } = serialised;
-    this.sourceContent = sourceContent;
-    this.attachment = attachment;
-  }
-
-  serialise(
-    ...args: Parameters<PersistableObject<any>["serialise"]>
-  ): SerialisedGeneratedAttachmentNoteFieldContent<TSource> {
-    return {
-      ...super.serialise(...args),
-      sourceContent: this.sourceContent,
-      attachment: this.attachment,
-    };
-  }
-
-  setContent({
-    sourceContent,
-    attachment,
-  }: {
-    sourceContent: TSource;
-    attachment: AttachmentData;
-  }) {
-    this.sourceContent = sourceContent;
-    const { data, ...rest } = attachment;
-    this._data = data;
-    this.attachment = rest;
-    this.markDirty();
-  }
-
-  isEmpty() {
-    return this.attachment === undefined || this.sourceContent === undefined;
-  }
-
-  hasAttachment() {
-    return true;
-  }
-
-  getAttachment() {
-    if (this.attachment && this._data) {
-      return { ...this.attachment, data: this._data };
-    } else {
-      return null;
-    }
-  }
-
-  async fetchAttachment(): Promise<AttachmentData | null> {
-    this._data = await this.objectManager.fetchAttachment(this.id);
-    return this.getAttachment();
-  }
-
-  _lastPersistedData: Blob | undefined;
-  updateAfterPersist(_meta: any, lastPersistedTimestamp: number) {
-    super.updateAfterPersist(_meta, lastPersistedTimestamp);
-    this._lastPersistedData = this._data;
-  }
-
-  resetToLastPersisted() {
-    super.resetToLastPersisted();
-    if (this._lastPersisted) {
-      this.attachment = this._lastPersisted.attachment;
-      this.sourceContent = this._lastPersisted.sourceContent;
-      this._data = this._lastPersistedData;
-    }
-  }
-}
-
 export class TextToSpeechNoteFieldContent extends GeneratedAttachmentNoteFieldContent<{
   options: GeminiTtsOptions;
   sourceText: string;
 }> {
+  static doctype = "notefieldcontent";
+  static subtype = "text_to_speech";
+
+  get field() {
+    return super.field as unknown as TextToSpeechNoteField;
+  }
+
   static createNew(
     objectManager: ObjectManager,
     options: { noteId: string; fieldId: string },

@@ -1,5 +1,5 @@
 import type { Deck } from 'core/Deck.js'
-import { TextNoteField } from 'core/NoteField.js'
+import { TextField } from 'core/fields/v6/fields.js'
 import littlePrince from 'core/data/little_prince_first_3_chapters_chunks.json'
 import { createAttachmentFromURL } from 'core/utils/attachments.js'
 
@@ -133,18 +133,18 @@ export const createLittlePrince = async (deck: Deck) => {
   deck.setName('O Pequeno Príncipe')
   const noteType = deck.createNewNoteType('sentences')
 
-  const promptFieldMinusOne = noteType.createNewField('prompt_part_minus_1', TextNoteField, {})
+  const promptFieldMinusOne = noteType.createNewField('prompt_part_minus_1', TextField, {})
   const promptFieldMinusOneIndex = noteType.createNewField(
     'prompt_part_minus_1_index',
-    TextNoteField,
+    TextField,
     {},
   )
-  const promptField = noteType.createNewField('prompt_part', TextNoteField, {})
-  const promptFieldIndex = noteType.createNewField('prompt_part_index', TextNoteField, {})
-  const nextField = noteType.createNewField('next_part', TextNoteField, {})
-  const nextFieldIndex = noteType.createNewField('next_part_index', TextNoteField, {})
-  const nextFieldPlusOne = noteType.createNewField('next_part_plus_1', TextNoteField, {})
-  const nextFieldPlusOneIndex = noteType.createNewField('next_part_plus_1_index', TextNoteField, {})
+  const promptField = noteType.createNewField('prompt_part', TextField, {})
+  const promptFieldIndex = noteType.createNewField('prompt_part_index', TextField, {})
+  const nextField = noteType.createNewField('next_part', TextField, {})
+  const nextFieldIndex = noteType.createNewField('next_part_index', TextField, {})
+  const nextFieldPlusOne = noteType.createNewField('next_part_plus_1', TextField, {})
+  const nextFieldPlusOneIndex = noteType.createNewField('next_part_plus_1_index', TextField, {})
 
   for (let i = 0; i < littlePrince.length - 2; i++) {
     const note = noteType.createNewNote()

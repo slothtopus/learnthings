@@ -3,9 +3,13 @@ import {
   getPouchDB,
   parseDeckDBName,
   buildDeckDBName,
+  buildMetaDBName,
   getOrCreateLocalDeckDB,
-  clearDBCache,
+  clearAndCloseDBCache,
 } from "./PouchDB";
+
+
+export type TokenGenerator = () => Promise<string | undefined>;
 
 export class PouchDeckRegistry {
   url: string;
@@ -26,12 +30,26 @@ export class PouchDeckRegistry {
     return this._registryDB;
   }
 
+  _metaDB: PouchDB.Database<any> | undefined;
+  async initialiseMetaDB() {
+    if (this._metaDB === undefined) {
+      this._metaDB = await getOrCreateDB(
+        buildMetaDBName(this.userId),
+        this.memoryOnly,
+      );
+    }
+    if (this.shouldSync) {
+      await this.initialiseSync(this._metaDB);
+    }
+    return this._metaDB;
+  }
+
   constructor(
     url: string,
     auth: { username: string; password: string },
     userId: string,
     memoryOnly: boolean,
-    directMode = true
+    directMode = true,
   ) {
     this.url = url;
     this.auth = auth;
@@ -41,21 +59,23 @@ export class PouchDeckRegistry {
   }
 
   async reset() {
-    clearDBCache();
+    await clearAndCloseDBCache();
+    this._registryDB = undefined
+    this._metaDB = undefined
     await Promise.all(
       this._syncHandlers.map(async ({ handler, localDB, remoteDB }) => {
         handler.cancel();
         await localDB.close();
         await remoteDB.close();
-      })
+      }),
     );
     this._syncHandlers = [];
   }
 
   async initialise(
     userId: string,
-    tokenGenerator: () => Promise<string | undefined>,
-    shouldSync: boolean
+    tokenGenerator: TokenGenerator,
+    shouldSync: boolean,
   ) {
     await this.reset();
     this.userId = userId;
@@ -111,13 +131,13 @@ export class PouchDeckRegistry {
       }
     }
     const newLocalDeckIds = remoteDeckIds.filter(
-      (remoteId) => !localDeckIds.includes(remoteId)
+      (remoteId) => !localDeckIds.includes(remoteId),
     );
     const db = await this.getRegistryDB();
     await Promise.all(
       newLocalDeckIds.map((id) =>
-        db.put({ _id: buildDeckDBName(this.userId, id) })
-      )
+        db.put({ _id: buildDeckDBName(this.userId, id) }),
+      ),
     );
     return [...new Set([...localDeckIds, ...remoteDeckIds]).values()].sort();
   }
@@ -126,7 +146,7 @@ export class PouchDeckRegistry {
     const localDB = await getOrCreateLocalDeckDB(
       this.userId,
       deckId,
-      this.memoryOnly
+      this.memoryOnly,
     );
 
     return localDB.allDocs({ include_docs: true });
@@ -212,7 +232,7 @@ export class PouchDeckRegistry {
     const db = await getOrCreateLocalDeckDB(
       this.userId,
       deckId,
-      this.memoryOnly
+      this.memoryOnly,
     );
     await this.registerDeckDB(this.userId, deckId);
     if (this.shouldSync) {
@@ -226,7 +246,7 @@ export class PouchDeckRegistry {
     const localDB = await getOrCreateLocalDeckDB(
       this.userId,
       deckId,
-      this.memoryOnly
+      this.memoryOnly,
     );
     const dbName = buildDeckDBName(this.userId, deckId);
     const { _id, _rev } = await db.get(dbName);

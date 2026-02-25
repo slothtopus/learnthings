@@ -1,6 +1,6 @@
 import type { Card } from "../Card";
 import type { DateTime } from "luxon";
-import { PersistableObject, PersistedObject } from "../PersistableObject";
+import { PersistableObject, PersistedObject } from "../object_manager/PersistableObject";
 
 export abstract class Scheduler<
   S extends PersistedObject

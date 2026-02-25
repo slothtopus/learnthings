@@ -3,16 +3,15 @@ import {
   getOrCreateLocalDeckDB,
   pouchSerialise,
   pouchDeserialise,
-} from "./service/PouchDB";
-import type { PouchSerialisedSaved } from "./service/PouchDB";
+} from "../service/PouchDB";
+import { blobToBuffer, bufferToBlob } from "../utils/attachments";
+import { TransactionGraphV4 } from "./TransactionGraph";
+
+import type { PouchSerialisedSaved } from "../service/PouchDB";
 import type { PersistableObjectConstructor } from "./PersistableObject";
+import type { ProgressMonitor } from "./utils";
 
 import { isNode } from "browser-or-node";
-import { blobToBuffer, bufferToBlob } from "./utils/attachments";
-import { Deck } from "./Deck";
-import { isEqual, pick, cloneDeep } from "lodash-es";
-
-import { TransactionGraphV4 } from "./TransactionGraph";
 
 export type ObjectType = {
   doctype: string;
@@ -31,24 +30,27 @@ export type OrderedObjectOperation = {
 };
 
 export class ObjectManager {
-  deckId: string;
-  //_dbPromise: ReturnType<typeof getOrCreateLocalDeckDB>;
   db: Awaited<ReturnType<typeof getOrCreateLocalDeckDB>> | undefined;
   registry: Record<string, PersistableObjectConstructor> = {};
   objectsById: Record<string, PersistableObject<PersistedObject>> = {};
 
   dirtyIds = new Set<string>();
 
-  /*
-  _version = 0;
-  get version() {
-    return this._version;
-  }
-  set version(v: number) {
-    this._version = v;
-  }*/
-
   version: Record<string, number> = { default: 0 };
+
+  keyObjectId?: string;
+
+  constructor(keyObjectId?: string) {
+    this.keyObjectId = keyObjectId;
+  }
+
+  getKeyObject() {
+    if (this.keyObjectId === undefined) {
+      throw new Error(`No key object defined`);
+    }
+    const keyObj = this.getObjectById(this.keyObjectId);
+    return keyObj;
+  }
 
   static generateObjectKey({
     doctype,
@@ -58,10 +60,6 @@ export class ObjectManager {
     subtype: string;
   }) {
     return `${doctype}:${subtype}`;
-  }
-
-  constructor(deckId: string) {
-    this.deckId = deckId;
   }
 
   applyObject(obj: PersistableObject<any>) {
@@ -108,7 +106,6 @@ export class ObjectManager {
     meta: any,
     lastPersistedTimestamp: number,
   ) {
-    //console.log("updateObjectAfterPersist", id, meta, lastPersistedTimestamp);
     this.getObjectById(id).updateAfterPersist(meta, lastPersistedTimestamp);
   }
 
@@ -117,14 +114,6 @@ export class ObjectManager {
       throw new Error("Not initialised");
     }
     return this.db;
-  }
-
-  getDeck() {
-    const deck = this.getObjectById(this.deckId);
-    if (deck === undefined) {
-      throw new Error("No deck found");
-    }
-    return deck as Deck;
   }
 
   markDirtyQuery(query: ObjectQuery = {}) {
@@ -401,109 +390,6 @@ export class ObjectManager {
     return { results: { deletions, updates } };
   }
 
-  /*async batchApplyOperations(operations: OrderedObjectOperation[]) {
-    const deletions: Record<string, PersistableObject<any>[]> = {};
-    const updates: Record<string, PersistableObject<any>[]> = {};
-
-    const addOperation = (
-      order: number,
-      obj: PersistableObject<any>,
-      batch: Record<number, PersistableObject<any>[]>
-    ) => {
-      if (order in batch) {
-        batch[order].push(obj);
-      } else {
-        batch[order] = [obj];
-      }
-    };
-
-    for (const { obj, operation, order } of operations) {
-      const allIds = [obj.id, ...obj.getEmbeddedIds(true)];
-      if (operation == "delete") {
-        if (!obj.isUnsaved()) {
-          addOperation(order, obj, deletions);
-          //await this.deletePersistedObj(obj);
-        }
-        for (const id of allIds) {
-          const obj = this.getObjectById(id);
-          this.deleteObject(obj);
-          this.dirtyIds.delete(id);
-        }
-      } else if (operation == "persist") {
-        addOperation(order, obj, updates);
-        //await this.persistObj(obj);
-        for (const id of allIds) {
-          const obj = this.getObjectById(id);
-          if (obj.shouldDelete()) {
-            this.deleteObject(obj);
-          }
-          this.dirtyIds.delete(id);
-        }
-      }
-    }
-
-    const allKeys = Array.from(
-      new Set([...Object.keys(deletions), ...Object.keys(updates)]).values()
-    ).sort();
-
-    //console.log("deletions:", deletions);
-    //console.log("updates:", updates);
-
-    for (const orderKey of allKeys) {
-      if (orderKey in deletions) {
-        console.log(
-          `bulk deleting ${orderKey}: ${deletions[orderKey].length} objects`
-        );
-        const startTime = Date.now();
-        await this.bulkDeleteObjs(deletions[orderKey]);
-        console.log(`Bulk delete completed in ${Date.now() - startTime}ms`);
-      }
-      if (orderKey in updates) {
-        console.log(
-          `bulk persisting ${orderKey}: ${updates[orderKey].length} objects`
-        );
-        const startTime = Date.now();
-        await this.bulkPersistObjs(updates[orderKey]);
-        console.log(`Bulk persist completed in ${Date.now() - startTime}ms`);
-      }
-    }
-  }*/
-
-  /*async bulkPersistObjs(objs: PersistableObject<any>[]) {
-    const lastPersistedTimestamp = Date.now();
-    let startTime = Date.now();
-    const docs = objs.map((o) => ({
-      ...pouchSerialise(o.serialise()),
-      lastPersistedTimestamp,
-    }));
-    console.log(`serialisation completed in ${Date.now() - startTime}ms`);
-
-    startTime = Date.now();
-    const bulkRes = await this.getDB().bulkDocs(docs);
-    console.log(
-      `this.getDB().bulkDocs(...) completed in ${Date.now() - startTime}ms`
-    );
-
-    startTime = Date.now();
-    for (const res of bulkRes) {
-      if (res.id === undefined || res.rev === undefined) continue;
-      this.updateObjectAfterPersist(
-        res.id,
-        { _rev: res.rev },
-        lastPersistedTimestamp
-      );
-    }
-    console.log(
-      `updateObjectAfterPersist completed in ${Date.now() - startTime}ms`
-    );
-  }*/
-
-  /*async bulkDeleteObjs(objs: PersistableObject<any>[]) {
-    await this.getDB().bulkDocs(
-      objs.map((o) => ({ ...pouchSerialise(o.serialise()), _deleted: true }))
-    );
-  }*/
-
   async persist(progressMonitor?: ProgressMonitor) {
     //console.log("ObjectManager.persist()");
     const operations = this.generateUpdates();
@@ -569,94 +455,4 @@ export class ObjectManager {
   query(query: ObjectQuery, includeDeleted = false) {
     return this.getAllObjects().filter((o) => o.matches(query, includeDeleted));
   }
-
-  _doctypeQueryCache: Record<string, CacheEntry<PersistableObject<any>[]>> = {};
-  doctypeCachedQuery<T extends PersistableObject<any>>(
-    query: ObjectQuery,
-    doctypes: string[] = ["default"],
-  ) {
-    /* TODO: implement a query cache that uses the doctype specified in the query
-    and recalculates on version change. This will also include the query with
-    all deleted objects and apply the filtering on the cached values so that updates
-    that toggle shouldDelete will also be reactive.
-
-    I'm not sure why I wanted to use this?
-    */
-
-    const currentVersion = pick(this.version, doctypes);
-    const cacheKey = JSON.stringify(query);
-    const entry = this._doctypeQueryCache[cacheKey] as
-      | CacheEntry<T[]>
-      | undefined;
-
-    if (entry !== undefined && isEqual(entry.version, currentVersion)) {
-      return entry.result.filter((r) => !r.shouldDelete());
-    } else {
-      const result = this.query(query, true) as T[];
-      const newEntry: CacheEntry<T[]> = {
-        version: currentVersion,
-        result: result,
-      };
-      this._doctypeQueryCache[cacheKey] = newEntry;
-      return result;
-    }
-  }
-}
-
-export class ProgressMonitor {
-  total: number | undefined;
-  completed = 0;
-  message?: string
-  
-
-  setMessage(message?: string) {
-    this.message = message
-  }
-
-  getProgress() {
-    if (this.total) {
-      return (this.completed / this.total) * 100;
-    } else {
-      return undefined;
-    }
-  }
-}
-
-type CacheEntry<T> = { version: Record<string, number>; result: T };
-
-export function cacheByVersion(doctypes: string[] = ["default"]) {
-  return function <
-    This extends PersistableObject<any>,
-    Ret extends PersistableObject<any>[],
-  >(
-    original: (this: This) => Ret,
-    context: ClassMethodDecoratorContext<This, (this: This) => Ret>,
-  ) {
-    if (context.kind !== "method") {
-      throw new Error("@cacheByVersion must be used on a method");
-    }
-
-    const prop = `__${String(context.name)}Cache` as keyof This;
-
-    const wrapped = function (this: This, skipCache = false): Ret {
-      const currentVersion = pick(this.objectManager.version, doctypes);
-      const entry = (this as any)[prop] as CacheEntry<Ret> | undefined;
-
-      if (!skipCache && entry && isEqual(entry.version, currentVersion)) {
-        return entry.result.filter((r) => !r.shouldDelete()) as Ret;
-      }
-
-      const result = original.call(this) as Ret;
-      (this as any)[prop] = {
-        version: currentVersion,
-        result,
-      } as CacheEntry<Ret>;
-      console.log(
-        `caching ${String(prop)} for version ${JSON.stringify(currentVersion)}`,
-      );
-      return result;
-    };
-
-    return wrapped;
-  };
 }

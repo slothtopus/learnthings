@@ -10,8 +10,13 @@ import TextFieldSettingsCard from '@/components/fields/text/TextFieldSettingsCar
 import ImageFieldSettingsCard from '@/components/fields/image/ImageFieldSettingsCard.vue'
 
 import type { NoteType } from 'core/NoteType.js'
-import { AttachmentNoteField, NoteField, TextNoteField } from 'core/NoteField.js'
-import { TextToSpeechNoteField } from 'core/fields/GeneratedNoteField.js'
+
+import type { AnyNoteField } from 'core/fields/v6/base.js'
+import { TextField, ImageAttachmentField } from 'core/fields/v6/fields.js'
+import { TextToSpeechField } from 'core/fields/v6/generated.js'
+
+//import { AttachmentNoteField, NoteField, TextNoteField } from 'core/fields/NoteField.js'
+//import { TextToSpeechNoteField } from 'core/fields/GeneratedNoteField.js'
 
 import { useNoteTypeDetails } from '@/composables/useObjectDetails'
 
@@ -30,26 +35,25 @@ const handleCreateNew = async () => {
     const { name, fieldType } = result.data
     switch (fieldType) {
       case 'text':
-        props.noteType.createNewField(name, TextNoteField, {})
+        props.noteType.createNewField(name, TextField, {})
         break
       case 'image':
-        props.noteType.createNewField(name, AttachmentNoteField, { mimetype: 'image/*' })
+        props.noteType.createNewField(name, ImageAttachmentField, {})
         break
       case 'text_to_speech':
-        props.noteType.createNewField(name, TextToSpeechNoteField, {})
+        props.noteType.createNewField(name, TextToSpeechField, {})
     }
     props.noteType.deck.persist()
   }
 }
 
-const isTextToSpeechField = (field: NoteField<any>): field is TextToSpeechNoteField =>
-  field instanceof TextToSpeechNoteField
+const isTextToSpeechField = (field: AnyNoteField): field is TextToSpeechField =>
+  field instanceof TextToSpeechField
 
-const isTextField = (field: NoteField<any>): field is TextNoteField =>
-  field instanceof TextNoteField
+const isTextField = (field: AnyNoteField): field is TextField => field instanceof TextField
 
-const isImageField = (field: NoteField<any>): field is AttachmentNoteField =>
-  field instanceof AttachmentNoteField && field.mimetype.startsWith('image/')
+const isImageField = (field: AnyNoteField): field is ImageAttachmentField =>
+  field instanceof ImageAttachmentField
 </script>
 
 <template>

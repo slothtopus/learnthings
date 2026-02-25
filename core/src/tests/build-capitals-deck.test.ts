@@ -1,6 +1,6 @@
 import { test, expect } from "vitest";
 
-import { ObjectManager } from "../ObjectManager.js";
+import { ObjectManager } from "../object_manager/ObjectManager.js";
 import { generateId } from "../utils/ids.js";
 
 import { Deck } from "../Deck.js";
@@ -8,12 +8,7 @@ import { NoteType } from "../NoteType.js";
 import { Note } from "../Note.js";
 import { CardTemplate } from "../CardTemplate";
 import { Card } from "../Card.js";
-import {
-  AttachmentNoteField,
-  AttachmentNoteFieldContent,
-  TextNoteField,
-} from "../NoteField.js";
-import { TextNoteFieldContent } from "../NoteField.js";
+import { TextField, TextFieldContent, ImageAttachmentField, ImageAttachmentContent } from "../fields/v6/fields";
 import { FSRSScheduler } from "../schedulers/FSRSScheduler.js";
 
 import capitals from "../data/capitals.json";
@@ -103,10 +98,10 @@ export const setupObjectManager = async (deckId: string, userId: string) => {
     .register(CardTemplate)
     .register(Note)
     .register(Card)
-    .register(TextNoteField)
-    .register(TextNoteFieldContent)
-    .register(AttachmentNoteField)
-    .register(AttachmentNoteFieldContent)
+    .register(TextField)
+    .register(TextFieldContent)
+    .register(ImageAttachmentField)
+    .register(ImageAttachmentContent)
     .register(FSRSScheduler);
   om.db = await getOrCreateLocalDeckDB(userId, deckId, true);
   return om;
@@ -116,7 +111,7 @@ export const createNewDeck = async (userId: string, name: string) => {
   const deckId = generateId();
   const om = await setupObjectManager(deckId, userId);
   om.setObject(Deck.createNew(om, { id: deckId, name }));
-  const deck = om.getDeck();
+  const deck = om.getKeyObject() as Deck;
   await deck.persist();
   return deck;
 };
@@ -127,8 +122,8 @@ test("build capitals deck", async () => {
   const startTime = Date.now();
   deck = await createNewDeck("guest-1", "Countries and Capitals");
   const noteType = deck.createNewNoteType("Countries and Capitals");
-  const countryField = noteType.createNewField("country", TextNoteField, {});
-  const capitalField = noteType.createNewField("capital", TextNoteField, {});
+  const countryField = noteType.createNewField("country", TextField, {});
+  const capitalField = noteType.createNewField("capital", TextField, {});
 
   for (const { country, capital } of capitals) {
     const note = noteType.createNewNote();

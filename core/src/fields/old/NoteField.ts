@@ -1,14 +1,14 @@
-import { PersistableObject } from "./PersistableObject";
-import type { PersistedObject } from "./PersistableObject";
-import type { ObjectManager } from "./ObjectManager";
-import type { Note } from "./Note";
-import { combineIds } from "./utils/ids";
+import { PersistableObject } from "../object_manager/PersistableObject";
+import type { PersistedObject } from "../object_manager/PersistableObject";
+import type { ObjectManager } from "../object_manager/ObjectManager";
+import type { Note } from "../Note";
+import { combineIds } from "../utils/ids";
 import {
   createAttachmentFromURL,
   areMimeTypesEqual,
-} from "./utils/attachments";
-import type { AttachmentData } from "./utils/attachments";
-import { NoteType } from "./NoteType";
+} from "../utils/attachments";
+import type { AttachmentData } from "../utils/attachments";
+import { NoteType } from "../NoteType";
 
 export type SerialisedNoteField = {
   noteTypeId: string;
@@ -16,7 +16,7 @@ export type SerialisedNoteField = {
 } & PersistedObject;
 
 export abstract class NoteField<
-  C extends NoteFieldContent<any, SerialisedNoteFieldContent>
+  C extends NoteFieldContent<any, any, any>
 > extends PersistableObject<SerialisedNoteField> {
   static doctype = "notefield";
   static subtype = "base";
@@ -88,15 +88,17 @@ export abstract class NoteField<
   }
 }
 
-export type SerialisedNoteFieldContent = {
+export type SerialisedNoteFieldContent<TSerialisedContent> = {
   noteId: string;
   fieldId: string;
+  content: TSerialisedContent
 } & PersistedObject;
 
 export abstract class NoteFieldContent<
-  C,
-  S extends SerialisedNoteFieldContent
-> extends PersistableObject<S> {
+  TContent,
+  TField extends NoteField<any>,
+  TSerialised extends SerialisedNoteFieldContent<any>
+> extends PersistableObject<TSerialised> {
   static doctype = "notefieldcontent";
   static subtype = "base";
 
@@ -120,34 +122,44 @@ export abstract class NoteFieldContent<
   }
 
   get field() {
-    return this.objectManager.getObjectById(this.fieldId) as NoteField<any>;
+    return this.objectManager.getObjectById(this.fieldId) as TField;
   }
 
-  constructor(serialised: S, objectManager: ObjectManager) {
+  constructor(serialised: TSerialised, objectManager: ObjectManager) {
     super(serialised, objectManager);
-    const { noteId, fieldId } = serialised;
+    const { noteId, fieldId, content } = serialised;
     this.noteId = noteId;
     this.fieldId = fieldId;
+    this.content = content
   }
 
   serialise(
     ...args: Parameters<PersistableObject<any>["serialise"]>
-  ): SerialisedNoteFieldContent {
+  ) {
     return {
       ...super.serialise(...args),
       noteId: this.noteId,
       fieldId: this.fieldId,
+      content: this.content
     };
   }
 
-  abstract setContent(content: C): void;
+  
 
-  abstract isEmpty(): boolean;
+  abstract setContent(content: TContent): void;
+
+  abstract getContent(): TContent | null
+
+
+  isEmpty() {
+    return this.content === null
+  }
 
   resetToLastPersisted() {
     if (this._lastPersisted) {
       this.noteId = this._lastPersisted.noteId;
       this.fieldId = this._lastPersisted.fieldId;
+      this.content = this._lastPersisted.content
     }
   }
 
@@ -186,12 +198,11 @@ export class TextNoteField extends NoteField<TextNoteFieldContent> {
   }
 }
 
-export type SerialisedTextNoteFieldContent = SerialisedNoteFieldContent & {
-  content: string | null;
-};
+export type SerialisedTextNoteFieldContent = SerialisedNoteFieldContent<string | null>
 
 export class TextNoteFieldContent extends NoteFieldContent<
   string,
+  TextNoteField,
   SerialisedTextNoteFieldContent
 > {
   static doctype = "notefieldcontent";
@@ -211,17 +222,6 @@ export class TextNoteFieldContent extends NoteFieldContent<
     );
   }
 
-  content: string | null;
-
-  constructor(
-    serialised: SerialisedTextNoteFieldContent,
-    objectManager: ObjectManager
-  ) {
-    super(serialised, objectManager);
-    const { content } = serialised;
-    this.content = content;
-  }
-
   setContent(content: string | null) {
     if (content !== this.content) {
       this.markDirty();
@@ -229,11 +229,7 @@ export class TextNoteFieldContent extends NoteFieldContent<
     this.content = content === "" ? null : content;
   }
 
-  /*shouldDelete(): boolean {
-    return super.shouldDelete() || this.content === null;
-  }*/
-
-  serialise(
+  /*serialise(
     ...args: Parameters<PersistableObject<any>["serialise"]>
   ): SerialisedTextNoteFieldContent {
     return { ...super.serialise(...args), content: this.content };
@@ -241,14 +237,15 @@ export class TextNoteFieldContent extends NoteFieldContent<
 
   isEmpty() {
     return this.content === null;
-  }
+  }*/
 
+    /*
   resetToLastPersisted() {
     super.resetToLastPersisted();
     if (this._lastPersisted) {
       this.content = this._lastPersisted.content;
     }
-  }
+  }*/
 }
 
 // ----------------------- Attachment Field -----------------------
@@ -324,6 +321,7 @@ export type SerialisedAttachmentNoteFieldContent =
 
 export class AttachmentNoteFieldContent extends NoteFieldContent<
   AttachmentData,
+  AttachmentNoteField,
   SerialisedAttachmentNoteFieldContent
 > {
   static doctype = "notefieldcontent";
@@ -388,10 +386,6 @@ export class AttachmentNoteFieldContent extends NoteFieldContent<
     };
   }
 
-  /*shouldDelete(): boolean {
-    return super.shouldDelete() || this.attachment === undefined;
-  }*/
-
   hasAttachment() {
     return true;
   }
@@ -427,3 +421,4 @@ export class AttachmentNoteFieldContent extends NoteFieldContent<
     }
   }
 }
+

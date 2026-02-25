@@ -1,9 +1,10 @@
 import { cloneDeep, isEqual } from "lodash-es";
-import { generateId } from "./utils/ids";
-import type { ObjectQuery, ObjectType, ObjectManager } from "./ObjectManager";
+import { generateId } from "../utils/ids";
+import type { ObjectQuery, ObjectManager } from "./ObjectManager";
+import type { Deck } from "../Deck";
 
 import { pickBy } from "lodash-es";
-import { AttachmentData } from "./utils/attachments";
+import { AttachmentData } from "../utils/attachments";
 
 export type PersistedObject = {
   _id: string;
@@ -28,12 +29,19 @@ export type NoReservedKeys<T> = Omit<T, (typeof RESERVED_KEYS)[number]>;
 export type PersistableObjectConstructor<
   T extends PersistableObject<S> = any,
   S extends PersistedObject = any,
-  O = any
 > = {
-  createNew(objectManager: ObjectManager, options?: O): T;
+  //createNew(objectManager: ObjectManager, options?: O): T;
   new (serialised: S, objectManager: ObjectManager): T;
   doctype: string;
   subtype: string;
+};
+
+export type CreatablePersistableObjectConstructor<
+  T extends PersistableObject<S> = any,
+  S extends PersistedObject = any,
+  O = any,
+> = PersistableObjectConstructor<T, S> & {
+  createNew(objectManager: ObjectManager, options?: O): T;
 };
 
 export class PersistableObject<S extends PersistedObject> {
@@ -51,7 +59,7 @@ export class PersistableObject<S extends PersistedObject> {
   static filterReservedKeys<S extends PersistedObject>(s: S) {
     return pickBy(
       s,
-      (v, k) => !RESERVED_KEYS.includes(k as any) && v !== undefined
+      (v, k) => !RESERVED_KEYS.includes(k as any) && v !== undefined,
     ) as NoReservedKeys<S>;
   }
 
@@ -95,7 +103,12 @@ export class PersistableObject<S extends PersistedObject> {
   }
 
   get deck() {
-    return this.objectManager.getDeck();
+    const deck = this.objectManager.getKeyObject();
+    if (deck === undefined) {
+      throw new Error(`Deck not found`);
+    } else {
+      return deck as Deck;
+    }
   }
 
   _meta: any;
@@ -113,7 +126,7 @@ export class PersistableObject<S extends PersistedObject> {
     this._meta = serialised._meta;
     this.lastPersistedTimestamp = serialised.lastPersistedTimestamp;
     this._lastPersisted = structuredClone(
-      PersistableObject.filterReservedKeys(serialised)
+      PersistableObject.filterReservedKeys(serialised),
     );
     this.objectManager = objectManager;
   }
@@ -127,13 +140,13 @@ export class PersistableObject<S extends PersistedObject> {
       include === undefined
         ? true
         : Object.entries(include).every(
-            ([k, v]) => k in this && this[k as keyof typeof this] === v
+            ([k, v]) => k in this && this[k as keyof typeof this] === v,
           );
     const excludeMatches =
       exclude === undefined
         ? false
         : Object.entries(exclude).every(
-            ([k, v]) => k in this && this[k as keyof typeof this] === v
+            ([k, v]) => k in this && this[k as keyof typeof this] === v,
           );
 
     return (
@@ -162,7 +175,7 @@ export class PersistableObject<S extends PersistedObject> {
       //console.log("calculating embeddings for", this.id);
       this._embeddedObjects = this.objectManager.query(
         { include: { parentId: this.id }, exclude: { id: this.id } },
-        includeDeleted
+        includeDeleted,
       );
     }
     return this._embeddedObjects;
@@ -174,7 +187,7 @@ export class PersistableObject<S extends PersistedObject> {
 
   serialise(
     includeObjects = true,
-    lastPersistedTimestamp?: number
+    lastPersistedTimestamp?: number,
   ): PersistedObject {
     return {
       _id: this.id,
@@ -185,7 +198,7 @@ export class PersistableObject<S extends PersistedObject> {
       subtype: this.subtype,
       objects: includeObjects
         ? this.getEmbeddedObjects().map((o) =>
-            o.serialise(includeObjects, lastPersistedTimestamp)
+            o.serialise(includeObjects, lastPersistedTimestamp),
           )
         : [],
     };
@@ -196,10 +209,10 @@ export class PersistableObject<S extends PersistedObject> {
     this.flagShouldPersist(false);
     this.lastPersistedTimestamp = lastPersistedTimestamp;
     this._lastPersisted = cloneDeep(
-      PersistableObject.filterReservedKeys(this.serialise(false) as S)
+      PersistableObject.filterReservedKeys(this.serialise(false) as S),
     );
     this.getEmbeddedObjects().forEach((o) =>
-      o.updateAfterPersist(null, lastPersistedTimestamp)
+      o.updateAfterPersist(null, lastPersistedTimestamp),
     );
   }
 
@@ -241,7 +254,7 @@ export class PersistableObject<S extends PersistedObject> {
   hasChanged(): boolean {
     return !isEqual(
       this._lastPersisted,
-      PersistableObject.filterReservedKeys(this.serialise(false))
+      PersistableObject.filterReservedKeys(this.serialise(false)),
     );
   }
 

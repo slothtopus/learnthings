@@ -2,7 +2,7 @@ import { watch, reactive } from 'vue'
 
 import PersistProgress from '@/components/common/PersistProgress.vue'
 import { useDialog } from 'primevue'
-import { ProgressMonitor } from 'core/ObjectManager.js'
+import { ProgressMonitor } from 'core/object_manager/utils.js'
 import type { DynamicDialogInstance } from 'primevue/dynamicdialogoptions'
 
 export const useProgress = (title: string) => {
@@ -15,9 +15,9 @@ export const useProgress = (title: string) => {
   watch(
     () => progressMonitor.total,
     (newTotal, oldTotal) => {
-      if(newTotal === undefined && instance !== undefined) {
+      if (newTotal === undefined && instance !== undefined) {
         instance.close()
-      } else if (oldTotal === undefined && newTotal !== undefined) {
+      } else if (oldTotal === undefined && newTotal !== undefined && newTotal > 20) {
         instance = dialog.open(PersistProgress, {
           props: {
             header: title,

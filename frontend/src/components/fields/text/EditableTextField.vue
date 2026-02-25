@@ -2,12 +2,12 @@
 import { computed } from 'vue'
 
 import type { Note } from 'core/Note.js'
-import type { TextNoteField } from 'core/NoteField.js'
+import type { TextField } from 'core/fields/v6/fields.js'
 
 import LabelledTextInput from '@/components/common/LabelledTextInput.vue'
 
 interface Props {
-  field: TextNoteField
+  field: TextField
   note: Note
 }
 const props = defineProps<Props>()
@@ -15,7 +15,7 @@ const props = defineProps<Props>()
 //const _fieldContent = reactive<TextNoteFieldContent | undefined>(undefined)
 
 const fieldContent = computed({
-  get: () => props.field.getContent(props.note)?.content,
+  get: () => props.field.getContent(props.note)?.getContent(),
   // we can call setObject on the content here?
   set: (val: string) => {
     //_fieldContent.objectManager.setObject(_fieldContent)

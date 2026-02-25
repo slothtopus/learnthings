@@ -8,21 +8,23 @@ import { FilterMatchMode } from '@primevue/core/api'
 
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 import { useDeckDetails, useNoteTypeDetails } from '@/composables/useObjectDetails'
-import {
+/*import {
   type NoteFieldContent,
   TextNoteFieldContent,
   AttachmentNoteFieldContent,
-} from 'core/NoteField.js'
+} from 'core/fields/NoteField.js'*/
+ import { TextFieldContent, ImageAttachmentField} from 'core/fields/v6/fields.js'
+import type { AnyNoteFieldContent } from 'core/fields/v6/base.js'
 
 const { getDeck } = useRouteMetaObjects()
 const deck = getDeck()
 const { notes } = useDeckDetails(deck)
 
-const fieldToString = (field: NoteFieldContent<any, any>) => {
-  if (field instanceof TextNoteFieldContent) {
-    return field.content
-  } else if (field instanceof AttachmentNoteFieldContent) {
-    return field.attachment?.filename ?? 'unknown'
+const fieldToString = (field: AnyNoteFieldContent) => {
+  if (field instanceof TextFieldContent) {
+    return field.getContent()
+  } else if (field instanceof ImageAttachmentField) {
+    return 'image'
   }
 }
 

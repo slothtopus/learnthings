@@ -80,7 +80,7 @@ export const useWidgetSettingsMenu = () => {
             const result = await openDialog(
               formComponent,
               `${name} settings`,
-              widgetSettings.settings,
+              {formData: widgetSettings.settings},
             )
             if (!result.cancelled) {
               widgetSettings.updateSettings(result.data)

@@ -1,22 +1,22 @@
-import { PersistableObject, PersistedObject } from "./PersistableObject";
-import type { ObjectManager } from "./ObjectManager";
+import { PersistableObject, PersistedObject } from "./object_manager/PersistableObject";
+import type { ObjectManager } from "./object_manager/ObjectManager";
 import type { AttachmentData } from "./utils/attachments";
 
-export type SerialisedAttachmentData = {
+export type SerialisedAttachmentMetaData = {
   filename: string;
   mimetype: string;
   url?: string;
 };
 
 export type SerialisedAttachmentDocument = PersistedObject & {
-  attachment: SerialisedAttachmentData;
+  attachment: SerialisedAttachmentMetaData;
 };
 
 export class AttachmentDocument extends PersistableObject<SerialisedAttachmentDocument> {
   static doctype = "attachment";
   static subtype = "attachment";
 
-  attachment: SerialisedAttachmentData;
+  attachment: SerialisedAttachmentMetaData;
   _data?: Blob;
 
   constructor(

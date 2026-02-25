@@ -4,25 +4,24 @@ import { InputText, Button, Select } from 'primevue'
 
 import { useFormDialogData } from '@/composables/useFormDialog'
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
-import { TextNoteField } from 'core/NoteField.js'
+import { TextField } from 'core/fields/v6/fields.js'
 import { NoteType } from 'core/NoteType.js'
 
-import { VOICES, LANGUAGES } from 'core/generators/google_tts.js'
-import type { GeminiTtsOptions } from 'core/fields/GeneratedNoteField.js'
+import { VOICES, LANGUAGES } from 'core/generators/GoogleTextToSpeech.js'
+import type { TextToSpeechOptions } from 'core/fields/v6/generated.js'
 
 const { getDeck } = useRouteMetaObjects()
 const deck = getDeck()
 
-export type FormData = { name: string; sourceFieldId?: string; options: GeminiTtsOptions }
+export type FormData = { name: string; options: TextToSpeechOptions }
 const { formData, otherData, hasChanged } = useFormDialogData<FormData, { noteTypeId: string }>({
   name: '',
-  sourceFieldId: undefined,
   options: { voiceName: 'Achernar', languageCode: 'en-GB' },
 })
 const textFields = computed(() => {
   const noteType = deck.objectManager.getObjectById(otherData.value?.noteTypeId)
   if (noteType instanceof NoteType) {
-    return noteType.getAllFields().filter((f) => f instanceof TextNoteField)
+    return noteType.getAllFields().filter((f) => f instanceof TextField)
   } else {
     return []
   }
@@ -44,10 +43,10 @@ const sourceFieldOptions = computed(() => {
 
 const selectedSourceField = computed({
   get: () => {
-    return sourceFieldOptions.value.find((s) => s.id === formData.value.sourceFieldId)
+    return sourceFieldOptions.value.find((s) => s.id === formData.value.options.sourceFieldId)
   },
   set: (opt: SelectOption) => {
-    formData.value.sourceFieldId = opt.id
+    formData.value.options.sourceFieldId = opt.id
   },
 })
 
@@ -113,7 +112,7 @@ const selectedLanguageOption = computed({
     <div class="flex gap-4 justify-end">
       <Button
         label="Update"
-        :disabled="formData.name.length == 0 || formData.sourceFieldId === undefined || !hasChanged"
+        :disabled="formData.name.length == 0 || formData.options.sourceFieldId === undefined || !hasChanged"
         size="small"
         @click="$emit('update', formData)"
       />

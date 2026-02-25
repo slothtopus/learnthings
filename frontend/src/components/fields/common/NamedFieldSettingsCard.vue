@@ -6,9 +6,9 @@ import FieldContainer from '@/components/common/FieldContainer.vue'
 
 import { useDynamicFormDialog } from '@/composables/useFormDialog'
 import { useConfirmation } from '@/composables/useConfirmationDialog'
-import { usePersistDeck } from '@/composables/useDecks'
+import { useProgress } from '@/composables/useProgress'
 
-import { NoteField } from 'core/NoteField.js'
+import { NoteField } from 'core/fields/NoteField.js'
 import type { NoteType } from 'core/NoteType.js'
 
 interface Props {
@@ -32,14 +32,14 @@ const handleEdit = async () => {
   }
 }
 
-const { persistDeck } = usePersistDeck()
+const { progressMonitor } = useProgress("Updating")
 const { confirm } = useConfirmation()
 const handleDelete = async () => {
   const confirmedDelete = await confirm('Are you sure?', `Delete field "${props.field.name}?"`)
   console.log('confirmedDelete = ', confirmedDelete)
   if (confirmedDelete) {
     props.field.delete()
-    await persistDeck(props.field.deck)
+    await props.field.deck.persist(progressMonitor)
   }
 }
 </script>

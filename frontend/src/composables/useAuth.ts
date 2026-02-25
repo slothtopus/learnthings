@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { getPersistedLoginState, signInUser, signOutUser, registerUser } from '@/lib/auth'
+import { getPersistedLoginState, signInUser, signOutUser, registerUser, tokenGenerator } from '@/lib/auth'
 
 const user = ref<{ username: string; userId: string } | undefined>()
 const username = computed(() => user.value?.username)
@@ -39,5 +39,5 @@ const register = async (username: string, password: string) => {
 }
 
 export const useAuth = () => {
-  return { initialiseAuth, signIn, signOut, register, username, userId, signedIn }
+  return { initialiseAuth, signIn, signOut, register, username, userId, signedIn, tokenGenerator }
 }

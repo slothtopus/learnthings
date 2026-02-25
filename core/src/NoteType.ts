@@ -1,10 +1,12 @@
-import { cacheByVersion, ObjectManager } from "./ObjectManager";
-import { PersistableObject } from "./PersistableObject";
+import { ObjectManager } from "./object_manager/ObjectManager";
+import { cacheByVersion } from "./object_manager/utils";
+import { PersistableObject } from "./object_manager/PersistableObject";
 import type {
   PersistableObjectConstructor,
   PersistedObject,
-} from "./PersistableObject";
-import { NoteField } from "./NoteField";
+  CreatablePersistableObjectConstructor
+} from "./object_manager/PersistableObject";
+import { AnyNoteField } from "./fields/v6/base";
 import { Note } from "./Note";
 import { CardTemplate } from "./CardTemplate";
 
@@ -21,17 +23,14 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
   name: string;
 
   get relatedIds() {
-    return [this.objectManager.deckId];
+    return [this.deck.id];
   }
 
   get parentId() {
     return this.id;
   }
 
-  static createNew(
-    objectManager: ObjectManager,
-    { name }: { name: string }
-  ) {
+  static createNew(objectManager: ObjectManager, { name }: { name: string }) {
     return new NoteType({ ...PersistableObject.create(), name }, objectManager);
   }
 
@@ -52,11 +51,11 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
 
   createNewField<
     O extends { name: string; noteTypeId: string },
-    T extends PersistableObject<any>
+    T extends PersistableObject<any>,
   >(
     name: string,
-    fieldClass: PersistableObjectConstructor<T, any, O>,
-    options: Omit<O, "name" | "noteTypeId"> & { __brand?: never }
+    fieldClass: CreatablePersistableObjectConstructor<T, any>,
+    options: Omit<O, "name" | "noteTypeId"> & { __brand?: never },
   ) {
     const field = fieldClass.createNew(this.objectManager, {
       ...(options ?? {}),
@@ -65,18 +64,13 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
     } as O);
     this.objectManager.setObject(field);
     return field as T;
-    /*console.log(this.objectManager.getRegistryOrThrow({ doctype: 'notefield', subtype }));
-    return this.objectManager.createNew(
-      { doctype: 'notefield', subtype },
-      { name, noteTypeId: this.id }
-    ) as T;*/
   }
 
   @cacheByVersion(["notefield"])
   getAllFields() {
     return this.objectManager.query({
       include: { doctype: "notefield", noteTypeId: this.id },
-    }) as NoteField<any>[];
+    }) as AnyNoteField[];
   }
 
   @cacheByVersion(["note"])
@@ -99,7 +93,7 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
     });
     this.objectManager.setObject(note);
     this.getAllCardTemplates().forEach((c) =>
-      note.getOrCreateCardForTemplate(c.id)
+      note.getOrCreateCardForTemplate(c.id),
     );
     return note;
     //return this.objectManager.createNew({ doctype: 'note' }, { noteTypeId: this.id }) as Note;
@@ -112,7 +106,7 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
     });
     this.objectManager.setObject(template);
     this.getAllNotes().forEach((n) =>
-      n.getOrCreateCardForTemplate(template.id)
+      n.getOrCreateCardForTemplate(template.id),
     );
     return template;
   }

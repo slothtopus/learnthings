@@ -3,7 +3,7 @@ import PouchDBAdapterMemory from "pouchdb-adapter-memory";
 import { isNode } from "browser-or-node";
 
 import { isValidId } from "../utils/ids";
-import type { PersistedObject } from "../PersistableObject";
+import type { PersistedObject } from "../object_manager/PersistableObject";
 
 let _PouchDB: PouchDB.Static<{}> | undefined = undefined;
 export const getPouchDB = async () => {
@@ -18,7 +18,6 @@ export const getPouchDB = async () => {
 
 let _dbCache: Record<string, PouchDB.Database<any>> = {};
 export const getOrCreateDB = async (dbName: string, memoryOnly: boolean) => {
-  let isNew = false;
   if (!(dbName in _dbCache)) {
     console.log(`getOrCreateDB: creating db ${dbName}`);
     const PouchDB = await getPouchDB();
@@ -27,25 +26,27 @@ export const getOrCreateDB = async (dbName: string, memoryOnly: boolean) => {
       : new PouchDB<{ doctype: string }>(dbName);
     await db.createIndex({ index: { fields: ["doctype"] } });
     _dbCache[dbName] = db;
-    isNew = true;
   }
   return _dbCache[dbName];
 };
 
-export const clearDBCache = () => {
+export const clearAndCloseDBCache = async () => {
+  await Promise.all(Object.values(_dbCache).map((db) => db.close()));
   _dbCache = {};
 };
 
 export const getOrCreateLocalDeckDB = (
   userId: string,
   deckId: string,
-  memoryOnly: boolean
+  memoryOnly: boolean,
 ) => {
   return getOrCreateDB(buildDeckDBName(userId, deckId), memoryOnly);
 };
 
 export const buildDeckDBName = (userId: string, deckId: string) =>
   `${userId}\$ltdeck\$${deckId}`;
+
+export const buildMetaDBName = (userId: string) => `${userId}\$ltmeta`;
 
 export const parseDeckDBName = (dbName: string) => {
   const regex = /^(.+?)\$ltdeck\$(.+)$/;
@@ -61,7 +62,7 @@ export const parseDeckDBName = (dbName: string) => {
 };
 
 export const pouchSerialise = <S extends PersistedObject>(
-  obj: S
+  obj: S,
 ): PouchSerialised<S> => {
   const { _meta, ...rest } = obj;
   if (_meta === null) {
@@ -75,8 +76,8 @@ export const pouchSerialise = <S extends PersistedObject>(
   } else {
     throw new Error(
       `Object meta ${JSON.stringify(
-        obj._meta
-      )} not Pouch meta: ${JSON.stringify(obj, null, 2)}`
+        obj._meta,
+      )} not Pouch meta: ${JSON.stringify(obj, null, 2)}`,
     );
   }
 };
@@ -93,7 +94,7 @@ export type PouchSerialisedSaved<S extends PersistedObject> = Omit<
 };
 
 export const pouchDeserialise = <S extends PersistedObject>(
-  obj: PouchSerialisedSaved<S>
+  obj: PouchSerialisedSaved<S>,
 ): S => {
   const { _rev, ...rest } = obj;
   return { ...rest, _meta: { _rev } } as unknown as S;
