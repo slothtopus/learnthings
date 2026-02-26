@@ -13,7 +13,7 @@ import { FSRSScheduler } from 'core/schedulers/FSRSScheduler.js'
 import FSRSSequenceStartReview from '@/components/scheduler/FSRSSequenceStartReview.vue'
 import { FSRSSequence } from 'core/schedulers/FSRSSequence.js'
 
-import { PersistableObject } from 'core/PersistableObject.js'
+import { PersistableObject } from 'core/object_manager/PersistableObject.js'
 
 const { getDeck } = useRouteMetaObjects()
 const deck = getDeck()

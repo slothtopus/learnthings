@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { NoteType } from 'core/NoteType.js'
-import type { NoteField } from 'core/NoteField.js'
+import type { AnyNoteField } from 'core/fields/base.js'
 
 interface Props {
   noteType: NoteType
-  field: NoteField<any>
+  field: AnyNoteField
 }
 
 defineProps<Props>()

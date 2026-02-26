@@ -8,12 +8,12 @@ import { useDynamicFormDialog } from '@/composables/useFormDialog'
 import { useConfirmation } from '@/composables/useConfirmationDialog'
 import { useProgress } from '@/composables/useProgress'
 
-import { NoteField } from 'core/fields/NoteField.js'
+import type { AnyNoteField } from 'core/fields/base.js'
 import type { NoteType } from 'core/NoteType.js'
 
 interface Props {
   noteType: NoteType
-  field: NoteField<any>
+  field: AnyNoteField
   name: string;
 }
 const props = defineProps<Props>()

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
 import ProgressBar from 'primevue/progressbar'
-import type { ProgressMonitor } from 'core/ObjectManager.js'
+import type { ProgressMonitor } from 'core/object_manager/utils.js'
 
 const dialogRef = inject<{ value: { data: { progressMonitor: ProgressMonitor } } }>('dialogRef')
 

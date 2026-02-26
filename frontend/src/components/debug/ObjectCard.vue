@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Button } from 'primevue'
 
-import type { PersistableObject } from 'core/PersistableObject.js'
+import type { PersistableObject } from 'core/object_manager/PersistableObject.js'
 
 interface Props {
   obj: PersistableObject<any>
