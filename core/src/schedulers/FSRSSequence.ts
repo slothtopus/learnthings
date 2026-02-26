@@ -278,11 +278,9 @@ export class FSRSSequence extends Scheduler<SerialisedFSRSSequence> {
 
       // If no cards due, find the card with the earliest due date
       if (nextIndex == -1) {
-        const dueMillis = this.allCards.map((c) => c.due.toMillis());
-        const earliestDue = Math.min(...dueMillis);
-        nextIndex = dueMillis.findIndex((x) => x === earliestDue);
+        nextIndex = this.allCards.findIndex((c) => c.isNew())
         console.log(
-          `No cards due. Choosing card with earliest due date (due = ${this.allCards[nextIndex].due})`
+          `No cards due. Choosing earliest new card`
         );
       } else {
         console.log(
