@@ -1,0 +1,99 @@
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200") layer(vendor);
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* ── Font ─────────────────────────────────────────────── */
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* ── Surface hierarchy ────────────────────────────────── */
+  --color-surface:                   #121416;
+  --color-surface-container-lowest:  #0c0e10;
+  --color-surface-container-low:     #191b1d;
+  --color-surface-container:         #1e2022;
+  --color-surface-bright:            #38393c;
+  --color-surface-variant:           #333537;
+  --color-surface-container-high:    #282a2c;
+  --color-surface-container-highest: #333537;
+
+  /* ── Primary — Electric Sea ───────────────────────────── */
+  --color-primary:    #70d8c8;
+  --color-on-primary: #0c0e10;
+
+  /* ── Text ─────────────────────────────────────────────── */
+  --color-on-surface:         #e2e2e5;
+  --color-on-surface-variant: #bcc9c5;
+
+  /* ── Borders ──────────────────────────────────────────── */
+  --color-outline:         #879390;
+  --color-outline-variant: #3d4946;
+
+  /* ── Error ────────────────────────────────────────────── */
+  --color-error: #ffb4ab;
+
+  /* ── shadcn-vue semantic tokens ───────────────────────── */
+  --color-background:          #121416;
+  --color-foreground:          #e2e2e5;
+  --color-card:                #1e2022;
+  --color-card-foreground:     #e2e2e5;
+  --color-popover:             #1e2022;
+  --color-popover-foreground:  #e2e2e5;
+  --color-muted:               #1e2022;
+  --color-muted-foreground:    #9a9ca0;
+  --color-accent:              #70d8c8;
+  --color-accent-foreground:   #0c0e10;
+  --color-destructive:         oklch(0.577 0.245 27.325);
+  --color-border:              rgb(58 61 66 / 20%);
+  --color-input:               #0c0e10;
+  --color-ring:                #70d8c8;
+
+  /* ── Radius ───────────────────────────────────────────── */
+  --radius:    0.75rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  
+  html {
+    background: black;
+  }
+  
+  body {
+    @apply bg-surface text-on-surface;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: radial-gradient(circle at top left, #1c1f22 0%, #0c0e10 100%);
+    min-height: 100vh;
+  }
+  .material-symbols-outlined {
+    font-size: inherit;
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0;
+    vertical-align: middle;
+  }
+}
+
+@layer components {
+  .glass-card {
+    background: rgba(30, 32, 34, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .glass-card-folder {
+    background: rgba(45, 48, 50, 0.4);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .btn-glow {
+    box-shadow: 0 0 15px rgba(112, 216, 200, 0.15);
+  }
+  .btn-glow:hover {
+    box-shadow: 0 0 20px rgba(112, 216, 200, 0.25);
+  }
+}

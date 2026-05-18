@@ -2,9 +2,8 @@ import { ObjectManager } from "./object_manager/ObjectManager";
 import { cacheByVersion } from "./object_manager/utils";
 import { PersistableObject } from "./object_manager/PersistableObject";
 import type {
-  PersistableObjectConstructor,
   PersistedObject,
-  CreatablePersistableObjectConstructor
+  CreatablePersistableObjectConstructor,
 } from "./object_manager/PersistableObject";
 import { AnyNoteField } from "./fields/base";
 import { Note } from "./Note";
@@ -37,6 +36,13 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
   constructor(serialised: SerialisedNoteType, objectManager: ObjectManager) {
     super(serialised, objectManager);
     const { name } = serialised;
+    this.name = name;
+  }
+
+  setName(name: string) {
+    if (name !== this.name) {
+      this.markDirty();
+    }
     this.name = name;
   }
 
@@ -87,6 +93,11 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
     }) as CardTemplate[];
   }
 
+  @cacheByVersion(["card"])
+  getAllCards() {
+    return this.getAllCardTemplates().flatMap((c) => c.getAllCards());
+  }
+
   createNewNote() {
     const note = Note.createNew(this.objectManager, {
       noteTypeId: this.id,
@@ -95,8 +106,7 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
     this.getAllCardTemplates().forEach((c) =>
       note.getOrCreateCardForTemplate(c.id),
     );
-    return note;
-    //return this.objectManager.createNew({ doctype: 'note' }, { noteTypeId: this.id }) as Note;
+    return this.objectManager.setObject(note);;
   }
 
   createNewCardTemplate(name: string) {

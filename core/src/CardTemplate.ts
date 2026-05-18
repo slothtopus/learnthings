@@ -4,6 +4,7 @@ import { cacheByVersion } from "./object_manager/utils";
 import type { Note } from "./Note";
 import type { NoteFieldContent } from "./fields/base";
 import type { NoteType } from "./NoteType";
+import type { Card } from "./Card";
 import {
   TextFieldContent,
 } from "./fields/fields";
@@ -18,6 +19,7 @@ import { isEqual } from "lodash-es";
 import type { AttachmentData } from "./utils/attachments";
 import { AttachmentDocument } from "./Attachment";
 import type { SerialisedAttachmentDocument } from "./Attachment";
+
 
 //##########################################################################
 export type RenderedContent = Record<string, string>;
@@ -91,6 +93,13 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     this.name = name;
     this.noteTypeId = noteTypeId;
     this.defaultVariantId = defaultVariantId;
+  }
+
+  @cacheByVersion(["cardtemplateblock"])
+  getAllCards() {
+    return this.objectManager.query({
+      include: { doctype: "card", cardTemplateId: this.id },
+    }) as Card[];
   }
 
   @cacheByVersion(["cardtemplateblock"])
@@ -731,13 +740,17 @@ export class CardTemplateAttachment extends AttachmentDocument {
     };
   }
 
-  getTemplateTag() {
+  getContextTag() {
     return `attachment:${this.attachment.filename}`;
+  }
+
+  getTemplateTag() {
+    return `[attachment:${this.attachment.filename}]`;
   }
 
   async renderContext() {
     return {
-      [this.getTemplateTag()]: await this.getObjectURL(),
+      [this.getContextTag()]: await this.getObjectURL(),
     };
   }
 }
