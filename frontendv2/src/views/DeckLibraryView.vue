@@ -65,6 +65,7 @@ const handleDelete = async (deckId: string) => {
           :due="0"
           @delete="handleDelete(deck.id)"
           @manage="$router.push({name: 'deck-summary', params: {deckId: deck.id}})"
+          @review="$router.push({name: 'start-review', params: {deckId: deck.id}})"
         />
       </section>
     </div>

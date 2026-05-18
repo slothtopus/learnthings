@@ -14,7 +14,8 @@ interface Props {
   variant?: CardTemplateVariant
   side?: 'front' | 'back'
   note?: Note
-  widgetSettings?: Record<string, any>
+  widgetSettings?: Record<string, unknown>
+  additionalContext?: Record<string, unknown>
 }
 
 const props = withDefaults(defineProps<Props>(), { side: 'front' })
@@ -26,6 +27,7 @@ watchEffect(async () => {
   const variant = props.variant ?? props.cardTemplate.getDefaultVariant()
   const template = props.side === 'back' ? variant.back : variant.front
   const css = variant.css  // read before first await so watchEffect tracks it
+  const additionalContext = props.additionalContext  // same reason
 
   let context: Record<string, string> = {}
   if (props.note) {
@@ -35,6 +37,8 @@ watchEffect(async () => {
       context[field.name] = field.name
     }
   }
+
+  if (additionalContext) Object.assign(context, additionalContext)
 
   renderedCard.value = await props.cardTemplate.renderCard(template, css, context)
 })

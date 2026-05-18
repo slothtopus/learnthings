@@ -85,6 +85,13 @@ const handleDeleteNoteType = async (noteType: NoteType) => {
             params: { deckId: deck.id, noteTypeId: nt.id, noteId: 'new' },
           })
         "
+        @browse="
+          $router.push({
+            name: 'browse-notes',
+            params: { deckId: deck.id },
+            query: { noteType: nt.id },
+          })
+        "
       />
 
       <CreateButton label="New Note Type" size="lg" @click="handleCreateNewNoteType" />

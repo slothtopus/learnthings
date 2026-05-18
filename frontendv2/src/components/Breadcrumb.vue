@@ -7,11 +7,11 @@ defineProps<{
 <template>
   <nav class="flex items-center gap-2 text-xs font-medium text-on-surface-variant">
     <template v-for="(item, i) in items" :key="item.label">
-      <a
+      <RouterLink
         v-if="item.href"
-        :href="item.href"
+        :to="item.href"
         class="hover:text-primary transition-colors duration-200"
-      >{{ item.label }}</a>
+      >{{ item.label }}</RouterLink>
       <span v-else class="text-on-surface">{{ item.label }}</span>
       <span v-if="i < items.length - 1" class="material-symbols-outlined text-xs">chevron_right</span>
     </template>

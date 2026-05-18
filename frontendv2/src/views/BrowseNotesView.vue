@@ -32,7 +32,7 @@ const noteTypeOptions = computed(() => [
 ])
 
 const breadcrumbs = computed(() => [
-  { label: 'Library:', href: '/' },
+  { label: 'Library', href: '/' },
   { label: `Deck: ${deck.name}`, href: `/deck/${deck.id}` },
   { label: 'Browse Notes' },
 ])
@@ -114,7 +114,7 @@ watch([searchQuery, noteTypeFilter], ([q, noteType]) => {
 
       <!-- Results count -->
       <p class="text-[10px] font-light uppercase tracking-[0.3em] text-on-surface-variant mb-3">
-        {{ notes.length }} notes found
+        {{ fieldContentResults.length }} notes found
       </p>
 
       <div class="space-y-3">

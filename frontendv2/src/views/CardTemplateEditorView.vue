@@ -5,7 +5,6 @@ import AppButton from '@/components/used/AppButton.vue'
 import AppIconButton from '@/components/used/AppIconButton.vue'
 import CodeEditor from '@/components/template-editor/CodeEditor.vue'
 import ViewToggle from '@/components/used/ViewToggle.vue'
-// import SidebarCollapsibleItem from '@/components/template-editor/SidebarCollapsibleSection.vue'
 
 import VariantsMenu from '@/components/template-editor/VariantsMenu.vue'
 import BlocksMenu from '@/components/template-editor/BlocksMenu.vue'
@@ -13,7 +12,10 @@ import AttachmentsMenu from '@/components/template-editor/AttachmentsMenu.vue'
 import PreviewPanel from '@/components/template-editor/PreviewPanel.vue'
 
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
+import { useConfirmation } from '@/composables/useConfirmationDialog'
 import type { CardTemplateVariant, CardTemplateBlock } from 'core/CardTemplate.js'
+
+import { onBeforeRouteLeave } from 'vue-router'
 
 const sidebarOpen = ref(true)
 const layoutMode = ref<'editor' | 'split' | 'preview'>('split')
@@ -24,14 +26,6 @@ const layoutOptions = [
   { value: 'preview', icon: 'visibility', label: 'Preview' },
 ] as const
 const previewSide = ref<'front' | 'back'>('front')
-//const activeTemplate = ref<'front' | 'back' | 'css'>('front')
-
-// ViewToggle model — switches between css template and the last html template
-
-// const blocks = ['Card template scoped', 'Note type scoped', 'Deck scoped']
-
-//const variantMenuItems = ['Rename', 'Duplicate', 'Delete']
-//const variantMenuOpen = ref(false)
 
 // Panel sizing
 const sidebarWidth = ref(224)
@@ -160,16 +154,34 @@ watch(
 const codeEditorRef = ref<InstanceType<typeof CodeEditor> | null>(null)
 const handleInsert = (text: string) => codeEditorRef.value?.insert(text)
 
-const isDirty = computed(
-  () =>
-    cardTemplate.getAllVariants().some((v) => v.shouldPersist()) ||
-    cardTemplate.getCardTemplateScopedBlocks().some((b) => b.shouldPersist()) ||
-    cardTemplate.getNoteTypeScopedBlocks().some((b) => b.shouldPersist()) ||
-    cardTemplate.getDeckScopedBlocks().some((b) => b.shouldPersist()),
-)
+const editableItems = computed(() => [
+  ...cardTemplate.getAllVariants(),
+  ...cardTemplate.getCardTemplateScopedBlocks(),
+  ...cardTemplate.getNoteTypeScopedBlocks(),
+  ...cardTemplate.getDeckScopedBlocks(),
+])
+const isDirty = computed(() => editableItems.value.some((o) => o.shouldPersist()))
 const handleSaveAll = async () => {
   await deck.persist()
 }
+
+const { showConfirmation } = useConfirmation()
+onBeforeRouteLeave(async () => {
+  if (isDirty.value) {
+    if (
+      await showConfirmation(
+        'Unsaved Changes',
+        'Leaving this page will lose all unsaved changes. Are you sure?',
+      )
+    ) {
+      editableItems.value.forEach((o) => o.revertToLastPersisted())
+      return true
+    } else {
+      return false
+    }
+  }
+  return true
+})
 </script>
 
 <template>

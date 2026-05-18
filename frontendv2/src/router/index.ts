@@ -32,6 +32,16 @@ const router = createRouter({
       component: () => import('@/views/CardTemplateEditorView.vue'),
     },
     {
+      path: '/deck/:deckId/review',
+      name: 'start-review',
+      component: () => import('@/views/StartReviewView.vue'),
+    },
+    {
+      path: '/deck/:deckId/review/session',
+      name: 'review-next',
+      component: () => import('@/views/ReviewView.vue'),
+    },
+    {
       path: '/loading',
       name: 'loading',
       component: () => import('@/views/LoadingScreen.vue'),

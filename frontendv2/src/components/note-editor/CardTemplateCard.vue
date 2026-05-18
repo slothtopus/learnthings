@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import AppIconButton from '@/components/used/AppIconButton.vue'
+import CardRenderer from '@/components/renderer/CardRenderer.vue'
+import CardPreview from '@/components/renderer/CardPreview.vue'
 import type { CardTemplate } from 'core/CardTemplate.js';
+import type { Note } from 'core/Note.js';
 
 defineProps<{
   cardTemplate: CardTemplate
+  note: Note
 }>()
 
 const emit = defineEmits<{
-  'update:visible': [value: boolean]
-  'update:selectedVariant': [value: string]
   edit: []
   settings: []
   delete: []
@@ -37,27 +39,12 @@ const emit = defineEmits<{
 
       <!-- Card previews -->
       <div class="grid grid-cols-2 gap-3">
-        <div class="flex flex-col gap-1.5">
-          <span class="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant/50">Front</span>
-          <div
-            class="aspect-[3/2] rounded-sm border border-outline-variant/10 flex items-center justify-center overflow-hidden"
-            style="background: linear-gradient(135deg, #1e2022 0%, #0c0e10 100%)"
-          >
-            <slot name="front">
-              <span class="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant/20">Front</span>
-            </slot>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-1.5">
-          <span class="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant/50">Back</span>
-          <div
-            class="aspect-[3/2] rounded-sm border border-outline-variant/10 flex items-center justify-center overflow-hidden"
-            style="background: linear-gradient(135deg, #1e2022 0%, #0c0e10 100%)"
-          >
-            <slot name="back">
-              <span class="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant/20">Back</span>
-            </slot>
+        <div v-for="side in ['front', 'back'] as const" :key="side" class="flex flex-col gap-1.5">
+          <span class="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant/50">{{ side }}</span>
+          <div class="aspect-[1280/720]">
+            <CardPreview :width="1280" :height="720">
+              <CardRenderer :card-template="cardTemplate" :note="note" :side="side" />
+            </CardPreview>
           </div>
         </div>
       </div>

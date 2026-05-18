@@ -183,6 +183,7 @@ const tagOptions = [
             v-for="card in cards"
             :key="card.id"
             :card-template="card.getCardTemplate()"
+            :note="noteWrapper.note"
             @edit="
               $router.push({
                 name: 'template-editor',
