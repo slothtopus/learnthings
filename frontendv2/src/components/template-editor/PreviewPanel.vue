@@ -102,6 +102,7 @@ const cardHeight = computed(() => Number(selectedResolution.value.split('x')[1])
           :variant="selectedVariant"
           :side="previewSide"
           :note="noteType.getAllNotes()[0]"
+          :widget-settings="selectedVariant?.getWidgetSettingsContext()"
           @card:reveal="previewSide = 'back'"
           @card:next="previewSide = 'front'"
         />

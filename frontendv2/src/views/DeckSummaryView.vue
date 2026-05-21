@@ -46,7 +46,10 @@ const scheduler = {
           <h2 class="text-[10px] font-bold uppercase tracking-[0.3em] text-on-surface/40 px-1">
             Scheduler
           </h2>
-          <SchedulerPanel v-bind="scheduler" @review-now="$router.push({name: 'start-review', params: {deckId: deck.id}})"/>
+          <SchedulerPanel
+            v-bind="scheduler"
+            @review-now="$router.push({ name: 'start-review', params: { deckId: deck.id } })"
+          />
         </section>
         <NoteTypeSection />
       </div>

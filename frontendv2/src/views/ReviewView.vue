@@ -9,9 +9,17 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
+import { useFormDialog } from '@/composables/useFormDialog'
+import { useWidgetSettingsMenu } from '@/components/renderer/widgets/useWidgets'
+import ChangeCardVariantForm from '@/components/review/ChangeCardVariantForm.vue'
+import type { ChangeCardVariantFormData } from '@/components/review/ChangeCardVariantForm.vue'
 import type { Card } from 'core/Card.js'
 
 const router = useRouter()
@@ -63,17 +71,31 @@ const cardTemplate = computed(() => card.value?.getCardTemplate())
 const note = computed(() => card.value?.getNote())
 const variant = computed(() => card.value?.getCardTemplateVariant())
 
+type VariantContext = { variants: { id: string; name: string }[] }
+const variantDialog = useFormDialog<ChangeCardVariantFormData, VariantContext>(
+  ChangeCardVariantForm,
+)
+
 const handleChangeVariant = async () => {
   if (!card.value) return
   const template = card.value.getCardTemplate()
-  const variants = template.getAllVariants()
-  // Cycle through variants as a simple implementation until a proper dialog is added
-  const currentId = card.value.cardTemplateVariantId ?? template.getDefaultVariant().id
-  const idx = variants.findIndex((v) => v.id === currentId)
-  const next = variants[(idx + 1) % variants.length]
-  card.value.setCardTemplateVariantId(next.id === template.getDefaultVariant().id ? undefined : next.id)
+  const result = await variantDialog.open(
+    {
+      defaultVariantId: template.getDefaultVariant().id,
+      cardVariantOverrideId: card.value.cardTemplateVariantId ?? null,
+    },
+    { variants: template.getAllVariants().map((v) => ({ id: v.id, name: v.name })) },
+  )
+  if (result.cancelled) return
+  card.value.setCardTemplateVariantId(result.data.cardVariantOverrideId ?? undefined)
+  template.setDefaultVariantId(result.data.defaultVariantId)
   await template.deck.persist()
 }
+
+const { generateWidgetSettingsMenu } = useWidgetSettingsMenu()
+const widgetSettingsMenu = computed(() =>
+  variant.value ? generateWidgetSettingsMenu(variant.value) : [],
+)
 
 onMounted(() => handleNextCard())
 </script>
@@ -103,7 +125,23 @@ onMounted(() => handleNextCard())
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem @click="handleChangeVariant">Change variant</DropdownMenuItem>
-          <DropdownMenuItem class="text-error" @click="router.push({ name: 'deck-summary', params: { deckId: deck.id } })">
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Widget settings</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem
+                v-for="item in widgetSettingsMenu"
+                :key="item.name"
+                @click="item.open()"
+              >
+                {{ item.name }}
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            class="text-error"
+            @click="router.push({ name: 'deck-summary', params: { deckId: deck.id } })"
+          >
             End review
           </DropdownMenuItem>
         </DropdownMenuContent>

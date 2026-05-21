@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 import SidebarCollapsibleSection from '@/components/template-editor/SidebarCollapsibleSection.vue'
 import SidebarCollapsibleMenuItem from './SidebarCollapsibleMenuItem.vue'
@@ -9,11 +9,16 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 
 import type { ActiveObject } from '@/views/CardTemplateEditorView.vue'
 import type { CardTemplateVariant } from 'core/CardTemplate.js'
 import { useConfirmation } from '@/composables/useConfirmationDialog'
+import { useWidgetSettingsMenu } from '@/components/renderer/widgets/useWidgets'
 
 interface Props {
   variant: CardTemplateVariant
@@ -24,6 +29,8 @@ const variantMenuOpen = ref(false)
 const activeObject = defineModel<ActiveObject>('activeObject', { required: true })
 
 const { showConfirmation } = useConfirmation()
+const { generateWidgetSettingsMenu } = useWidgetSettingsMenu()
+const widgetSettingsMenu = computed(() => generateWidgetSettingsMenu(props.variant))
 
 const handleSetDefault = async () => {
   props.variant.cardTemplate.setDefaultVariantId(props.variant.id)
@@ -56,6 +63,19 @@ const handleDelete = async () => {
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Widget settings</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem
+                v-for="item in widgetSettingsMenu"
+                :key="item.name"
+                @click="item.open()"
+              >
+                {{ item.name }}
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuSeparator />
           <DropdownMenuItem v-if="!variant.isDefault()" @click="handleSetDefault">
             Set as default
           </DropdownMenuItem>

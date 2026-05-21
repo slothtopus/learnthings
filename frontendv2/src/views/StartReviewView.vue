@@ -7,10 +7,13 @@ import PageLayout from '@/components/used/PageLayout.vue'
 import AppButton from '@/components/used/AppButton.vue'
 import AppIconButton from '@/components/used/AppIconButton.vue'
 import LinkButton from '@/components/used/LinkButton.vue'
+import FSRSSettingsForm from '@/components/FSRSSettingsForm.vue'
 
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
+import { useFormDialog } from '@/composables/useFormDialog'
 import { FSRSScheduler } from 'core/schedulers/FSRSScheduler.js'
 import { FSRSSequence } from 'core/schedulers/FSRSSequence.js'
+import type { FRSROptions } from 'core/schedulers/FSRSScheduler.js'
 
 const { getDeck } = useRouteMetaObjects()
 const deck = getDeck()
@@ -41,6 +44,16 @@ function decrementBoost() {
 }
 function resetBoost() {
   additionalNewCards.value = 0
+}
+
+const fsrsSettingsDialog = useFormDialog<FRSROptions>(FSRSSettingsForm)
+
+const handleOpenSchedulerSettings = async () => {
+  if (!isFSRS(scheduler)) return
+  const result = await fsrsSettingsDialog.open({ ...scheduler.options })
+  if (result.cancelled) return
+  scheduler.updateOptions(result.data)
+  await deck.persist()
 }
 
 const router = useRouter()
@@ -83,7 +96,7 @@ function handleStart() {
               >
               <span class="text-base font-light text-on-surface">{{ scheduler.label }}</span>
             </div>
-            <AppIconButton icon="settings" size="sm" />
+            <AppIconButton icon="settings" size="sm" @click="handleOpenSchedulerSettings" />
           </div>
           <!-- FSRS stats grid -->
           <template v-if="isFSRS(scheduler)">

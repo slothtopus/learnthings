@@ -20,6 +20,7 @@ import { useConfirmation } from '@/composables/useConfirmationDialog'
 
 import { TextField } from 'core/fields/fields.js'
 import type { AnyNoteField } from 'core/fields/base.js'
+import type { CardTemplate } from 'core/CardTemplate.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -103,6 +104,16 @@ const handleNewNote = async () => {
 const handleDeleteNote = async () => {
   noteWrapper.note.delete()
   router.push({ name: 'deck-summary', params: { deckId: deck.id } })
+}
+
+const handleDeleteCardTemplate = async (cardTemplate: CardTemplate) => {
+  const confirmed = await showConfirmation(
+    `Delete "${cardTemplate.name}"?`,
+    'This will permanently delete this card template and all cards it has generated across all notes.',
+  )
+  if (!confirmed) return
+  cardTemplate.flagShouldDelete(true)
+  await deck.persist()
 }
 
 const createCardDialog = useFormDialog<CreateCardTemplateFormData>(CreateCardDialog)
@@ -194,6 +205,7 @@ const tagOptions = [
                 },
               })
             "
+            @delete="handleDeleteCardTemplate(card.getCardTemplate())"
           />
           <div class="mt-6">
             <CreateButton label="Create New Card" @click="handleCreateCard" />

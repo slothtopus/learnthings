@@ -1,22 +1,33 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useCardController } from '../useCardController'
+import { useWidgetSettings } from './useWidgets'
 
 interface Props {
   answer: string
 }
 const props = defineProps<Props>()
 const { controller } = useCardController()
+const { settings } = useWidgetSettings('text-input')
 
 const inputText = ref('')
 const isAnswered = ref(false)
 
+const prepareText = (text: string): string => {
+  let result = text.toLowerCase().trim()
+  if (settings.value.ignorePunctuation) {
+    result = result.replace(/[^\p{L}\p{N}\s]/gu, '')
+  }
+  if (settings.value.ignoreDiacritics) {
+    result = result.normalize('NFD').replace(/\p{M}/gu, '')
+  }
+  return result
+}
+
 const handleCheck = async () => {
   isAnswered.value = true
   await new Promise((r) => setTimeout(r, 200))
-  const a = inputText.value.toLowerCase().trim()
-  const b = props.answer.toLowerCase().trim()
-  const isCorrect = a === b
+  const isCorrect = prepareText(inputText.value) === prepareText(props.answer)
   controller.rate(isCorrect ? 0.75 : 0)
   controller.addContext({ 'textinput:answer': inputText.value, 'textinput:correct': isCorrect })
   controller.reveal()

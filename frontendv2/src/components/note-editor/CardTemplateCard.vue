@@ -43,7 +43,12 @@ const emit = defineEmits<{
           <span class="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant/50">{{ side }}</span>
           <div class="aspect-[1280/720]">
             <CardPreview :width="1280" :height="720">
-              <CardRenderer :card-template="cardTemplate" :note="note" :side="side" />
+              <CardRenderer
+              :card-template="cardTemplate"
+              :note="note"
+              :side="side"
+              :widget-settings="cardTemplate.getDefaultVariant().getWidgetSettingsContext()"
+            />
             </CardPreview>
           </div>
         </div>
