@@ -16,7 +16,7 @@ defineEmits<{
 
 <template>
   <section class="flex flex-col md:flex-row md:items-end justify-between gap-8">
-    <div class="space-y-4">
+    <!--<div class="space-y-4">-->
       <h1 class="text-6xl font-thin tracking-tighter text-on-surface">
         <span
           class="material-symbols-outlined text-7xl mr-4 align-bottom"
@@ -38,10 +38,10 @@ defineEmits<{
           <span class="text-3xl font-extralight text-error">{{ dueToday }}</span>
         </div>
       </div>
-    </div>
+    <!--</div>-->
 
-    <div class="flex items-center gap-3">
+    <!--<div class="flex items-center gap-3">
       <AppButton size="lg" icon="play_arrow" icon-filled @click="$emit('reviewAll')">Review All</AppButton>
-    </div>
+    </div>-->
   </section>
 </template>

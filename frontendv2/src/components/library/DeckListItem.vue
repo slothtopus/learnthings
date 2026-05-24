@@ -18,7 +18,8 @@ defineEmits<{
 </script>
 
 <template>
-  <div class="bg-surface-container-high p-6 flex flex-col lg:grid lg:grid-cols-[1fr_240px_240px] items-center gap-8 transition-all duration-300 rounded-md border border-outline-variant/10 hover:border-primary/20 hover:bg-surface-container-highest group">
+  <div class="bg-surface-container-high p-6 flex flex-col lg:grid lg:grid-cols-[1fr_240px_auto] items-center gap-8 transition-all duration-300 rounded-md border border-outline-variant/10 hover:border-primary/20 hover:bg-surface-container-highest group cursor-pointer"
+  @click="$emit('manage')">
     <!-- Title & description -->
     <div class="w-full">
       <div class="flex items-center gap-3 mb-1">
@@ -45,9 +46,9 @@ defineEmits<{
     </div>
 
     <!-- Actions -->
-    <div class="flex items-center gap-2 shrink-0 justify-end w-full">
+    <div class="flex items-center gap-2 shrink-0 justify-end">
       <AppButton size="sm" @click="$emit('review')">Review</AppButton>
-      <AppButton size="sm" variant="secondary" @click="$emit('manage')">Manage</AppButton>
+      <!--<AppButton size="sm" variant="secondary" @click="$emit('manage')">Manage</AppButton>-->
       <div class="w-px h-6 bg-white/10 mx-1" />
       <AppIconButton icon="delete" variant="destructive" @click.stop="$emit('delete')" />
     </div>

@@ -10,7 +10,7 @@ withDefaults(defineProps<{
 <template>
   <button
     :class="[
-      'flex-1 w-full flex items-center justify-center transition-colors text-on-surface/40',
+      'flex-1 w-full flex items-center justify-center transition-colors text-on-surface/40 cursor-pointer',
       variant === 'default' && 'hover:bg-primary/10 hover:text-primary',
       variant === 'destructive' && 'hover:bg-error/10 hover:text-error',
     ]"

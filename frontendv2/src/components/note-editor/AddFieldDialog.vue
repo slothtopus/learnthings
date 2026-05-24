@@ -3,7 +3,7 @@ import { ref, watch } from 'vue'
 import FormDialog from '@/components/FormDialog.vue'
 import AppInput from '@/components/AppInput.vue'
 import AppIconButton from '@/components/AppIconButton.vue'
-import FieldTypeOption from '@/components/note-editor/FieldTypeOption.vue'
+import OptionListItem from '@/components/OptionListItem.vue'
 import { useDialogForm } from '@/composables/useFormDialog'
 
 export type AddFieldFormData = {
@@ -91,7 +91,7 @@ const fieldTypes: {
 
       <!-- Field type selector -->
       <div class="space-y-2">
-        <FieldTypeOption
+        <OptionListItem
           v-for="type in fieldTypes"
           :key="type.key"
           :icon="type.icon"

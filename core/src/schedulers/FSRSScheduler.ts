@@ -10,7 +10,7 @@ import type { Card } from "../Card";
 import { floorDateTime } from "../utils/time";
 
 import { DateTime } from "luxon";
-import { sample, shuffle } from "lodash-es";
+import { isEqual, sample, shuffle } from "lodash-es";
 import {
   createEmptyCard,
   fsrs,
@@ -365,6 +365,9 @@ export class FSRSScheduler extends Scheduler<SerialisedFSRSScheduler> {
   }
 
   updateOptions(options: Partial<FRSROptions>) {
+    if(!isEqual(this.options, options)) {
+      this.markDirty()
+    }
     this.options = Object.assign(this.options, options);
   }
 

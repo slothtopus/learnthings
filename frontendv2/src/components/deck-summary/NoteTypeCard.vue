@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppButton from '@/components/used/AppButton.vue'
-import LinkButton from '@/components/used/LinkButton.vue'
+//import LinkButton from '@/components/used/LinkButton.vue'
 import StripIconButton from '@/components/StripIconButton.vue'
 
 import { useNoteTypeDetails } from '@/composables/useObjectDetails'
@@ -23,7 +23,7 @@ defineEmits<{
 
 <template>
   <div
-    class="bg-surface-container-high rounded-md p-6 pr-16 transition-all duration-300 hover:bg-surface-container-highest group border border-outline-variant/10 hover:border-primary/20 relative overflow-hidden"
+    class="bg-surface-container-high rounded-md p-6 pr-16 transition-all duration-300 hover:bg-surface-container-highest group border border-outline-variant/10 hover:border-primary/20 relative overflow-hidden cursor-pointer"
   >
     <!-- Right-side stacked icon actions -->
     <div
@@ -37,7 +37,7 @@ defineEmits<{
       <StripIconButton icon="delete" variant="destructive" @click="$emit('delete')" />
     </div>
 
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6" @click="$emit('browse')">
       <div class="flex-1">
         <h3
           class="text-xl font-extralight text-on-surface group-hover:text-primary transition-colors mb-2"
@@ -47,13 +47,13 @@ defineEmits<{
         <p class="text-[11px] font-medium text-on-surface/40 uppercase tracking-widest">
           {{ noteCount }} Notes • {{ cardCount }} Cards
         </p>
-        <LinkButton
+        <!--<LinkButton
           :label="`Browse All ${noteType.name} Notes`"
           class="mt-2"
           @click="$emit('browse')"
-        />
+        />-->
       </div>
-      <AppButton size="sm" @click="$emit('new')">New</AppButton>
+      <AppButton size="sm" @click="$emit('new')">New Note</AppButton>
     </div>
   </div>
 </template>

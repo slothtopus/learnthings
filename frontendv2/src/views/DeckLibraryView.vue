@@ -4,8 +4,8 @@ import { useFormDialog } from '@/composables/useFormDialog'
 import { useConfirmation } from '@/composables/useConfirmationDialog'
 
 import PageLayout from '@/components/used/PageLayout.vue'
-import FolderHeader from '@/components/used/FolderHeader.vue'
-import DeckListItem from '@/components/used/DeckListItem.vue'
+import FolderHeader from '@/components/library/FolderHeader.vue'
+import DeckListItem from '@/components/library/DeckListItem.vue'
 import CreateButton from '@/components/used/CreateButton.vue'
 import AppInput from '@/components/used/AppInput.vue'
 
@@ -14,7 +14,6 @@ import type { CreateNewDeckDetails } from '@/components/library/CreateNewDeckDia
 
 const breadcrumbs = [
   { label: 'Library', href: '/' },
-  { label: 'All Decks', href: '/' },
 ]
 
 const { decks, newDeck, deleteDeck } = useDecks()

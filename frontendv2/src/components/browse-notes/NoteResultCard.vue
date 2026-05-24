@@ -42,7 +42,7 @@ const cardCount = computed(
         <div
           class="flex items-center shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
         >
-          <AppIconButton icon="delete" size="sm" @click="$emit('delete')"/>
+          <AppIconButton icon="delete" size="sm" variant="destructive" @click="$emit('delete')"/>
         </div>
       </div>
       <!-- Footer strip -->
