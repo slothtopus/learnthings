@@ -26,3 +26,15 @@ export class ImageAttachmentField extends AttachmentField<ImageAttachmentContent
 export class ImageAttachmentContent extends AttachmentFieldContent {
   static subtype = "image";
 }
+
+export class AudioAttachmentField extends AttachmentField<AudioAttachmentContent> {
+  static defaultOptions = { mimetype: "audio/*" };
+  static subtype = "audio";
+
+  protected get contentCtor() {
+    return AudioAttachmentContent;
+  }
+}
+export class AudioAttachmentContent extends AttachmentFieldContent {
+  static subtype = "audio";
+}

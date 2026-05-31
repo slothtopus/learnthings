@@ -8,6 +8,9 @@ import CreateButton from '@/components/used/CreateButton.vue'
 import ViewToggle from '@/components/used/ViewToggle.vue'
 import TagInput from '@/components/note-editor/TagInput.vue'
 import TextFieldComponent from '@/components/note-editor/TextField.vue'
+import ImageFieldComponent from '@/components/note-editor/ImageField.vue'
+import AudioFieldComponent from '@/components/note-editor/AudioField.vue'
+import TextToSpeechFieldComponent from '@/components/note-editor/TextToSpeechField.vue'
 import AddFieldDialog from '@/components/note-editor/AddFieldDialog.vue'
 import type { AddFieldFormData } from '@/components/note-editor/AddFieldDialog.vue'
 import CreateCardDialog from '@/components/note-editor/CreateCardDialog.vue'
@@ -18,7 +21,8 @@ import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 import { useFormDialog } from '@/composables/useFormDialog'
 import { useConfirmation } from '@/composables/useConfirmationDialog'
 
-import { TextField } from 'core/fields/fields.js'
+import { TextField, ImageAttachmentField, AudioAttachmentField } from 'core/fields/fields.js'
+import { TextToSpeechField } from 'core/fields/generated.js'
 import type { AnyNoteField } from 'core/fields/base.js'
 import type { CardTemplate } from 'core/CardTemplate.js'
 
@@ -39,7 +43,7 @@ const cards = computed(() => noteWrapper.note.getAllCards())
 const canSave = computed(
   () =>
     noteWrapper.note.shouldPersist() ||
-    noteWrapper.note.getAllFieldContent().some((f) => f.shouldPersist()),
+    noteWrapper.note.getAllFieldContent(true).some((f) => f.shouldPersist() || f.shouldDelete()),
 )
 
 const isNewNote = computed(() => noteWrapper.note.isUnsaved())
@@ -52,6 +56,9 @@ const breadcrumbs = computed(() => [
 ])
 
 const isTextField = (field: AnyNoteField): field is TextField => field instanceof TextField
+const isImageField = (field: AnyNoteField): field is ImageAttachmentField => field instanceof ImageAttachmentField
+const isAudioField = (field: AnyNoteField): field is AudioAttachmentField => field instanceof AudioAttachmentField
+const isTtsField = (field: AnyNoteField): field is TextToSpeechField => field instanceof TextToSpeechField
 
 const addFieldDialog = useFormDialog<AddFieldFormData>(AddFieldDialog)
 const handleAddField = async () => {
@@ -59,17 +66,17 @@ const handleAddField = async () => {
   if (!result.cancelled) {
     const { name } = result.data
     switch (result.data.fieldType) {
-      case 'text':
-        noteType.createNewField(name, TextField, {})
-        break
-      default:
-        throw new Error(`Field type ${result.data.fieldType} not implemented`)
+      case 'text':          noteType.createNewField(name, TextField, {}); break
+      case 'image':         noteType.createNewField(name, ImageAttachmentField, {}); break
+      case 'audio':         noteType.createNewField(name, AudioAttachmentField, {}); break
+      case 'text-to-audio': noteType.createNewField(name, TextToSpeechField, TextToSpeechField.defaultOptions); break
     }
     await deck.persist()
   }
 }
 
 const handleSaveNote = async () => {
+  noteWrapper.note.flagShouldPersist(true)
   await noteWrapper.note.generateAll()
   await deck.persist()
   await router.replace({ params: { noteId: noteWrapper.note.id } })
@@ -183,6 +190,14 @@ const tagOptions = [
         <template v-if="viewMode === 'field'">
           <template v-for="field in noteType.getAllFields()" :key="field.id">
             <TextFieldComponent v-if="isTextField(field)" :field="field" :note="noteWrapper.note" />
+            <ImageFieldComponent v-else-if="isImageField(field)" :field="field" :note="noteWrapper.note" />
+            <AudioFieldComponent v-else-if="isAudioField(field)" :field="field" :note="noteWrapper.note" />
+            <TextToSpeechFieldComponent
+              v-else-if="isTtsField(field)"
+              :field="field"
+              :note="noteWrapper.note"
+              :note-type="noteType"
+            />
           </template>
           <!-- Add new field -->
           <div class="mt-6">

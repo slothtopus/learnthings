@@ -30,8 +30,8 @@ const emit = defineEmits<{
         </div>
 
         <div class="flex items-center gap-1">
-          <AppIconButton icon="edit" size="sm" class="hover:bg-primary/10" @click="emit('edit')" />
-          <AppIconButton icon="settings" size="sm" class="hover:bg-primary/10" @click="emit('settings')" />
+          <AppIconButton icon="edit" size="sm" @click="emit('edit')" />
+          <AppIconButton icon="settings" size="sm" @click="emit('settings')" />
           <div class="w-px h-4 bg-white/10 mx-1" />
           <AppIconButton icon="delete" size="sm" variant="destructive" @click="emit('delete')" />
         </div>

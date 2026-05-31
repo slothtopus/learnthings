@@ -5,6 +5,8 @@ import {
   signOutUser,
   registerUser,
   tokenGenerator,
+  provisionUser,
+  signInWithGoogle as _signInWithGoogle,
 } from '@/lib/auth'
 
 const user = ref<{ username: string; userId: string } | undefined>()
@@ -30,7 +32,8 @@ const initialiseAuth = async () => {
 }
 
 const signIn = async (_username: string, password: string) => {
-  const { username, userId } = await signInUser(_username, password)
+  const { username } = await signInUser(_username, password)
+  const userId = await provisionUser()
   user.value = { username, userId }
 }
 
@@ -39,11 +42,17 @@ const signOut = async () => {
   user.value = { username: 'Guest', userId: 'guest' }
 }
 
+const signInWithGoogle = async () => {
+  const { username } = await _signInWithGoogle()
+  const userId = await provisionUser()
+  user.value = { username, userId }
+}
+
 const register = async (username: string, password: string) => {
   await registerUser(username, password)
   await signIn(username, password)
 }
 
 export const useAuth = () => {
-  return { initialiseAuth, signIn, signOut, register, username, userId, signedIn, tokenGenerator }
+  return { initialiseAuth, signIn, signOut, signInWithGoogle, register, username, userId, signedIn, tokenGenerator }
 }

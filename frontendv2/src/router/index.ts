@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteLocationNormalizedGeneric } from 'vue-router'
 import { addObjectsToRouteMeta } from '@/composables/useRouteObjects'
 import { usePouchRegistry } from '@/composables/usePouchRegistry'
+import { useAuth } from '@/composables/useAuth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,6 +48,11 @@ const router = createRouter({
       component: () => import('@/views/LoadingScreen.vue'),
     },
     {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/views/LoginView.vue'),
+    },
+    {
       path: '/mockups',
       children: [
         {
@@ -89,9 +95,20 @@ const router = createRouter({
   ],
 })
 
+const PUBLIC_ROUTES = new Set(['login', 'loading'])
+
 router.beforeEach(async (to: RouteLocationNormalizedGeneric) => {
+  if (PUBLIC_ROUTES.has(to.name as string)) return
+
+  const { initialiseAuth, signedIn } = useAuth()
+  await initialiseAuth()
+
+  if (!signedIn.value) {
+    return { name: 'login', query: { next: to.fullPath } }
+  }
+
   const { isLoading } = usePouchRegistry()
-  if (isLoading.value && to.name !== 'loading') {
+  if (isLoading.value) {
     return { name: 'loading', query: { next: to.fullPath } }
   }
 })

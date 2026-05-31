@@ -6,7 +6,7 @@ import cors from "cors";
 import type { Request, Response, NextFunction, RequestHandler } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import fetch from "node-fetch";
-import { createUser, verifyIdToken } from "./firebase";
+import { createUser, verifyIdToken, provisionUser } from "./firebase";
 import { FirebaseAuthError } from "firebase-admin/auth";
 
 const COUCHDB_URL = process.env.COUCHDB_URL;
@@ -20,6 +20,7 @@ const app = express();
 app.use(cors());
 app.disable("x-powered-by");
 
+/*
 const fakeAuthMiddleware: RequestHandler = (
   req: Request,
   res: Response,
@@ -39,6 +40,7 @@ const fakeAuthMiddleware: RequestHandler = (
   (req as any).userId = userId;
   next();
 };
+*/
 
 const firebaseAuthMiddleware: RequestHandler = async (
   req: Request,
@@ -47,16 +49,18 @@ const firebaseAuthMiddleware: RequestHandler = async (
 ) => {
   const authToken = req.header("Authorization")?.replace("Bearer ", "");
 
-  //console.log(`firebaseAuthMiddleware: "${authToken}"`);
-
   if (!authToken) {
     res.status(401).json({ error: "Unauthorized: No Authorization provided" });
     return;
   }
 
   try {
-    const userId = await verifyIdToken(authToken);
-    (req as any).userId = userId;
+    const { couchId } = await verifyIdToken(authToken);
+    if (!couchId) {
+      res.status(403).json({ error: "Forbidden: Account not provisioned. Call /auth/provision first." });
+      return;
+    }
+    (req as any).userId = couchId;
     next();
   } catch (err) {
     res.status(401).json({ error: `Unauthorized: ${err}` });
@@ -64,10 +68,10 @@ const firebaseAuthMiddleware: RequestHandler = async (
   }
 };
 
-app.post("/register", express.json(), async (req: Request, res: Response) => {
+app.post("/auth/register", express.json(), async (req: Request, res: Response) => {
   const { username, password } = req.body;
 
-  console.log("/register", username, password, req.body);
+  console.log("/auth/register", username, password, req.body);
 
   if (typeof username !== "string" || typeof password !== "string") {
     res.status(400).json({
@@ -91,6 +95,22 @@ app.post("/register", express.json(), async (req: Request, res: Response) => {
         error: { code: "unknown", message: "Failed to register user" },
       });
     }
+  }
+});
+
+app.post("/auth/provision", async (req: Request, res: Response) => {
+  const authToken = req.header("Authorization")?.replace("Bearer ", "");
+  if (!authToken) {
+    res.status(401).json({ error: "Unauthorized: No Authorization provided" });
+    return;
+  }
+  try {
+    const { uid } = await verifyIdToken(authToken);
+    const couchId = await provisionUser(uid);
+    res.json({ couchId });
+  } catch (err) {
+    console.error("Error provisioning user:", err);
+    res.status(500).json({ error: "Failed to provision user" });
   }
 });
 
@@ -155,6 +175,12 @@ function dbAccessCheckMiddleware(
   next: NextFunction
 ) {
   const userId = (req as any).userId;
+
+  console.log('Middleware received: ', req.path)
+  // allow auth routes through
+  if(req.path.startsWith('/auth/')) {
+    return next()
+  }
 
   // req.path might look like: "/<dbName>/...".
   // The part before the second slash is the DB name (if any).

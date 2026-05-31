@@ -1,6 +1,11 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import AppNav from '@/components/used/AppNav.vue'
+import AppIconButton from '@/components/used/AppIconButton.vue'
 import Breadcrumb from '@/components/used/Breadcrumb.vue'
+import DebugDialog from '@/components/DebugDialog.vue'
+import UserMenu from '@/components/used/UserMenu.vue'
+import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 
 withDefaults(defineProps<{
   breadcrumbs: Array<{ label: string; href?: string }>
@@ -10,13 +15,23 @@ withDefaults(defineProps<{
   fullHeight: false,
   constrained: true,
 })
+
+const { getDeckIfExists } = useRouteMetaObjects()
+const deck = getDeckIfExists()
+const debugOpen = ref(false)
 </script>
 
 <template>
   <div class="flex flex-col" :class="fullHeight ? 'h-screen' : 'min-h-screen'">
     <AppNav>
       <slot name="title" />
+      <template #actions>
+        <AppIconButton v-if="deck" icon="bug_report" size="sm" @click="debugOpen = true" />
+
+        <UserMenu />
+      </template>
     </AppNav>
+    <DebugDialog v-if="deck" :deck="deck" v-model:open="debugOpen" />
 
     <main class="flex-1 flex flex-col pt-15" :class="fullHeight && 'overflow-hidden'">
       <!-- Breadcrumb strip -->

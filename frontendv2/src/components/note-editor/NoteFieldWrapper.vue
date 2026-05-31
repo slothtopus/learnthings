@@ -13,7 +13,7 @@ defineEmits<{ settings: [] }>()
     <div class="flex-grow min-w-0">
       <div class="flex justify-between items-center mb-3">
         <span class="text-xs font-bold tracking-widest uppercase text-on-surface-variant">{{ label }}</span>
-        <AppIconButton icon="settings" size="sm" class="hover:bg-primary/10" @click="$emit('settings')" />
+        <AppIconButton icon="settings" size="sm" @click="$emit('settings')" />
       </div>
       <slot />
     </div>

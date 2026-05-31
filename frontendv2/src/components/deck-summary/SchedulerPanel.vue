@@ -20,8 +20,8 @@ defineEmits<{
     <div class="bg-surface-container-highest border-b border-outline-variant/20 px-4 py-3 flex items-center justify-between">
       <span class="text-xl font-extralight text-on-surface pl-2">{{ schedulerName }}</span>
       <div class="flex items-center gap-1">
-        <AppIconButton icon="edit" size="sm" class="hover:bg-primary/10" @click="$emit('change')" />
-        <AppIconButton v-if="showSettings !== false" icon="settings" size="sm" class="hover:bg-primary/10" @click="$emit('settings')" />
+        <AppIconButton icon="edit" size="sm" @click="$emit('change')" />
+        <AppIconButton v-if="showSettings !== false" icon="settings" size="sm" @click="$emit('settings')" />
         <div class="w-px h-4 bg-white/10 mx-1" />
         <AppButton size="sm" @click="$emit('reviewNow')">Review Now</AppButton>
       </div>

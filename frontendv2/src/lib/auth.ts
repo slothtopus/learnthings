@@ -1,6 +1,6 @@
 import { auth } from './firebase'
 
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import { signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 
 import { config } from 'core/config.js'
 
@@ -14,7 +14,14 @@ export const getPersistedLoginState = async (): Promise<{
       if (user === null) {
         resolve(null)
       } else {
-        resolve({ username: user.email || 'Unknown', userId: user.uid })
+        const { claims } = await user.getIdTokenResult()
+        const couchId = claims['couchId'] as string | undefined
+        if (!couchId) {
+          await signOut(auth)
+          resolve(null)
+        } else {
+          resolve({ username: user.email || 'Unknown', userId: couchId })
+        }
       }
     }, reject)
   })
@@ -23,10 +30,9 @@ export const getPersistedLoginState = async (): Promise<{
 export const signInUser = async (
   email: string,
   password: string,
-): Promise<{ username: string; userId: string }> => {
-  console.log('signing in with ', email, password)
+): Promise<{ username: string }> => {
   const userCredential = await signInWithEmailAndPassword(auth, email, password)
-  return { username: userCredential.user.email || 'Unknown', userId: userCredential.user.uid }
+  return { username: userCredential.user.email || 'Unknown' }
 }
 
 export const signOutUser = async (): Promise<void> => {
@@ -38,8 +44,27 @@ export const tokenGenerator = async () => {
 }
 config.tokenGenerator = tokenGenerator
 
+export const provisionUser = async (): Promise<string> => {
+  const token = await auth.currentUser?.getIdToken()
+  if (!token) throw new Error('No user signed in')
+  const resp = await fetch(`${import.meta.env['VITE_COUCH_HOST']}/auth/provision`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!resp.ok) throw new Error(`Provisioning failed: ${resp.status}`)
+  await auth.currentUser?.getIdToken(true)
+  const { couchId } = await resp.json()
+  return couchId as string
+}
+
+export const signInWithGoogle = async (): Promise<{ username: string }> => {
+  const provider = new GoogleAuthProvider()
+  const userCredential = await signInWithPopup(auth, provider)
+  return { username: userCredential.user.email || 'Unknown' }
+}
+
 export const registerUser = async (username: string, password: string) => {
-  const res = await fetch(`${import.meta.env['VITE_COUCH_HOST']}/register`, {
+  const res = await fetch(`${import.meta.env['VITE_COUCH_HOST']}/auth/register`, {
     method: 'POST',
     body: JSON.stringify({ username, password }),
     headers: { 'Content-Type': 'application/json' },

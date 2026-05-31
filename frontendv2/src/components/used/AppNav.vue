@@ -7,6 +7,9 @@
       <h1 class="font-bold tracking-widest uppercase text-sm text-on-surface-variant">
         <slot>[ Nav placeholder ]</slot>
       </h1>
+      <div class="flex items-center gap-1">
+        <slot name="actions" />
+      </div>
     </div>
   </header>
 </template>

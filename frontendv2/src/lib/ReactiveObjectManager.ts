@@ -12,6 +12,8 @@ import {
   TextFieldContent,
   ImageAttachmentField,
   ImageAttachmentContent,
+  AudioAttachmentField,
+  AudioAttachmentContent
 } from 'core/fields/fields.js'
 import { TextToSpeechField, TextToSpeechFieldContent } from 'core/fields/generated.js'
 import { FSRSScheduler } from 'core/schedulers/FSRSScheduler.js'
@@ -51,4 +53,6 @@ export const registerObjects = (om: ObjectManager) => {
     .register(CardTemplateAttachment)
     .register(TextToSpeechField)
     .register(TextToSpeechFieldContent)
+    .register(AudioAttachmentField)
+    .register(AudioAttachmentContent)
 }
