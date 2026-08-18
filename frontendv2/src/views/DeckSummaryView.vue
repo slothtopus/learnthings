@@ -5,6 +5,7 @@ import PageLayout from '@/components/used/PageLayout.vue'
 import DeckHeader from '@/components/used/DeckHeader.vue'
 import FSRSSchedulerPanel from '@/components/deck-summary/FSRSSchedulerPanel.vue'
 import FSRSSequenceSchedulerPanel from '@/components/deck-summary/FSRSSequenceSchedulerPanel.vue'
+import WeightedRandomSchedulerPanel from '@/components/deck-summary/WeightedRandomSchedulerPanel.vue'
 import NoteTypeSection from '@/components/deck-summary/NoteTypeSection.vue'
 
 import { useDeckDetails } from '@/composables/useObjectDetails'
@@ -12,6 +13,7 @@ import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 import { useFormDialog } from '@/composables/useFormDialog'
 import { FSRSScheduler } from 'core/schedulers/FSRSScheduler.js'
 import { FSRSSequence } from 'core/schedulers/FSRSSequence.js'
+import { WeightedRandomScheduler } from 'core/schedulers/WeightedRandomScheduler.js'
 import SelectSchedulerForm from '@/components/SelectSchedulerForm.vue'
 import type { SelectSchedulerFormData } from '@/components/SelectSchedulerForm.vue'
 
@@ -28,6 +30,7 @@ const breadcrumbs = computed(() => [
 const scheduler = computed(() => deck.getActiveScheduler())
 const isFSRS = (s: typeof scheduler.value): s is FSRSScheduler => s instanceof FSRSScheduler
 const isFSRSSequence = (s: typeof scheduler.value): s is FSRSSequence => s instanceof FSRSSequence
+const isWeightedRandom = (s: typeof scheduler.value): s is WeightedRandomScheduler => s instanceof WeightedRandomScheduler
 
 const selectSchedulerDialog = useFormDialog<SelectSchedulerFormData>(SelectSchedulerForm)
 
@@ -35,8 +38,9 @@ const handleChangeScheduler = async () => {
   const result = await selectSchedulerDialog.open({ scheduler: scheduler.value.subtype })
   if (result.cancelled) return
   switch (result.data.scheduler) {
-    case FSRSScheduler.subtype: deck.setActiveScheduler(FSRSScheduler); break
-    case FSRSSequence.subtype:  deck.setActiveScheduler(FSRSSequence);  break
+    case FSRSScheduler.subtype:           deck.setActiveScheduler(FSRSScheduler); break
+    case FSRSSequence.subtype:            deck.setActiveScheduler(FSRSSequence); break
+    case WeightedRandomScheduler.subtype: deck.setActiveScheduler(WeightedRandomScheduler); break
   }
   await deck.persist()
 }
@@ -69,6 +73,12 @@ const handleChangeScheduler = async () => {
           />
           <FSRSSequenceSchedulerPanel
             v-else-if="isFSRSSequence(scheduler)"
+            :scheduler="scheduler"
+            @review-now="$router.push({ name: 'start-review', params: { deckId: deck.id } })"
+            @change="handleChangeScheduler"
+          />
+          <WeightedRandomSchedulerPanel
+            v-else-if="isWeightedRandom(scheduler)"
             :scheduler="scheduler"
             @review-now="$router.push({ name: 'start-review', params: { deckId: deck.id } })"
             @change="handleChangeScheduler"

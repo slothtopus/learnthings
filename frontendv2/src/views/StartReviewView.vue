@@ -13,6 +13,7 @@ import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 import { useFormDialog } from '@/composables/useFormDialog'
 import { FSRSScheduler } from 'core/schedulers/FSRSScheduler.js'
 import { FSRSSequence } from 'core/schedulers/FSRSSequence.js'
+import { WeightedRandomScheduler } from 'core/schedulers/WeightedRandomScheduler.js'
 import type { FRSROptions } from 'core/schedulers/FSRSScheduler.js'
 
 const { getDeck } = useRouteMetaObjects()
@@ -22,6 +23,7 @@ const cards = computed(() => deck.getAllCards())
 
 const isFSRS = (s: typeof scheduler): s is FSRSScheduler => s instanceof FSRSScheduler
 const isFSRSSequence = (s: typeof scheduler): s is FSRSSequence => s instanceof FSRSSequence
+const isWeightedRandom = (s: typeof scheduler): s is WeightedRandomScheduler => s instanceof WeightedRandomScheduler
 
 // FSRS statistics
 const statistics = computed(() => (isFSRS(scheduler) ? scheduler.getStatistics(cards.value) : null))
@@ -34,7 +36,7 @@ const maxAdditionalNewCards = computed(() =>
 const toReview = computed(() => statistics.value?.due.seen ?? 0)
 const newCards = computed(() => statistics.value?.due.new ?? 0)
 const total = computed(() => toReview.value + newCards.value + additionalNewCards.value)
-const canStart = computed(() => isFSRSSequence(scheduler) || total.value > 0)
+const canStart = computed(() => isFSRSSequence(scheduler) || isWeightedRandom(scheduler) || total.value > 0)
 
 function incrementBoost() {
   if (maxAdditionalNewCards.value > 0) additionalNewCards.value++
@@ -68,6 +70,8 @@ function handleStart() {
     scheduler.initialise(cards.value)
     scheduler.addNewCardsToSession(additionalNewCards.value)
   } else if (isFSRSSequence(scheduler)) {
+    scheduler.initialise(deck.getAllCards())
+  } else if (isWeightedRandom(scheduler)) {
     scheduler.initialise(deck.getAllCards())
   }
   router.push({ name: 'review-next', params: router.currentRoute.value.params })

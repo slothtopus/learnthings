@@ -20,6 +20,7 @@ const logFromDB = async () => {
 }
 
 const debugObj = () => {
+  // @ts-expect-error - intentionally in scope for debugger inspection
   const obj = props.obj
   debugger
 }

@@ -35,7 +35,7 @@ defineEmits<{
         :rows="rows"
         :placeholder="placeholder"
         :value="modelValue"
-        class="w-full bg-surface-container-lowest border border-outline-variant/20 focus:border-primary/50 text-on-surface placeholder:text-on-surface/30 rounded-sm transition-all outline-none resize-none text-sm py-4"
+        class="w-full bg-surface-container-lowest border border-outline-variant/20 focus:border-primary/50 text-on-surface placeholder:text-on-surface/30 rounded-sm transition-all outline-none resize-y text-sm py-4"
         :class="icon ? 'pl-12 pr-4' : 'px-4'"
         @input="$emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
       />

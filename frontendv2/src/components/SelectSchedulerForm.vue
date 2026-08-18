@@ -4,6 +4,7 @@ import OptionListItem from '@/components/OptionListItem.vue'
 import { useDialogForm } from '@/composables/useFormDialog'
 import { FSRSScheduler } from 'core/schedulers/FSRSScheduler.js'
 import { FSRSSequence } from 'core/schedulers/FSRSSequence.js'
+import { WeightedRandomScheduler } from 'core/schedulers/WeightedRandomScheduler.js'
 
 export type SelectSchedulerFormData = {
   scheduler: string
@@ -23,6 +24,12 @@ const options = [
     label: FSRSSequence.label,
     icon: 'playlist_play',
     description: 'Cycles through all cards in a fixed sequence without adaptive scheduling.',
+  },
+  {
+    id: WeightedRandomScheduler.subtype,
+    label: WeightedRandomScheduler.label,
+    icon: 'shuffle',
+    description: 'Randomly selects cards, favouring those least recently seen.',
   },
 ] as const
 </script>

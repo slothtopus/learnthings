@@ -6,13 +6,14 @@ const props = defineProps<{
   statistics: SchedulerStatistics
 }>()
 
-const total = computed(() =>
-  props.statistics.due.new +
-  props.statistics.due.seen +
-  props.statistics.not_due.new +
-  props.statistics.not_due.seen,
+const total = computed(
+  () =>
+    props.statistics.due.new +
+    props.statistics.due.seen +
+    props.statistics.not_due.new +
+    props.statistics.not_due.seen,
 )
-const pct = (n: number) => total.value > 0 ? (n / total.value) * 100 : 0
+const pct = (n: number) => (total.value > 0 ? (n / total.value) * 100 : 0)
 const notDueTotal = computed(() => props.statistics.not_due.new + props.statistics.not_due.seen)
 </script>
 
@@ -30,10 +31,7 @@ const notDueTotal = computed(() => props.statistics.not_due.new + props.statisti
         class="bg-primary/35 transition-all duration-500 shrink-0"
         :style="{ width: pct(statistics.due.seen) + '%' }"
       />
-      <div
-        v-if="notDueTotal > 0"
-        class="bg-white/8 flex-1"
-      />
+      <div v-if="notDueTotal > 0" class="bg-white/8 flex-1" />
     </div>
 
     <!-- Legend -->
@@ -55,7 +53,7 @@ const notDueTotal = computed(() => props.statistics.not_due.new + props.statisti
       <div class="flex items-center gap-2">
         <div class="w-2.5 h-2.5 rounded-full bg-white/15 shrink-0" />
         <span class="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant/50">
-          Unseen
+          Not due: Seen
           <span class="text-on-surface-variant ml-1">{{ notDueTotal }}</span>
         </span>
       </div>

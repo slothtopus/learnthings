@@ -23,16 +23,35 @@ const folder = {
   dueToday: 88,
 }
 
-type DeckItem = { type: 'deck'; title: string; description: string; notes: number; total: number; due: number }
-type FolderItem = { type: 'folder'; title: string; deckCount: number; subfolderCount: number; notes: number; total: number; due: number }
+type DeckItem = {
+  type: 'deck'
+  title: string
+  description: string
+  notes: number
+  cards: number
+  total: number
+  due: number
+}
+type FolderItem = {
+  type: 'folder'
+  title: string
+  deckCount: number
+  subfolderCount: number
+  notes: number
+  cards: number
+  total: number
+  due: number
+}
 type LibraryItem = DeckItem | FolderItem
 
 const items: LibraryItem[] = [
   {
     type: 'deck',
     title: 'Cardiac Vasculature',
-    description: 'Comprehensive study of arterial supply and venous drainage of the myocardium including coronary variants.',
+    description:
+      'Comprehensive study of arterial supply and venous drainage of the myocardium including coronary variants.',
     notes: 245,
+    cards: 123,
     total: 890,
     due: 12,
   },
@@ -42,6 +61,7 @@ const items: LibraryItem[] = [
     deckCount: 8,
     subfolderCount: 0,
     notes: 312,
+    cards: 123,
     total: 1250,
     due: 24,
   },
@@ -51,14 +71,17 @@ const items: LibraryItem[] = [
     deckCount: 14,
     subfolderCount: 3,
     notes: 450,
+    cards: 123,
     total: 1890,
     due: 52,
   },
   {
     type: 'deck',
     title: 'Pulmonary Mechanics',
-    description: 'Lung volumes, capacities, and the physical principles of ventilation and gas exchange.',
+    description:
+      'Lung volumes, capacities, and the physical principles of ventilation and gas exchange.',
     notes: 112,
+    cards: 123,
     total: 450,
     due: 45,
   },
@@ -98,6 +121,7 @@ const items: LibraryItem[] = [
             :title="item.title"
             :description="item.description"
             :notes="item.notes"
+            :cards="item.cards"
             :total="item.total"
             :due="item.due"
           />

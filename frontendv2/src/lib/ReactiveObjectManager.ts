@@ -18,6 +18,7 @@ import {
 import { TextToSpeechField, TextToSpeechFieldContent } from 'core/fields/generated.js'
 import { FSRSScheduler } from 'core/schedulers/FSRSScheduler.js'
 import { FSRSSequence } from 'core/schedulers/FSRSSequence.js'
+import { WeightedRandomScheduler } from 'core/schedulers/WeightedRandomScheduler.js'
 import {
   CardTemplate,
   CardTemplateBlock,
@@ -46,6 +47,7 @@ export const registerObjects = (om: ObjectManager) => {
     .register(ImageAttachmentContent)
     .register(FSRSScheduler)
     .register(FSRSSequence)
+    .register(WeightedRandomScheduler)
     .register(CardTemplate)
     .register(CardTemplateBlock)
     .register(CardTemplateVariant)

@@ -7,7 +7,7 @@ import AppButton from '@/components/AppButton.vue'
 import CreateButton from '@/components/CreateButton.vue'
 import ViewToggle from '@/components/ViewToggle.vue'
 import TagInput from '@/components/TagInput.vue'
-import CardTemplateCard from '@/components/note-editor/CardTemplateCard.vue'
+//import CardTemplateCard from '@/components/note-editor/CardTemplateCard.vue'
 
 const breadcrumbs = [
   { label: 'Anatomy', href: '#' },
@@ -26,11 +26,13 @@ const tagOptions = ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'History',
 const front = ref('Obsidian')
 const back = ref('A hard, dark, glasslike volcanic rock formed by the rapid solidification of lava without crystallization.')
 
+/*
 const cardTemplates = ref([
   { name: 'Recognition', visible: true, selectedVariant: 'standard', variants: [{ value: 'standard', label: 'Standard' }, { value: 'reverse', label: 'Reverse Only' }] },
   { name: 'Production', visible: false, selectedVariant: 'reverse', variants: [{ value: 'standard', label: 'Standard' }, { value: 'reverse', label: 'Reverse Only' }] },
   { name: 'Listening', visible: true, selectedVariant: 'standard', variants: [{ value: 'standard', label: 'Standard' }, { value: 'reverse', label: 'Reverse Only' }] },
 ])
+*/
 </script>
 
 <template>

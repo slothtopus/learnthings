@@ -45,6 +45,7 @@ export class Deck extends PersistableObject<SerialisedDeck> {
     const scheduler = cls.createNew(this.objectManager);
     this.objectManager.setObject(scheduler);
     this.activeSchedulerId = scheduler.id;
+    this.markDirty()
   }
 
   static createNew(

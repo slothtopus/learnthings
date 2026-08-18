@@ -28,7 +28,7 @@ const fieldContent = computed({
 
 <template>
 <NoteFieldWrapper :label="field.name">
-    <AppInput v-model="fieldContent" :placeholder="'Description goes here...'" />
+    <AppInput v-model="fieldContent" :placeholder="'Description goes here...'" :multiline="true"/>
 </NoteFieldWrapper>
 </template>
 
