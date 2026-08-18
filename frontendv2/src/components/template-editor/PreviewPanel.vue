@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import AppIconButton from '@/components/used/AppIconButton.vue'
+import AppIconButton from '@/components/common/AppIconButton.vue'
 import CardRenderer from '@/components/renderer/CardRenderer.vue'
 import CardPreview from '@/components/renderer/CardPreview.vue'
-import SelectDropdown from '@/components/SelectDropdown.vue'
-import type { SelectOption } from '@/components/SelectDropdown.vue'
+import SelectDropdown from '@/components/common/SelectDropdown.vue'
+import type { SelectOption } from '@/components/common/SelectDropdown.vue'
 
 import type { CardTemplate } from 'core/CardTemplate.js'
 import type { NoteType } from 'core/NoteType.js'

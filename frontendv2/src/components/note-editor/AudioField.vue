@@ -3,7 +3,7 @@ import { ref, watchEffect, onBeforeMount } from 'vue'
 import { useFileDialog } from '@vueuse/core'
 
 import NoteFieldWrapper from './NoteFieldWrapper.vue'
-import AppIconButton from '@/components/used/AppIconButton.vue'
+import AppIconButton from '@/components/common/AppIconButton.vue'
 
 import type { Note } from 'core/Note.js'
 import type { AudioAttachmentField } from 'core/fields/fields.js'

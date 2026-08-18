@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import FormDialog from '@/components/used/FormDialog.vue'
-import SelectDropdown from '@/components/SelectDropdown.vue'
-import type { SelectOption } from '@/components/SelectDropdown.vue'
+import FormDialog from '@/components/common/FormDialog.vue'
+import SelectDropdown from '@/components/common/SelectDropdown.vue'
+import type { SelectOption } from '@/components/common/SelectDropdown.vue'
 import { useDialogForm } from '@/composables/useFormDialog'
 
 import { TextField } from 'core/fields/fields.js'

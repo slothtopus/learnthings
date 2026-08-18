@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import FormDialog from '@/components/FormDialog.vue'
+import FormDialog from '@/components/common/FormDialog.vue'
 import { useDialogForm } from '@/composables/useFormDialog'
 
 export type ConfirmationDialogContext =  { title: string; message: string }

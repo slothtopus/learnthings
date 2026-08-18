@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import AppIconButton from '@/components/used/AppIconButton.vue'
-import AppTooltip from '@/components/used/AppTooltip.vue'
+import AppIconButton from '@/components/common/AppIconButton.vue'
+import AppTooltip from '@/components/common/AppTooltip.vue'
 
 interface Props {
   active: boolean

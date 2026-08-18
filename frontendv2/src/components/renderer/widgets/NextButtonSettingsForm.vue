@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import FormDialog from '@/components/used/FormDialog.vue'
+import FormDialog from '@/components/common/FormDialog.vue'
 import { useDialogForm } from '@/composables/useFormDialog'
 import type { NextButtonSettings } from './NextButton.settings'
 

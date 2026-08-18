@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppIconButton from '@/components/used/AppIconButton.vue'
+import AppIconButton from '@/components/common/AppIconButton.vue'
 
 defineProps<{ label: string }>()
 defineEmits<{ settings: [] }>()

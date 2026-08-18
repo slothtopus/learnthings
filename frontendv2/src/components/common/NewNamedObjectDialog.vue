@@ -1,18 +1,23 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import FormDialog from '@/components/used/FormDialog.vue'
-import AppInput from '@/components/used/AppInput.vue'
+import FormDialog from '@/components/common/FormDialog.vue'
+import AppInput from '@/components/common/AppInput.vue'
 
 import { useDialogForm } from '@/composables/useFormDialog'
 
-export type NewVariantFormData = {
+export type NewNamedObjectFormData = {
   name: string
-  description: string
 }
 
-const { formData, submit, cancel } = useDialogForm<
-  NewVariantFormData
+export type NewNamedObjectContext = {
+  title: string
+  label: string
+  placeholder: string
+}
+
+const { formData, submit, cancel, contextData } = useDialogForm<
+  NewNamedObjectFormData, NewNamedObjectContext
 >()
 
 const canCreate = computed(() => formData.name.length > 0)
@@ -20,7 +25,7 @@ const canCreate = computed(() => formData.name.length > 0)
 
 <template>
   <FormDialog
-    title="Create New Variant"
+    :title="contextData.title"
     :show="true"
     @close="cancel"
     @submit="submit"
@@ -29,8 +34,8 @@ const canCreate = computed(() => formData.name.length > 0)
     <div class="space-y-8">
       <AppInput
         v-model="formData.name"
-        label="Card Template Variant Name"
-        placeholder="..."
+        :label="contextData.label"
+        :placeholder="contextData.placeholder"
       />
     </div>
   </FormDialog>

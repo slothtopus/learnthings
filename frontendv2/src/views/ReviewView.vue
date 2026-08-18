@@ -3,7 +3,7 @@ import { ref, computed, shallowRef, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 import CardRenderer from '@/components/renderer/CardRenderer.vue'
-import AppIconButton from '@/components/used/AppIconButton.vue'
+import AppIconButton from '@/components/common/AppIconButton.vue'
 import {
   DropdownMenu,
   DropdownMenuTrigger,

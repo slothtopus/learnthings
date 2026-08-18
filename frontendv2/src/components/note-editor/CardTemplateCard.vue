@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppIconButton from '@/components/used/AppIconButton.vue'
+import AppIconButton from '@/components/common/AppIconButton.vue'
 import CardRenderer from '@/components/renderer/CardRenderer.vue'
 import CardPreview from '@/components/renderer/CardPreview.vue'
 import type { CardTemplate } from 'core/CardTemplate.js';

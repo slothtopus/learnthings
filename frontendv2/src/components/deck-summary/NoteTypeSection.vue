@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import NoteTypeCard from '@/components/deck-summary/NoteTypeCard.vue'
-import CreateButton from '@/components/used/CreateButton.vue'
-import LinkButton from '@/components/used/LinkButton.vue'
+import CreateButton from '@/components/common/CreateButton.vue'
+import LinkButton from '@/components/common/LinkButton.vue'
 import NoteTypeDetailsDialog from '@/components/deck-summary/NoteTypeDetailsDialog.vue'
 import type {
   NoteTypeDetailsFormData,

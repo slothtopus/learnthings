@@ -17,7 +17,7 @@ const router = createRouter({
       name: 'deck-summary',
       component: () => import('@/views/DeckSummaryView.vue'),
     },
-      {
+    {
       path: '/deck/:deckId/notes',
       name: 'browse-notes',
       component: () => import('@/views/BrowseNotesView.vue'),
@@ -51,46 +51,6 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: () => import('@/views/LoginView.vue'),
-    },
-    {
-      path: '/mockups',
-      children: [
-        {
-          path: 'library',
-          name: 'mockup-library',
-          component: () => import('@/views/mockups/DeckLibraryView.vue'),
-        },
-        {
-          path: 'deck/:id',
-          name: 'mockup-deck-summary',
-          component: () => import('@/views/mockups/DeckSummaryView.vue'),
-        },
-        {
-          path: 'test',
-          name: 'mockup-test',
-          component: () => import('@/views/mockups/TestView.vue'),
-        },
-        {
-          path: 'note/:id',
-          name: 'mockup-note-editor',
-          component: () => import('@/views/mockups/NoteEditorView.vue'),
-        },
-        {
-          path: 'notes',
-          name: 'mockup-browse-notes',
-          component: () => import('@/views/mockups/BrowseNotesView.vue'),
-        },
-        {
-          path: 'review/start',
-          name: 'mockup-start-review',
-          component: () => import('@/views/mockups/StartReviewView.vue'),
-        },
-        {
-          path: 'template/edit',
-          name: 'mockup-card-template-editor',
-          component: () => import('@/views/mockups/CardTemplateEditorView.vue'),
-        },
-      ],
     },
   ],
 })

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import AppButton from '@/components/AppButton.vue'
-import AppIconButton from '@/components/used/AppIconButton.vue'
+import AppButton from '@/components/common/AppButton.vue'
+import AppIconButton from '@/components/common/AppIconButton.vue'
 
 defineProps<{
   schedulerName: string

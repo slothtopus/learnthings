@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import AppDialog from '@/components/used/AppDialog.vue'
-import AppButton from '@/components/used/AppButton.vue'
+import AppDialog from '@/components/common/AppDialog.vue'
+import AppButton from '@/components/common/AppButton.vue'
 
 withDefaults(
   defineProps<{

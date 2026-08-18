@@ -4,7 +4,7 @@ import { onMounted } from 'vue'
 
 import { useAuth } from './composables/useAuth'
 import { usePouchRegistry } from './composables/usePouchRegistry'
-import DialogHost from './components/DialogHost.vue'
+import DialogHost from './components/common/DialogHost.vue'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 const { initialiseAuth } = useAuth()

@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 
 import SidebarCollapsibleSection from '@/components/template-editor/SidebarCollapsibleSection.vue'
 import SidebarCollapsibleMenuItem from './SidebarCollapsibleMenuItem.vue'
-import AppIconButton from '@/components/used/AppIconButton.vue'
+import AppIconButton from '@/components/common/AppIconButton.vue'
 import {
   DropdownMenu,
   DropdownMenuTrigger,

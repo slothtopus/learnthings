@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import AppIconButton from '@/components/used/AppIconButton.vue';
+import AppIconButton from '@/components/common/AppIconButton.vue';
 
 import type { AnyNoteFieldContent } from 'core/fields/base.js'
 

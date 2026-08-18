@@ -2,8 +2,8 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
-import AppButton from '@/components/used/AppButton.vue'
-import AppInput from '@/components/used/AppInput.vue'
+import AppButton from '@/components/common/AppButton.vue'
+import AppInput from '@/components/common/AppInput.vue'
 import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()

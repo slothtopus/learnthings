@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import FormDialog from '@/components/used/FormDialog.vue'
-import AppInput from '@/components/used/AppInput.vue'
+import FormDialog from '@/components/common/FormDialog.vue'
+import AppInput from '@/components/common/AppInput.vue'
 
 import { useDialogForm } from '@/composables/useFormDialog'
 

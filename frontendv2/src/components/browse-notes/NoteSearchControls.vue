@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import AppInput from '@/components/AppInput.vue'
-import SelectDropdown from '@/components/SelectDropdown.vue'
-import TagInput from '@/components/TagInput.vue'
+import AppInput from '@/components/common/AppInput.vue'
+import SelectDropdown from '@/components/common/SelectDropdown.vue'
+import TagInput from '@/components/common/TagInput.vue'
 
 export interface SelectOption {
   value: string

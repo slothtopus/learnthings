@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PersistableObject } from 'core/object_manager/PersistableObject.js'
-import AppIconButton from '@/components/used/AppIconButton.vue'
+import AppIconButton from '@/components/common/AppIconButton.vue'
 
 const props = defineProps<{ obj: PersistableObject<any> }>()
 

@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 
 import NoteFieldWrapper from './NoteFieldWrapper.vue';
-import AppInput from '@/components/used/AppInput.vue'
+import AppInput from '@/components/common/AppInput.vue'
 
 import type { Note } from 'core/Note.js'
 import type { TextField } from 'core/fields/fields.js'

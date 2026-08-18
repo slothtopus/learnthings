@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import PageLayout from '@/components/used/PageLayout.vue'
-import DeckHeader from '@/components/used/DeckHeader.vue'
+import PageLayout from '@/components/common/PageLayout.vue'
+import DeckHeader from '@/components/common/DeckHeader.vue'
 import FSRSSchedulerPanel from '@/components/deck-summary/FSRSSchedulerPanel.vue'
 import FSRSSequenceSchedulerPanel from '@/components/deck-summary/FSRSSequenceSchedulerPanel.vue'
 import WeightedRandomSchedulerPanel from '@/components/deck-summary/WeightedRandomSchedulerPanel.vue'
@@ -14,8 +14,8 @@ import { useFormDialog } from '@/composables/useFormDialog'
 import { FSRSScheduler } from 'core/schedulers/FSRSScheduler.js'
 import { FSRSSequence } from 'core/schedulers/FSRSSequence.js'
 import { WeightedRandomScheduler } from 'core/schedulers/WeightedRandomScheduler.js'
-import SelectSchedulerForm from '@/components/SelectSchedulerForm.vue'
-import type { SelectSchedulerFormData } from '@/components/SelectSchedulerForm.vue'
+import SelectSchedulerForm from '@/components/common/SelectSchedulerForm.vue'
+import type { SelectSchedulerFormData } from '@/components/common/SelectSchedulerForm.vue'
 
 const { getDeck } = useRouteMetaObjects()
 const deck = getDeck()

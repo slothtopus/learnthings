@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import SchedulerPanel from './SchedulerPanel.vue'
-import CardCountBar from '@/components/CardCountBar.vue'
-import FSRSSettingsForm from '@/components/FSRSSettingsForm.vue'
+import CardCountBar from '@/components/common/CardCountBar.vue'
+import FSRSSettingsForm from '@/components/common/FSRSSettingsForm.vue'
 import { useFormDialog } from '@/composables/useFormDialog'
 import type { FSRSScheduler } from 'core/schedulers/FSRSScheduler.js'
 import type { FRSROptions } from 'core/schedulers/FSRSScheduler.js'

@@ -2,12 +2,12 @@
 import { computed } from 'vue'
 
 import VariantMenuItem from '@/components/template-editor/VariantMenuItem.vue'
-import AppIconButton from '@/components/used/AppIconButton.vue'
-import NewNamedObjectDialog from '@/components/used/NewNamedObjectDialog.vue'
+import AppIconButton from '@/components/common/AppIconButton.vue'
+import NewNamedObjectDialog from '@/components/common/NewNamedObjectDialog.vue'
 import type {
   NewNamedObjectFormData,
   NewNamedObjectContext,
-} from '@/components/used/NewNamedObjectDialog.vue'
+} from '@/components/common/NewNamedObjectDialog.vue'
 import type {ActiveObject} from '@/views/CardTemplateEditorView.vue'
 
 import { useFormDialog } from '@/composables/useFormDialog'

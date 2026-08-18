@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import PageLayout from '@/components/PageLayout.vue'
+import PageLayout from '@/components/common/PageLayout.vue'
 import NoteSearchControls from '@/components/browse-notes/NoteSearchControls.vue'
 import NoteResultCard from '@/components/browse-notes/NoteResultCard.vue'
 
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 import { useDeckDetails } from '@/composables/useObjectDetails'
-import PaginationFooter from '@/components/used/PaginationFooter.vue'
+import PaginationFooter from '@/components/common/PaginationFooter.vue'
 
 import { TextField, TextFieldContent } from 'core/fields/fields.js'
 

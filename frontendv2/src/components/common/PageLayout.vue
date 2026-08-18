@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import AppNav from '@/components/used/AppNav.vue'
-import AppIconButton from '@/components/used/AppIconButton.vue'
-import Breadcrumb from '@/components/used/Breadcrumb.vue'
-import DebugDialog from '@/components/DebugDialog.vue'
-import UserMenu from '@/components/used/UserMenu.vue'
+import AppNav from '@/components/common/AppNav.vue'
+import AppIconButton from '@/components/common/AppIconButton.vue'
+import Breadcrumb from '@/components/common/Breadcrumb.vue'
+import DebugDialog from '@/components/common/DebugDialog.vue'
+import UserMenu from '@/components/common/UserMenu.vue'
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 
 withDefaults(defineProps<{

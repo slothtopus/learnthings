@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { Teleport } from 'vue'
 
 import DebugObjectCard from './DebugObjectCard.vue'
-import AppIconButton from '@/components/used/AppIconButton.vue'
+import AppIconButton from '@/components/common/AppIconButton.vue'
 
 import type { Deck } from 'core/Deck.js'
 

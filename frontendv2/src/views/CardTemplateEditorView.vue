@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import PageLayout from '@/components/used/PageLayout.vue'
-import AppButton from '@/components/used/AppButton.vue'
-import AppIconButton from '@/components/used/AppIconButton.vue'
+import PageLayout from '@/components/common/PageLayout.vue'
+import AppButton from '@/components/common/AppButton.vue'
+import AppIconButton from '@/components/common/AppIconButton.vue'
 import CodeEditor from '@/components/template-editor/CodeEditor.vue'
-import ViewToggle from '@/components/used/ViewToggle.vue'
+import ViewToggle from '@/components/common/ViewToggle.vue'
 
 import VariantsMenu from '@/components/template-editor/VariantsMenu.vue'
 import BlocksMenu from '@/components/template-editor/BlocksMenu.vue'

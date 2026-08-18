@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import AppButton from '@/components/used/AppButton.vue'
-//import LinkButton from '@/components/used/LinkButton.vue'
-import StripIconButton from '@/components/StripIconButton.vue'
+import AppButton from '@/components/common/AppButton.vue'
+//import LinkButton from '@/components/common/LinkButton.vue'
+import StripIconButton from '@/components/common/StripIconButton.vue'
 
 import { useNoteTypeDetails } from '@/composables/useObjectDetails'
 

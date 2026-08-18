@@ -2,7 +2,7 @@
 import { ref, watchEffect } from 'vue'
 
 import NoteFieldWrapper from './NoteFieldWrapper.vue'
-import AppButton from '@/components/used/AppButton.vue'
+import AppButton from '@/components/common/AppButton.vue'
 import TextToSpeechSettingsForm from './TextToSpeechSettingsForm.vue'
 import type { TextToSpeechSettingsFormData } from './TextToSpeechSettingsForm.vue'
 

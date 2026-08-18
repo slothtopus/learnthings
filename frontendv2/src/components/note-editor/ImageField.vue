@@ -3,7 +3,7 @@ import { ref, computed, onBeforeMount } from 'vue'
 import { useFileDialog } from '@vueuse/core'
 
 import NoteFieldWrapper from './NoteFieldWrapper.vue'
-import AppButton from '@/components/used/AppButton.vue'
+import AppButton from '@/components/common/AppButton.vue'
 
 import type { Note } from 'core/Note.js'
 import type { ImageAttachmentField } from 'core/fields/fields.js'

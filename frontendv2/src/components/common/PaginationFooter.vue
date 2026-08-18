@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import SelectDropdown from '@/components/SelectDropdown.vue'
-import type { SelectOption } from '@/components/SelectDropdown.vue'
+import SelectDropdown from '@/components/common/SelectDropdown.vue'
+import type { SelectOption } from '@/components/common/SelectDropdown.vue'
 
 const props = withDefaults(
   defineProps<{

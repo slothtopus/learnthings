@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import FormDialog from '@/components/used/FormDialog.vue'
-import OptionListItem from '@/components/OptionListItem.vue'
+import FormDialog from '@/components/common/FormDialog.vue'
+import OptionListItem from '@/components/common/OptionListItem.vue'
 import { useDialogForm } from '@/composables/useFormDialog'
 import { FSRSScheduler } from 'core/schedulers/FSRSScheduler.js'
 import { FSRSSequence } from 'core/schedulers/FSRSSequence.js'

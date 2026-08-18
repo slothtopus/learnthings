@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import FormDialog from '@/components/FormDialog.vue'
-import AppInput from '@/components/AppInput.vue'
-import AppIconButton from '@/components/AppIconButton.vue'
-import OptionListItem from '@/components/OptionListItem.vue'
+import FormDialog from '@/components/common/FormDialog.vue'
+import AppInput from '@/components/common/AppInput.vue'
+import AppIconButton from '@/components/common/AppIconButton.vue'
+import OptionListItem from '@/components/common/OptionListItem.vue'
 import { useDialogForm } from '@/composables/useFormDialog'
 
 export type AddFieldFormData = {
