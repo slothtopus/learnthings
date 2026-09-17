@@ -1,0 +1,40 @@
+#!/usr/bin/env node
+import { register } from "node:module";
+import { fileURLToPath } from "node:url";
+import { existsSync } from "node:fs";
+
+import { redirectConsoleToStderr } from "./log.js";
+import { installFetchBufferCompat } from "./fetch-compat.js";
+
+// Must happen before core is loaded: core logs to stdout, which on a stdio
+// transport is reserved for JSON-RPC frames.
+redirectConsoleToStderr();
+
+// Load the package's .env before any module reads config. Real environment
+// variables take precedence over the file, so a launcher's env block still
+// wins. The path is resolved from this file, not the cwd, which the MCP client
+// controls and which the server later changes to the data directory.
+const envFile = fileURLToPath(new URL("../.env", import.meta.url));
+if (existsSync(envFile)) {
+  try {
+    process.loadEnvFile(envFile);
+  } catch (err) {
+    process.stderr.write(`[learnthings-mcp] could not read .env: ${(err as Error).message}\n`);
+  }
+}
+
+// PouchDB cannot read attachment bodies from Node's built-in fetch without
+// this; see fetch-compat.ts. Must be installed before any replication runs.
+installFetchBufferCompat();
+
+// core's emitted JS uses extensionless relative imports that Node cannot
+// resolve on its own. Registered before core is imported; see resolver.ts.
+register("./resolver.js", import.meta.url);
+
+// Dynamic import so all of the above runs before core's module side effects.
+const { startServer } = await import("./server.js");
+
+await startServer().catch((err: unknown) => {
+  process.stderr.write(`[learnthings-mcp] fatal: ${(err as Error).stack ?? err}\n`);
+  process.exit(1);
+});

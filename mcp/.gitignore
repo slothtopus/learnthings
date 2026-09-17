@@ -1,0 +1,9 @@
+node_modules/
+build/
+*.tsbuildinfo
+.DS_Store
+
+# Local credentials — contains the Google OAuth client secret
+.env
+.env.*
+!.env.example
