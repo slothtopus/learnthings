@@ -1,11 +1,12 @@
+import { log } from "../utils/log.js";
 import { z } from "zod";
 
 import {
   PersistableObject,
   PersistedObject,
-} from "../object_manager/PersistableObject";
-import { ObjectManager } from "../object_manager/ObjectManager";
-import type { TokenGenerator } from "../service/registry";
+} from "../object_manager/PersistableObject.js";
+import { ObjectManager } from "../object_manager/ObjectManager.js";
+import type { TokenGenerator } from "../service/registry.js";
 
 export const VOICES = [
   "Achernar",
@@ -197,7 +198,7 @@ export class GoogleTextToSpeech extends PersistableObject<SerialisedGoogleTextTo
     opts: GeminiTtsRequestInput,
     timeoutMs = 30_000,
   ): Promise<{ audio: Buffer; contentType: string }> {
-    console.log('generateTextToSpeech:', opts)
+    log.debug('generateTextToSpeech:', opts)
     const tokenGenerator = this.getTokenGenerator();
     const token = await tokenGenerator();
     if (token === undefined) {

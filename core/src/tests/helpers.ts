@@ -1,5 +1,5 @@
-import type { PersistableObject } from "../object_manager/PersistableObject";
-import { ObjectManager } from "../object_manager/ObjectManager";
+import type { PersistableObject } from "../object_manager/PersistableObject.js";
+import { ObjectManager } from "../object_manager/ObjectManager.js";
 
 export const pause = (duration: number) =>
   new Promise((resolve) => setTimeout(resolve, duration));

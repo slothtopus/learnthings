@@ -1,3 +1,4 @@
+import { log } from "../utils/log.js";
 import {
   createEmptyCard,
   fsrs,
@@ -15,11 +16,11 @@ import type {
 
 import { DateTime } from "luxon";
 
-import { PersistableObject } from "../object_manager/PersistableObject";
-import type { PersistedObject } from "../object_manager/PersistableObject";
-import type { ObjectManager } from "../object_manager/ObjectManager";
-import type { Card } from "../Card";
-import { Scheduler } from "./Scheduler";
+import { PersistableObject } from "../object_manager/PersistableObject.js";
+import type { PersistedObject } from "../object_manager/PersistableObject.js";
+import type { ObjectManager } from "../object_manager/ObjectManager.js";
+import type { Card } from "../Card.js";
+import { Scheduler } from "./Scheduler.js";
 
 export type SerialisedFSRSCardMeta = {
   due: string;
@@ -265,7 +266,7 @@ export class FSRSSequence extends Scheduler<SerialisedFSRSSequence> {
       this._currentCardIndex === undefined ||
       this._lapses >= this.options.maxLapses
     ) {
-      console.log(
+      log.debug(
         "Resetting to earliest due: now =",
         DateTime.now()
           .plus({ minutes: this.options.dueTimeOffset })
@@ -279,11 +280,11 @@ export class FSRSSequence extends Scheduler<SerialisedFSRSSequence> {
       // If no cards due, find the card with the earliest due date
       if (nextIndex == -1) {
         nextIndex = this.allCards.findIndex((c) => c.isNew())
-        console.log(
+        log.debug(
           `No cards due. Choosing earliest new card`
         );
       } else {
-        console.log(
+        log.debug(
           `Choosing earliest due card (due = ${this.allCards[nextIndex].due})`
         );
       }
@@ -291,12 +292,12 @@ export class FSRSSequence extends Scheduler<SerialisedFSRSSequence> {
       nextIndex = Math.max(0, nextIndex);
       this._lapses = 0;
     } else {
-      console.log("Moving to next card");
+      log.debug("Moving to next card");
       nextIndex = (this._currentCardIndex + 1) % this.allCards.length;
     }
     this._currentCardIndex = nextIndex;
     const cardMeta = this.allCards[nextIndex];
-    console.log(`Found card ${cardMeta.card.id}: due ${cardMeta.due}`);
+    log.debug(`Found card ${cardMeta.card.id}: due ${cardMeta.due}`);
     return this.allCards[nextIndex].card;
   }
 
@@ -328,19 +329,19 @@ export class FSRSSequence extends Scheduler<SerialisedFSRSSequence> {
         rating
       );
 
-      console.log(
+      log.debug(
         `card ${ratedCard.id}: rated ${ratingValue} @ ${ratedAt.toFormat(
           "yyyy-LL-dd HH:mm:ss"
         )}`
       );
-      console.log("before update:", cardMeta.serialise());
+      log.debug("before update:", cardMeta.serialise());
       cardMeta.updateFromFSRSCard(card);
-      console.log(`after update:`, cardMeta.serialise());
+      log.debug(`after update:`, cardMeta.serialise());
 
       ratedCard.setCardMeta(FSRSCardMeta.metaKey, cardMeta.serialise());
       await this.deck.persist();
     } else {
-      console.log("Not rated because not due");
+      log.debug("Not rated because not due");
     }
     await this.deck.persist();
   }

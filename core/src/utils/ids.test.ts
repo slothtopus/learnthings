@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest';
 
-import { generateId, combineIds, splitId } from './ids';
+import { generateId, combineIds, splitId } from './ids.js';
 
 test('id combination and splitting', () => {
   const ids = [generateId(), generateId(), generateId()];

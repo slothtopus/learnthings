@@ -5,7 +5,7 @@ import {
   getMimeTypeFromUrl,
   fetchMetadata,
   createAttachmentFromURL,
-} from './attachments';
+} from './attachments.js';
 
 test('getFilenameFromUrl', () => {
   expect(

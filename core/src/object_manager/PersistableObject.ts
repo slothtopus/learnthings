@@ -1,10 +1,10 @@
 import { cloneDeep, isEqual } from "lodash-es";
-import { generateId } from "../utils/ids";
-import type { ObjectQuery, ObjectManager } from "./ObjectManager";
-import type { Deck } from "../Deck";
+import { generateId } from "../utils/ids.js";
+import type { ObjectQuery, ObjectManager } from "./ObjectManager.js";
+import type { Deck } from "../Deck.js";
 
 import { pickBy } from "lodash-es";
-import { AttachmentData } from "../utils/attachments";
+import { AttachmentData } from "../utils/attachments.js";
 
 export type PersistedObject = {
   _id: string;

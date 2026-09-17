@@ -1,9 +1,10 @@
+import { log } from "../utils/log.js";
 import PouchDBFind from "pouchdb-find";
 import PouchDBAdapterMemory from "pouchdb-adapter-memory";
 import { isNode } from "browser-or-node";
 
-import { isValidId } from "../utils/ids";
-import type { PersistedObject } from "../object_manager/PersistableObject";
+import { isValidId } from "../utils/ids.js";
+import type { PersistedObject } from "../object_manager/PersistableObject.js";
 
 let _PouchDB: PouchDB.Static<{}> | undefined = undefined;
 export const getPouchDB = async () => {
@@ -16,10 +17,47 @@ export const getPouchDB = async () => {
   return _PouchDB;
 };
 
+/**
+ * PouchDB 9.0.0 predates Node's built-in fetch.
+ *
+ * When replicating an attachment, its HTTP adapter picks how to read the body:
+ *
+ *     if ('buffer' in response) { blob = await response.buffer(); }
+ *     else                      { blob = await response.blob();   }
+ *
+ * `.buffer()` is the node-fetch v2 API. Node 18+ ships undici, whose Response
+ * has no `.buffer()`, so PouchDB takes the browser branch and produces a Blob —
+ * which it then hands to `binaryMd5`, which calls Node's crypto, which rejects
+ * Blob outright:
+ *
+ *     TypeError: The "data" argument must be of type string or an instance of
+ *     Buffer, TypedArray, or DataView. Received an instance of Blob
+ *
+ * Worse, the rejection escapes the replication promise, so a sync carrying
+ * attachments neither resolves nor rejects — it simply hangs.
+ *
+ * Restoring a lazy `.buffer()` puts PouchDB back on the Node branch. It reads
+ * nothing unless PouchDB calls it. In the browser a Blob is the correct type,
+ * so this is a no-op there.
+ */
+export const withNodeFetchCompat = (response: Response): Response => {
+  if (!isNode) return response;
+  if (typeof (response as { buffer?: unknown }).buffer === "function") {
+    return response;
+  }
+  Object.defineProperty(response, "buffer", {
+    value: async () => Buffer.from(await response.arrayBuffer()),
+    writable: true,
+    configurable: true,
+    enumerable: false,
+  });
+  return response;
+};
+
 let _dbCache: Record<string, PouchDB.Database<any>> = {};
 export const getOrCreateDB = async (dbName: string, memoryOnly: boolean) => {
   if (!(dbName in _dbCache)) {
-    console.log(`getOrCreateDB: creating db ${dbName}`);
+    log.debug(`getOrCreateDB: creating db ${dbName}`);
     const PouchDB = await getPouchDB();
     const db = memoryOnly
       ? new PouchDB<{ doctype: string }>(dbName, { adapter: "memory" })

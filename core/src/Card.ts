@@ -1,9 +1,9 @@
-import { PersistableObject } from "./object_manager/PersistableObject";
-import type { PersistedObject } from "./object_manager/PersistableObject";
-import type { ObjectManager } from "./object_manager/ObjectManager";
-import { combineIds } from "./utils/ids";
-import { Note } from "./Note";
-import { CardTemplate, CardTemplateVariant } from "./CardTemplate";
+import { PersistableObject } from "./object_manager/PersistableObject.js";
+import type { PersistedObject } from "./object_manager/PersistableObject.js";
+import type { ObjectManager } from "./object_manager/ObjectManager.js";
+import { combineIds } from "./utils/ids.js";
+import { Note } from "./Note.js";
+import { CardTemplate, CardTemplateVariant } from "./CardTemplate.js";
 
 export type SerialisedCard = {
   cardTemplateId: string;

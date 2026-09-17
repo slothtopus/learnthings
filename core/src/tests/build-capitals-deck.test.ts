@@ -6,12 +6,12 @@ import { generateId } from "../utils/ids.js";
 import { Deck } from "../Deck.js";
 import { NoteType } from "../NoteType.js";
 import { Note } from "../Note.js";
-import { CardTemplate } from "../CardTemplate";
+import { CardTemplate } from "../CardTemplate.js";
 import { Card } from "../Card.js";
-import { TextField, TextFieldContent, ImageAttachmentField, ImageAttachmentContent } from "../fields/fields";
+import { TextField, TextFieldContent, ImageAttachmentField, ImageAttachmentContent } from "../fields/fields.js";
 import { FSRSScheduler } from "../schedulers/FSRSScheduler.js";
 
-import capitals from "../data/capitals.json";
+import capitals from "../data/capitals.json" with { type: "json" };
 import { getOrCreateLocalDeckDB } from "../service/PouchDB.js";
 
 const CSS = `

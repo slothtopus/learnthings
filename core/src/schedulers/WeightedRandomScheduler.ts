@@ -1,10 +1,10 @@
 import { DateTime } from "luxon";
 
-import { PersistableObject } from "../object_manager/PersistableObject";
-import type { PersistedObject } from "../object_manager/PersistableObject";
-import type { ObjectManager } from "../object_manager/ObjectManager";
-import type { Card } from "../Card";
-import { Scheduler } from "./Scheduler";
+import { PersistableObject } from "../object_manager/PersistableObject.js";
+import type { PersistedObject } from "../object_manager/PersistableObject.js";
+import type { ObjectManager } from "../object_manager/ObjectManager.js";
+import type { Card } from "../Card.js";
+import { Scheduler } from "./Scheduler.js";
 
 const META_KEY = "weighted_random_v1";
 

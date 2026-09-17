@@ -1,15 +1,16 @@
-import { PersistableObject, PersistedObject } from "./PersistableObject";
+import { log } from "../utils/log.js";
+import { PersistableObject, PersistedObject } from "./PersistableObject.js";
 import {
   getOrCreateLocalDeckDB,
   pouchSerialise,
   pouchDeserialise,
-} from "../service/PouchDB";
-import { blobToBuffer, bufferToBlob } from "../utils/attachments";
-import { TransactionGraphV4 } from "./TransactionGraph";
+} from "../service/PouchDB.js";
+import { blobToBuffer, bufferToBlob } from "../utils/attachments.js";
+import { TransactionGraphV4 } from "./TransactionGraph.js";
 
-import type { PouchSerialisedSaved } from "../service/PouchDB";
-import type { PersistableObjectConstructor } from "./PersistableObject";
-import type { ProgressMonitor } from "./utils";
+import type { PouchSerialisedSaved } from "../service/PouchDB.js";
+import type { PersistableObjectConstructor } from "./PersistableObject.js";
+import type { ProgressMonitor } from "./utils.js";
 
 import { isNode } from "browser-or-node";
 
@@ -198,7 +199,7 @@ export class ObjectManager {
 
     let updates: OrderedObjectOperation[] = [];
     if (schemaChange.toDelete.length > 0 || rootIdsToPersist.size > 0) {
-      console.log("DB Schema changed: performing cleanup");
+      log.debug("DB Schema changed: performing cleanup");
       const persists = Array.from(rootIdsToPersist.values()).map((id) => {
         const obj = this.getObjectById(id);
         const o: OrderedObjectOperation = {
@@ -393,7 +394,7 @@ export class ObjectManager {
   async persist(progressMonitor?: ProgressMonitor) {
     //console.log("ObjectManager.persist()");
     const operations = this.generateUpdates();
-    console.log("ObjectManager.persist(): operations", operations);
+    log.debug("ObjectManager.persist(): operations", operations);
     return this.applyOperations(operations, true, progressMonitor);
     //return this.batchApplyOperations(operations);
   }

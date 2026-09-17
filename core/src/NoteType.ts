@@ -1,13 +1,13 @@
-import { ObjectManager } from "./object_manager/ObjectManager";
-import { cacheByVersion } from "./object_manager/utils";
-import { PersistableObject } from "./object_manager/PersistableObject";
+import { ObjectManager } from "./object_manager/ObjectManager.js";
+import { cacheByVersion } from "./object_manager/utils.js";
+import { PersistableObject } from "./object_manager/PersistableObject.js";
 import type {
   PersistedObject,
   CreatablePersistableObjectConstructor,
-} from "./object_manager/PersistableObject";
-import { AnyNoteField } from "./fields/base";
-import { Note } from "./Note";
-import { CardTemplate } from "./CardTemplate";
+} from "./object_manager/PersistableObject.js";
+import { AnyNoteField } from "./fields/base.js";
+import { Note } from "./Note.js";
+import { CardTemplate } from "./CardTemplate.js";
 
 export type SerialisedNoteType = {
   name: string;

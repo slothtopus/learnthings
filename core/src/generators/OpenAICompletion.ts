@@ -2,8 +2,8 @@ import OpenAI from "openai";
 import {
   PersistableObject,
   PersistedObject,
-} from "../object_manager/PersistableObject";
-import { ObjectManager } from "../object_manager/ObjectManager";
+} from "../object_manager/PersistableObject.js";
+import { ObjectManager } from "../object_manager/ObjectManager.js";
 
 export type SerialisedOpenAiChatCompletion = PersistedObject & {
   apiKey: string;

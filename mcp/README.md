@@ -156,46 +156,21 @@ web client.
 
 ## Implementation notes
 
-Three things about this environment are worth knowing before changing the server.
-
-**stdout is reserved.** The stdio transport frames JSON-RPC on stdout, and `core` logs
-freely with `console.log` (56 call sites). `src/log.ts` pins every console channel to
-stderr, and `src/index.ts` installs that redirect *before* dynamically importing anything
-that pulls in core. Writing to stdout anywhere in this server will break the transport.
-
-**core's emitted JS is not directly loadable by Node.** It is compiled with
-`moduleResolution: "node"`, so its output contains extensionless relative imports
-(`from "./PouchDB"`). Vite resolves these, which is why frontendv2 works, but Node's ESM
-loader throws `ERR_MODULE_NOT_FOUND`. `src/resolver.ts` is a resolution hook that retries
-failed relative specifiers with `.js` and `/index.js`. It only runs after normal
-resolution fails, so it cannot shadow a correct resolution.
-
-The same mismatch affects types, which is why `tsconfig.json` uses `moduleResolution:
-"Bundler"` — under NodeNext, core's base classes fail to resolve and every *inherited*
-member silently disappears from the type.
-
-> The durable fix for both is to make `core` emit fully specified imports (add `.js` to
-> its relative imports and build with NodeNext). That is ~104 imports across 23 files and
-> would need frontendv2 re-verified, so it is deliberately not done here. Once it is, this
-> resolver hook and the `Bundler` setting can both go away.
->
-> The fetch shim is a different matter: it belongs wherever `core` is used from Node, and
-> should move into `core` if anything else grows a Node entry point.
-
-**PouchDB cannot read attachments from Node's built-in fetch.** PouchDB 9.0.0 chooses how
-to read an attachment body with `if ('buffer' in response)` — the node-fetch v2 API. Node
-18+ ships undici, whose `Response` has no `.buffer()`, so PouchDB takes the browser branch,
-produces a `Blob`, and hands it to `binaryMd5`, which calls Node's crypto and throws
-`ERR_INVALID_ARG_TYPE`. The rejection escapes the replication promise, so the sync hangs
-rather than failing. `src/fetch-compat.ts` restores a lazy `.buffer()` on fetch responses,
-which puts PouchDB back on the Node branch. Only decks carrying attachments hit this; the
-browser client is unaffected, since there a Blob is correct. 9.0.0 is the latest release,
-so there is no upstream fix to take yet.
+**stdout is reserved.** The stdio transport frames JSON-RPC on stdout, so nothing else may
+be written there. core routes its diagnostics through a sink you can replace
+(`setLogSink` in `core/utils/log.js`); `src/log.ts` points that at stderr, which Claude
+Desktop surfaces in its MCP logs. Writing to stdout anywhere in this server will break the
+transport.
 
 **Local databases are CWD-relative.** core's `getOrCreateDB` calls `new PouchDB(name)`
 with no prefix, and the Node LevelDB adapter creates a directory per database relative to
 the process CWD — which Claude Desktop sets arbitrarily. `ensureDataDir()` therefore
 `chdir`s into the data directory once before any database is opened.
+
+Two earlier workarounds have been fixed in core itself and no longer live here: core now
+emits fully specified imports, so Node loads it without a resolution hook and this package
+uses ordinary `moduleResolution: "NodeNext"`; and core patches PouchDB's attachment
+reading for Node's built-in fetch, so replicating attachments works from any Node host.
 
 ## Known limitations
 

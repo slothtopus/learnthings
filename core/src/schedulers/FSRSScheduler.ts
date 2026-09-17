@@ -1,3 +1,4 @@
+import { log } from "../utils/log.js";
 import type {
   Card as FSRSCard,
   CardInput as FSRSCardInput,
@@ -6,8 +7,8 @@ import type {
   Grade as FSRSGrade,
   FSRSParameters,
 } from "ts-fsrs";
-import type { Card } from "../Card";
-import { floorDateTime } from "../utils/time";
+import type { Card } from "../Card.js";
+import { floorDateTime } from "../utils/time.js";
 
 import { DateTime } from "luxon";
 import { isEqual, sample, shuffle } from "lodash-es";
@@ -17,9 +18,9 @@ import {
   Rating as FSRSRating,
   generatorParameters,
 } from "ts-fsrs";
-import { PersistableObject, PersistedObject } from "../object_manager/PersistableObject";
-import type { ObjectManager } from "../object_manager/ObjectManager";
-import {Scheduler} from './Scheduler'
+import { PersistableObject, PersistedObject } from "../object_manager/PersistableObject.js";
+import type { ObjectManager } from "../object_manager/ObjectManager.js";
+import {Scheduler} from './Scheduler.js'
 
 export enum SchedulerErrorType {
   NO_CARDS_LEFT = "NO_CARDS_LEFT",
@@ -443,7 +444,7 @@ export class FSRSScheduler extends Scheduler<SerialisedFSRSScheduler> {
     const selectedNewCards = sortedNewCards.slice(0, n);
 
     if (selectedNewCards.length < n) {
-      console.warn(
+      log.warn(
         `addNewCardsToSession(${n}): can only add ${selectedNewCards.length} new cards to session`
       );
     }
@@ -470,13 +471,13 @@ export class FSRSScheduler extends Scheduler<SerialisedFSRSScheduler> {
     const eligibleCards = this.sessionCards.filter((c) => c.isDue(dueAt));
     let filteredEligibleCards = [...eligibleCards];
 
-    console.log(
+    log.debug(
       `nextCard(): reviewSequenceCount = ${this.currentSession.reviewSequenceCount}`
     );
     /*console.log(
       `eligibleCards ${eligibleCards.length}:`,
       eligibleCards.forEach((c) =>
-        console.log(
+        log.debug(
           `${c.card.getId()}: due = ${c.getDue().toISO()}, sequence = ${
             c.lastReviewSequence
           }`
@@ -504,7 +505,7 @@ export class FSRSScheduler extends Scheduler<SerialisedFSRSScheduler> {
     /*console.log(
       `After review interval filter (${filteredEligibleCards.length}):`,
       filteredEligibleCards.forEach((c) =>
-        console.log(
+        log.debug(
           `${c.card.getId()}: due = ${c.getDue().toISO()}, sequence = ${
             c.lastReviewSequence
           }`
@@ -528,7 +529,7 @@ export class FSRSScheduler extends Scheduler<SerialisedFSRSScheduler> {
       /*console.log(
         `After adding session not due (${filteredEligibleCards.length}):`,
         filteredEligibleCards.forEach((c) =>
-          console.log(
+          log.debug(
             `${c.card.getId()}: due = ${c.getDue().toISO()}, sequence = ${
               c.lastReviewSequence
             }`
@@ -550,7 +551,7 @@ export class FSRSScheduler extends Scheduler<SerialisedFSRSScheduler> {
       /*console.log(
         `After adding non session not due (${filteredEligibleCards.length}):`,
         filteredEligibleCards.forEach((c) =>
-          console.log(
+          log.debug(
             `${c.card.getId()}: due = ${c.getDue().toISO()}, sequence = ${
               c.lastReviewSequence
             }`
@@ -626,19 +627,19 @@ export class FSRSScheduler extends Scheduler<SerialisedFSRSScheduler> {
         rating
       );
 
-      console.log(
+      log.debug(
         `card ${ratedCard.id}: rated ${ratingValue} @ ${ratedAt.toFormat(
           "yyyy-LL-dd HH:mm:ss"
         )}`
       );
-      console.log("before update:", cardMeta.serialise());
+      log.debug("before update:", cardMeta.serialise());
       cardMeta.updateFromFSRSCard(card);
-      console.log(`after update:`, cardMeta.serialise());
+      log.debug(`after update:`, cardMeta.serialise());
 
       ratedCard.setCardMeta(FSRSCardMeta.metaKey, cardMeta.serialise());
       await this.deck.persist();
     } else {
-      console.log("Not rated because not due");
+      log.debug("Not rated because not due");
     }
     await this.deck.persist();
   }

@@ -1,4 +1,5 @@
-import { PersistableObject } from "./PersistableObject";
+import { log } from "../utils/log.js";
+import { PersistableObject } from "./PersistableObject.js";
 import { isEqual, pick } from "lodash-es";
 
 export class ProgressMonitor {
@@ -49,7 +50,7 @@ export function cacheByVersion(doctypes: string[] = ["default"]) {
         version: currentVersion,
         result,
       } as CacheEntry<Ret>;
-      console.log(
+      log.debug(
         `caching ${String(prop)} for version ${JSON.stringify(currentVersion)}`,
       );
       return result;

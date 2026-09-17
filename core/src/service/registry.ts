@@ -1,3 +1,4 @@
+import { log } from "../utils/log.js";
 import {
   getOrCreateDB,
   getPouchDB,
@@ -6,7 +7,8 @@ import {
   buildMetaDBName,
   getOrCreateLocalDeckDB,
   clearAndCloseDBCache,
-} from "./PouchDB";
+  withNodeFetchCompat,
+} from "./PouchDB.js";
 
 
 export type TokenGenerator = () => Promise<string | undefined>;
@@ -156,9 +158,11 @@ export class PouchDeckRegistry {
     const PouchDB = await getPouchDB();
     return new PouchDB(`${this.url}/${name}`, {
       auth: this.auth,
+      // Every response is passed through withNodeFetchCompat so PouchDB can
+      // read attachment bodies under Node; see its comment in ./PouchDB.ts.
       fetch: async (url, opts) => {
         if (this.directMode) {
-          return fetch(url, opts);
+          return withNodeFetchCompat(await fetch(url, opts));
         } else {
           const headers = new Headers(opts?.headers);
           headers.append("x-user-id", this.userId);
@@ -166,7 +170,9 @@ export class PouchDeckRegistry {
           if (token) {
             headers.set("Authorization", `Bearer ${token}`);
           }
-          return fetch(url, { ...opts, credentials: "omit", headers });
+          return withNodeFetchCompat(
+            await fetch(url, { ...opts, credentials: "omit", headers }),
+          );
         }
       },
     });
@@ -174,7 +180,7 @@ export class PouchDeckRegistry {
 
   async initialiseSync(localDB: PouchDB.Database) {
     const remoteDB = await this.createNewRemoteDB(localDB.name);
-    console.log(`registry.syncDBs: ${localDB.name} <--> ${remoteDB.name}`);
+    log.debug(`registry.syncDBs: ${localDB.name} <--> ${remoteDB.name}`);
     await this.syncDBs(localDB, remoteDB);
     this.startLiveSync(localDB, remoteDB);
   }
@@ -199,19 +205,19 @@ export class PouchDeckRegistry {
         retry: true,
       })
       .on("change", function (change) {
-        console.log("SYNC change:", change);
+        log.debug("SYNC change:", change);
       })
       .on("paused", function (info) {
         // replication was paused, usually because of a lost connection
-        console.log("SYNC paused:", info);
+        log.debug("SYNC paused:", info);
       })
       // @ts-ignore
       .on("active", function (info) {
-        console.log("SYNC active:", info);
+        log.debug("SYNC active:", info);
         // replication was resumed
       })
       .on("error", function (err) {
-        console.log("SYNC error:", err);
+        log.debug("SYNC error:", err);
         // totally unhandled error (shouldn't happen)
       });
     this._syncHandlers.push({ handler, localDB, remoteDB });

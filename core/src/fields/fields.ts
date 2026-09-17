@@ -3,7 +3,7 @@ import {
   AttachmentField,
   InlineFieldContent,
   AttachmentFieldContent,
-} from "./base";
+} from "./base.js";
 
 export class TextField extends NoteField<null, TextFieldContent> {
   static subtype = "text";

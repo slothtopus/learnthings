@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES6", // Sets ECMAScript target version
-    "module": "ESNext", // Sets module system for the project
-    "moduleResolution": "node", // Resolves modules similar to Node.js
+    "module": "NodeNext", // Node-correct ESM output
+    "moduleResolution": "NodeNext", // Requires fully specified relative imports, so build/ is loadable by Node as well as by bundlers
     "outDir": "./build", // Output directory for compiled code
     "strict": true, // Enable strict type checking
     "esModuleInterop": true, // Allows default imports from CommonJS modules

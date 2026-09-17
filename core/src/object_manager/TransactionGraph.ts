@@ -1,5 +1,6 @@
-import type { ObjectManager } from "./ObjectManager";
-import type { PersistableObject } from "./PersistableObject";
+import { log } from "../utils/log.js";
+import type { ObjectManager } from "./ObjectManager.js";
+import type { PersistableObject } from "./PersistableObject.js";
 
 export class TransactionGraphV4 {
   objects: PersistableObject<any>[];
@@ -84,9 +85,9 @@ export class TransactionGraphV4 {
         .getObjectById(id)
         .toString()}`;
 
-    console.log("-------------------------------------------------");
-    console.log("> Nodes");
-    Array.from(this.nodesSet.values()).forEach((n) => console.log(idToString(n)));
+    log.debug("-------------------------------------------------");
+    log.debug("> Nodes");
+    Array.from(this.nodesSet.values()).forEach((n) => log.debug(idToString(n)));
 
     const edgesLeft: string[] = [];
     const edgesRight: string[] = [];
@@ -97,12 +98,12 @@ export class TransactionGraphV4 {
       });
     });
 
-    console.log("\n> Edges left");
-    edgesLeft.forEach((e) => console.log(e));
+    log.debug("\n> Edges left");
+    edgesLeft.forEach((e) => log.debug(e));
 
-    console.log("\n> Edges right");
-    edgesRight.forEach((e) => console.log(e));
+    log.debug("\n> Edges right");
+    edgesRight.forEach((e) => log.debug(e));
 
-    console.log("-------------------------------------------------");
+    log.debug("-------------------------------------------------");
   }
 }

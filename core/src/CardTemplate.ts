@@ -1,24 +1,25 @@
-import { PersistableObject } from "./object_manager/PersistableObject";
-import { ObjectManager } from "./object_manager/ObjectManager";
-import { cacheByVersion } from "./object_manager/utils";
-import type { Note } from "./Note";
-import type { NoteFieldContent } from "./fields/base";
-import type { NoteType } from "./NoteType";
-import type { Card } from "./Card";
+import { log } from "./utils/log.js";
+import { PersistableObject } from "./object_manager/PersistableObject.js";
+import { ObjectManager } from "./object_manager/ObjectManager.js";
+import { cacheByVersion } from "./object_manager/utils.js";
+import type { Note } from "./Note.js";
+import type { NoteFieldContent } from "./fields/base.js";
+import type { NoteType } from "./NoteType.js";
+import type { Card } from "./Card.js";
 import {
   TextFieldContent,
-} from "./fields/fields";
-import { AttachmentFieldContent, GeneratedAttachmentFieldContent } from "./fields/base";
+} from "./fields/fields.js";
+import { AttachmentFieldContent, GeneratedAttachmentFieldContent } from "./fields/base.js";
 import type {
   PersistedObject,
   NoReservedKeys,
-} from "./object_manager/PersistableObject";
+} from "./object_manager/PersistableObject.js";
 
 import Handlebars from "handlebars";
 import { isEqual } from "lodash-es";
-import type { AttachmentData } from "./utils/attachments";
-import { AttachmentDocument } from "./Attachment";
-import type { SerialisedAttachmentDocument } from "./Attachment";
+import type { AttachmentData } from "./utils/attachments.js";
+import { AttachmentDocument } from "./Attachment.js";
+import type { SerialisedAttachmentDocument } from "./Attachment.js";
 
 
 //##########################################################################
@@ -299,7 +300,7 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
         context,
       });
     } catch (err) {
-      console.error(err);
+      log.error(err);
     }
     return renderedCard;
   }
@@ -573,13 +574,13 @@ export class CardTemplateVariant extends PersistableObject<SerialisedCardTemplat
         settings: defaultSettings,
       });
       widgetSettings = this.objectManager.setObject(widgetSettings);
-      console.log(
+      log.debug(
         `created new widget settings with id ${
           widgetSettings.id
         } and meta ${widgetSettings.getMeta()}`,
       );
     } else {
-      console.log(
+      log.debug(
         `got existing widget settings with id ${
           widgetSettings.id
         } and meta ${widgetSettings.getMeta()}`,

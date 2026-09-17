@@ -1,13 +1,13 @@
-import { PersistableObject } from "../object_manager/PersistableObject";
-import type { PersistedObject } from "../object_manager/PersistableObject";
-import type { ObjectManager } from "../object_manager/ObjectManager";
+import { PersistableObject } from "../object_manager/PersistableObject.js";
+import type { PersistedObject } from "../object_manager/PersistableObject.js";
+import type { ObjectManager } from "../object_manager/ObjectManager.js";
 
-import type { NoteType } from "../NoteType";
-import type { Note } from "../Note";
+import type { NoteType } from "../NoteType.js";
+import type { Note } from "../Note.js";
 
-import { combineIds } from "../utils/ids";
-import { areMimeTypesEqual } from "../utils/attachments";
-import type { AttachmentData } from "../utils/attachments";
+import { combineIds } from "../utils/ids.js";
+import { areMimeTypesEqual } from "../utils/attachments.js";
+import type { AttachmentData } from "../utils/attachments.js";
 
 import { isEqual, omit } from "lodash-es";
 

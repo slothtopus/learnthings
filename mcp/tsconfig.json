@@ -1,12 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    // core ships .d.ts files with extensionless relative imports
-    // (built with moduleResolution "node"), which NodeNext cannot follow —
-    // inherited members would silently disappear. Bundler resolution matches
-    // what frontendv2 uses. Emitted code is still plain Node ESM.
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "lib": ["ES2023"],
     "types": ["node", "pouchdb"],
     "outDir": "./build",

@@ -1,6 +1,6 @@
-import { PersistableObject, PersistedObject } from "./object_manager/PersistableObject";
-import type { ObjectManager } from "./object_manager/ObjectManager";
-import type { AttachmentData } from "./utils/attachments";
+import { PersistableObject, PersistedObject } from "./object_manager/PersistableObject.js";
+import type { ObjectManager } from "./object_manager/ObjectManager.js";
+import type { AttachmentData } from "./utils/attachments.js";
 
 export type SerialisedAttachmentMetaData = {
   filename: string;

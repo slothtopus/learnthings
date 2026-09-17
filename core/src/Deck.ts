@@ -1,16 +1,17 @@
-import type { ObjectManager } from "./object_manager/ObjectManager";
-import { cacheByVersion } from "./object_manager/utils";
-import type { ProgressMonitor } from "./object_manager/utils";
+import { log } from "./utils/log.js";
+import type { ObjectManager } from "./object_manager/ObjectManager.js";
+import { cacheByVersion } from "./object_manager/utils.js";
+import type { ProgressMonitor } from "./object_manager/utils.js";
 import {
   PersistableObject,
   type CreatablePersistableObjectConstructor,
   type PersistedObject,
-} from "./object_manager/PersistableObject";
-import { NoteType } from "./NoteType";
-import type { Note } from "./Note";
-import type { Card } from "./Card";
-import { FSRSScheduler } from "./schedulers/FSRSScheduler";
-import type { Scheduler } from "./schedulers/Scheduler";
+} from "./object_manager/PersistableObject.js";
+import { NoteType } from "./NoteType.js";
+import type { Note } from "./Note.js";
+import type { Card } from "./Card.js";
+import { FSRSScheduler } from "./schedulers/FSRSScheduler.js";
+import type { Scheduler } from "./schedulers/Scheduler.js";
 
 export type SerialisedDeck = {
   name: string;
@@ -93,7 +94,7 @@ export class Deck extends PersistableObject<SerialisedDeck> {
 
   createMissingCards() {
     this.getAllNotes().flatMap((n) => n.getAllCards());
-    console.log("new cards created");
+    log.debug("new cards created");
   }
 
   async persist(progressMonitor?: ProgressMonitor) {

@@ -1,14 +1,14 @@
 import {
   GeneratedAttachmentField,
   GeneratedAttachmentFieldContent,
-} from "./base";
-import { TextField } from "./fields";
+} from "./base.js";
+import { TextField } from "./fields.js";
 
-import { Note } from "../Note";
+import { Note } from "../Note.js";
 
-import { GeminiTtsRequestInput } from "../generators/GoogleTextToSpeech";
-import { GoogleTextToSpeech } from "../generators/GoogleTextToSpeech";
-import { bufferToBlob } from "../utils/attachments";
+import { GeminiTtsRequestInput } from "../generators/GoogleTextToSpeech.js";
+import { GoogleTextToSpeech } from "../generators/GoogleTextToSpeech.js";
+import { bufferToBlob } from "../utils/attachments.js";
 
 import { omit, isEqual } from "lodash-es";
 
