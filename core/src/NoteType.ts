@@ -8,9 +8,12 @@ import type {
 import { AnyNoteField } from "./fields/base.js";
 import { Note } from "./Note.js";
 import { CardTemplate } from "./CardTemplate.js";
+import { slugify, uniqueSlug } from "./utils/slug.js";
 
 export type SerialisedNoteType = {
   name: string;
+  /** What kind of note this is, and what its fields are for. */
+  description?: string;
   objects?: any[];
 } & PersistedObject;
 
@@ -20,6 +23,7 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
 
   shouldPersistIfUnsaved = true;
   name: string;
+  description?: string;
 
   get relatedIds() {
     return [this.deck.id];
@@ -29,14 +33,21 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
     return this.id;
   }
 
-  static createNew(objectManager: ObjectManager, { name }: { name: string }) {
-    return new NoteType({ ...PersistableObject.create(), name }, objectManager);
+  static createNew(
+    objectManager: ObjectManager,
+    { name, description }: { name: string; description?: string },
+  ) {
+    return new NoteType(
+      { ...PersistableObject.create(), name, description },
+      objectManager,
+    );
   }
 
   constructor(serialised: SerialisedNoteType, objectManager: ObjectManager) {
     super(serialised, objectManager);
-    const { name } = serialised;
+    const { name, description } = serialised;
     this.name = name;
+    this.description = description;
   }
 
   setName(name: string) {
@@ -46,12 +57,29 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
     this.name = name;
   }
 
+  setDescription(description: string | undefined) {
+    const next = description?.trim() ? description.trim() : undefined;
+    if (next !== this.description) {
+      this.description = next;
+      this.markDirty();
+    }
+  }
+
+  /** A template-safe slug derived from `name` that no existing field uses. */
+  availableFieldSlug(name: string) {
+    return uniqueSlug(
+      slugify(name),
+      this.getAllFields().map((f) => f.slug),
+    );
+  }
+
   serialise(
     ...args: Parameters<PersistableObject<any>["serialise"]>
   ): SerialisedNoteType {
     return {
       ...super.serialise(...args),
       name: this.name,
+      description: this.description,
     };
   }
 
@@ -62,12 +90,15 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
     name: string,
     fieldClass: CreatablePersistableObjectConstructor<T, any>,
     options: Omit<O, "name" | "noteTypeId"> & { __brand?: never },
+    { slug, description }: { slug?: string; description?: string } = {},
   ) {
     const field = fieldClass.createNew(this.objectManager, {
       ...(options ?? {}),
       name,
       noteTypeId: this.id,
-    } as O);
+      slug: slug ?? this.availableFieldSlug(name),
+      description,
+    } as unknown as O);
     this.objectManager.setObject(field);
     return field as T;
   }

@@ -8,8 +8,11 @@ import { useDialogForm } from '@/composables/useFormDialog'
 
 export type AddFieldFormData = {
   name: string
+  /** What card templates use to reference the field, e.g. {{front}}. */
   slug: string
-  fieldType: 'text' | 'image' | 'audio' | 'text-to-audio' 
+  /** What belongs in this field. Shown in the editor and given to agents. */
+  description: string
+  fieldType: 'text' | 'image' | 'audio' | 'text-to-audio'
 }
 
 const { formData, submit, cancel, hasChanged } = useDialogForm<AddFieldFormData>()
@@ -24,8 +27,10 @@ watch(
       formData.slug = name
         .toLowerCase()
         .trim()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9\\-]/g, '')
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '')
     }
   },
 )
@@ -85,6 +90,19 @@ const fieldTypes: {
           </div>
           <p class="text-xs font-light text-on-surface-variant/60 italic">
             This is how you reference the field in your card templates.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <AppInput
+            v-model="formData.description"
+            label="Description"
+            placeholder="What goes in this field?"
+            :multiline="true"
+            :rows="2"
+          />
+          <p class="text-xs font-light text-on-surface-variant/60 italic">
+            Explains the field to anyone &mdash; or anything &mdash; filling it in later.
           </p>
         </div>
       </div>

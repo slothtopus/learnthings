@@ -16,6 +16,8 @@ import type { AddFieldFormData } from '@/components/note-editor/AddFieldDialog.v
 import CreateCardDialog from '@/components/note-editor/CreateCardDialog.vue'
 import type { CreateCardTemplateFormData } from '@/components/note-editor/CreateCardDialog.vue'
 import CardTemplateCard from '@/components/note-editor/CardTemplateCard.vue'
+import FieldSettingsForm from '@/components/note-editor/FieldSettingsForm.vue'
+import type { FieldSettingsFormData } from '@/components/note-editor/FieldSettingsForm.vue'
 
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 import { useFormDialog } from '@/composables/useFormDialog'
@@ -60,16 +62,39 @@ const isImageField = (field: AnyNoteField): field is ImageAttachmentField => fie
 const isAudioField = (field: AnyNoteField): field is AudioAttachmentField => field instanceof AudioAttachmentField
 const isTtsField = (field: AnyNoteField): field is TextToSpeechField => field instanceof TextToSpeechField
 
+const fieldSettingsDialog = useFormDialog<FieldSettingsFormData>(FieldSettingsForm)
+const handleFieldSettings = async (field: AnyNoteField) => {
+  const result = await fieldSettingsDialog.open({
+    name: field.name,
+    slug: field.slug,
+    description: field.description ?? '',
+  })
+  if (result.cancelled) return
+  const { name, slug, description } = result.data
+  try {
+    // Name first: renaming pins the slug of a field that predates slugs, so
+    // setting it explicitly afterwards wins.
+    field.setName(name.trim())
+    field.setSlug(slug.trim())
+    field.setDescription(description)
+  } catch (err) {
+    window.alert((err as Error).message)
+    return
+  }
+  await deck.persist()
+}
+
 const addFieldDialog = useFormDialog<AddFieldFormData>(AddFieldDialog)
 const handleAddField = async () => {
-  const result = await addFieldDialog.open({ name: '', slug: '', fieldType: 'text' })
+  const result = await addFieldDialog.open({ name: '', slug: '', description: '', fieldType: 'text' })
   if (!result.cancelled) {
-    const { name } = result.data
+    const { name, slug, description } = result.data
+    const extra = { slug: slug.trim() || undefined, description }
     switch (result.data.fieldType) {
-      case 'text':          noteType.createNewField(name, TextField, {}); break
-      case 'image':         noteType.createNewField(name, ImageAttachmentField, {}); break
-      case 'audio':         noteType.createNewField(name, AudioAttachmentField, {}); break
-      case 'text-to-audio': noteType.createNewField(name, TextToSpeechField, TextToSpeechField.defaultOptions); break
+      case 'text':          noteType.createNewField(name, TextField, {}, extra); break
+      case 'image':         noteType.createNewField(name, ImageAttachmentField, {}, extra); break
+      case 'audio':         noteType.createNewField(name, AudioAttachmentField, {}, extra); break
+      case 'text-to-audio': noteType.createNewField(name, TextToSpeechField, TextToSpeechField.defaultOptions, extra); break
     }
     await deck.persist()
   }
@@ -189,9 +214,9 @@ const tagOptions = [
         />
         <template v-if="viewMode === 'field'">
           <template v-for="field in noteType.getAllFields()" :key="field.id">
-            <TextFieldComponent v-if="isTextField(field)" :field="field" :note="noteWrapper.note" />
-            <ImageFieldComponent v-else-if="isImageField(field)" :field="field" :note="noteWrapper.note" />
-            <AudioFieldComponent v-else-if="isAudioField(field)" :field="field" :note="noteWrapper.note" />
+            <TextFieldComponent v-if="isTextField(field)" :field="field" :note="noteWrapper.note" @settings="handleFieldSettings(field)" />
+            <ImageFieldComponent v-else-if="isImageField(field)" :field="field" :note="noteWrapper.note" @settings="handleFieldSettings(field)" />
+            <AudioFieldComponent v-else-if="isAudioField(field)" :field="field" :note="noteWrapper.note" @settings="handleFieldSettings(field)" />
             <TextToSpeechFieldComponent
               v-else-if="isTtsField(field)"
               :field="field"

@@ -15,6 +15,8 @@ import type { Scheduler } from "./schedulers/Scheduler.js";
 
 export type SerialisedDeck = {
   name: string;
+  /** What this deck covers. Shown in the library and given to agents. */
+  description?: string;
   activeSchedulerId?: string;
   objects?: any[];
 } & PersistedObject;
@@ -25,6 +27,7 @@ export class Deck extends PersistableObject<SerialisedDeck> {
 
   shouldPersistIfUnsaved = true;
   name: string;
+  description?: string;
 
   activeSchedulerId?: string;
   getActiveScheduler() {
@@ -51,17 +54,29 @@ export class Deck extends PersistableObject<SerialisedDeck> {
 
   static createNew(
     objectManager: ObjectManager,
-    { id, name }: { id?: string; name: string },
+    { id, name, description }: { id?: string; name: string; description?: string },
   ) {
-    return new Deck({ ...PersistableObject.create(id), name }, objectManager);
+    return new Deck(
+      { ...PersistableObject.create(id), name, description },
+      objectManager,
+    );
   }
 
   constructor(serialisedDeck: SerialisedDeck, objectManager: ObjectManager) {
     super(serialisedDeck, objectManager);
     this.objectManager = objectManager;
-    const { name, activeSchedulerId } = serialisedDeck;
+    const { name, description, activeSchedulerId } = serialisedDeck;
     this.name = name;
+    this.description = description;
     this.activeSchedulerId = activeSchedulerId;
+  }
+
+  setDescription(description: string | undefined) {
+    const next = description?.trim() ? description.trim() : undefined;
+    if (next !== this.description) {
+      this.description = next;
+      this.markDirty();
+    }
   }
 
   setName(name: string) {
@@ -107,6 +122,7 @@ export class Deck extends PersistableObject<SerialisedDeck> {
     return {
       ...super.serialise(...args),
       name: this.name,
+      description: this.description,
       activeSchedulerId: this.activeSchedulerId,
     };
   }

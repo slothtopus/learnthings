@@ -18,6 +18,30 @@ of the loaded `Deck` objects.
 | `logout` | Clear the session and delete cached credentials. |
 | `sync_decks` | Reconcile decks between the server and the local copy, both directions, then load them. One-shot by default. |
 | `list_decks` | List locally loaded decks with note type, note and card counts. Local reads only. |
+| `describe_deck` | Show a deck's note types, their fields, what each field holds, and which fields each card template displays. |
+| `create_note` | Add a note to a note type, filling its text fields. Cards are generated automatically. |
+
+### Creating notes
+
+`create_note` takes values keyed by field. Every field has two names — a display
+name for people, and a **slug** that card templates reference as `{{slug}}` — and the slug
+is canonical, though the display name is accepted too. `describe_deck` shows both, along
+with each field's description, which is what makes the difference between filling a note
+correctly and putting the answer in the prompt field.
+
+Everything is validated before anything is written: unknown fields, non-text fields and
+empty values are all rejected with the reason, and nothing partial is left behind. This
+matters because a note with no content deletes itself on save.
+
+Only text fields can be set. Image and audio fields are reported as read-only, and
+generated audio fields fill themselves from a text field.
+
+Notes are saved locally. Run `sync_decks` again to send them to the server — there is
+deliberately no automatic sync.
+
+The server also ships a description of the domain model — decks, note types, fields,
+notes, card templates, variants and cards — in its MCP `instructions`, so a model knows
+how the pieces fit together without spending a tool call to ask.
 
 ### Sync model
 

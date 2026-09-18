@@ -3,7 +3,7 @@
   "name": "learnthings",
   "display_name": "learnthings decks",
   "version": "0.1.0",
-  "description": "Sync and inspect your learnthings flashcard decks.",
+  "description": "Sync your learnthings flashcard decks and add notes to them.",
   "long_description": "Signs in to learnthings and keeps a local copy of your decks, replicated from the server. Sync is a single pass that leaves nothing running in the background; run it again to push later work back up and pick up changes made elsewhere.",
   "author": {
     "name": "Russell Keeley"
@@ -55,6 +55,14 @@
     {
       "name": "list_decks",
       "description": "List locally synced decks with note, card and note-type counts."
+    },
+    {
+      "name": "describe_deck",
+      "description": "Show a deck's note types, their fields and what each field holds."
+    },
+    {
+      "name": "create_note",
+      "description": "Add a note to a note type, filling its text fields."
     }
   ],
   "user_config": {

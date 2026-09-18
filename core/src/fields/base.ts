@@ -6,6 +6,7 @@ import type { NoteType } from "../NoteType.js";
 import type { Note } from "../Note.js";
 
 import { combineIds } from "../utils/ids.js";
+import { slugify, isValidSlug } from "../utils/slug.js";
 import { areMimeTypesEqual } from "../utils/attachments.js";
 import type { AttachmentData } from "../utils/attachments.js";
 
@@ -17,6 +18,13 @@ type MaybePromise<T> = T | Promise<T>;
 export type SerialisedNoteField<TOptions> = {
   noteTypeId: string;
   name: string;
+  /**
+   * The name card templates reference, e.g. `{{front}}`. Optional for fields
+   * created before slugs existed; see NoteField.slug for how those behave.
+   */
+  slug?: string;
+  /** What this field is for. Shown in the editor and given to agents. */
+  description?: string;
   options: TOptions;
 } & PersistedObject;
 
@@ -66,6 +74,21 @@ export abstract class NoteField<
   name: string;
   options: TOptions;
   noteTypeId: string;
+  description?: string;
+
+  /**
+   * Explicitly set slug. Undefined for fields predating slugs — `slug` then
+   * falls back to the name, which is what their templates already reference.
+   */
+  protected _slug?: string;
+
+  /**
+   * The name card templates reference. Falls back to the display name so that
+   * templates written before slugs existed keep resolving.
+   */
+  get slug(): string {
+    return this._slug ?? this.name;
+  }
 
   get noteType() {
     return this.objectManager.getObjectById(this.noteTypeId) as NoteType;
@@ -82,13 +105,25 @@ export abstract class NoteField<
   static createNew<TOptions, TSelf extends NoteField<TOptions, any, any>>(
     this: NoteFieldStatic<TOptions, TSelf>,
     objectManager: ObjectManager,
-    { name, noteTypeId }: { name: string; noteTypeId: string },
+    {
+      name,
+      noteTypeId,
+      slug,
+      description,
+    }: {
+      name: string;
+      noteTypeId: string;
+      slug?: string;
+      description?: string;
+    },
   ): TSelf {
     return new this(
       {
         ...PersistableObject.create(),
         name,
         noteTypeId,
+        slug: slug ?? slugify(name),
+        description,
         options: this.defaultOptions,
       } as any,
       objectManager,
@@ -97,10 +132,12 @@ export abstract class NoteField<
 
   constructor(serialised: TSerialised, objectManager: ObjectManager) {
     super(serialised, objectManager);
-    const { name, noteTypeId, options } = serialised;
+    const { name, noteTypeId, options, slug, description } = serialised;
     this.noteTypeId = noteTypeId;
     this.name = name;
     this.options = options;
+    this._slug = slug;
+    this.description = description;
   }
 
   serialise(
@@ -110,6 +147,8 @@ export abstract class NoteField<
       ...super.serialise(...args),
       noteTypeId: this.noteTypeId,
       name: this.name,
+      slug: this._slug,
+      description: this.description,
       options: this.options,
     };
   }
@@ -145,7 +184,42 @@ export abstract class NoteField<
 
   setName(name: string) {
     if (name !== this.name) {
+      // A field predating slugs is referenced in templates by its current
+      // name. Pin the slug to that name before renaming, so the rename stays
+      // a display-only change instead of breaking every template using it.
+      if (this._slug === undefined) {
+        this._slug = this.name;
+      }
       this.name = name;
+      this.markDirty();
+    }
+  }
+
+  setSlug(slug: string) {
+    if (!isValidSlug(slug)) {
+      throw new Error(
+        `"${slug}" cannot be used in a card template. Use letters, numbers and ` +
+          `underscores, starting with a letter or underscore.`,
+      );
+    }
+    const clash = this.noteType
+      .getAllFields()
+      .find((f) => f !== this && f.slug === slug);
+    if (clash) {
+      throw new Error(
+        `Template name "${slug}" is already used by the field "${clash.name}".`,
+      );
+    }
+    if (slug !== this._slug) {
+      this._slug = slug;
+      this.markDirty();
+    }
+  }
+
+  setDescription(description: string | undefined) {
+    const next = description?.trim() ? description.trim() : undefined;
+    if (next !== this.description) {
+      this.description = next;
       this.markDirty();
     }
   }

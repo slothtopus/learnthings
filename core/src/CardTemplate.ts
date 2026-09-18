@@ -217,7 +217,9 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
   }
 
   async renderFieldContent(fieldContent: NoteFieldContent<any, any, any, any>) {
-    const name = fieldContent.field.name;
+    // Templates reference fields by slug, not display name, so a field can be
+    // renamed without breaking the templates that use it.
+    const name = fieldContent.field.slug;
     if (fieldContent instanceof TextFieldContent) {
       return { name, content: fieldContent.getContent() || "" };
     } else if (

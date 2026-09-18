@@ -12,6 +12,7 @@ const props = defineProps<{
   field: ImageAttachmentField
   note: Note
 }>()
+defineEmits<{ settings: [] }>()
 
 const loading = ref(true)
 
@@ -52,7 +53,7 @@ const handleClear = async () => {
 </script>
 
 <template>
-  <NoteFieldWrapper :label="field.name">
+  <NoteFieldWrapper :label="field.name" @settings="$emit('settings')">
     <!-- Loaded state -->
     <div
       class="h-64 relative group/img rounded-sm overflow-hidden border border-outline-variant/20 bg-surface-container-lowest flex items-center justify-center"

@@ -6,12 +6,20 @@ import { auth } from "./auth.js";
 import { log } from "./log.js";
 import { registerAuthTools } from "./tools/auth.js";
 import { registerDeckTools } from "./tools/decks.js";
+import { registerNoteTools } from "./tools/notes.js";
+import { INSTRUCTIONS } from "./instructions.js";
 
 export const startServer = async () => {
-  const server = new McpServer({ name: "learnthings", version: "0.1.0" });
+  const server = new McpServer(
+    { name: "learnthings", version: "0.1.0" },
+    // Carried in the initialize result, so the model knows how decks, notes,
+    // fields, templates and cards relate before it calls anything.
+    { instructions: INSTRUCTIONS },
+  );
 
   registerAuthTools(server);
   registerDeckTools(server);
+  registerNoteTools(server);
 
   // Try to come up already authenticated; never fatal.
   const restored = await auth.restore();
