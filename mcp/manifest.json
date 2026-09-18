@@ -1,0 +1,75 @@
+{
+  "manifest_version": "0.4",
+  "name": "learnthings",
+  "display_name": "learnthings decks",
+  "version": "0.1.0",
+  "description": "Sync and inspect your learnthings flashcard decks.",
+  "long_description": "Signs in to learnthings and keeps a local copy of your decks, replicated from the server. Sync is a single pass that leaves nothing running in the background; run it again to push later work back up and pick up changes made elsewhere.",
+  "author": { "name": "Russell Keeley" },
+  "license": "UNLICENSED",
+  "keywords": ["flashcards", "spaced-repetition", "learnthings"],
+  "server": {
+    "type": "node",
+    "entry_point": "build/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/build/index.js"],
+      "env": {
+        "LEARNTHINGS_COUCH_HOST": "${user_config.couch_host}",
+        "LEARNTHINGS_USE_AUTH_EMULATOR": "${user_config.use_auth_emulator}",
+        "LEARNTHINGS_GOOGLE_CLIENT_ID": "${user_config.google_client_id}",
+        "LEARNTHINGS_GOOGLE_CLIENT_SECRET": "${user_config.google_client_secret}",
+        "LEARNTHINGS_DATA_DIR": "${user_config.data_dir}"
+      }
+    }
+  },
+  "tools": [
+    { "name": "login", "description": "Sign in with an email address and password." },
+    { "name": "login_with_google", "description": "Sign in with a Google account via the browser." },
+    { "name": "auth_status", "description": "Show who is signed in and which backend is in use." },
+    { "name": "logout", "description": "Sign out and clear the saved session." },
+    { "name": "sync_decks", "description": "Reconcile decks between the server and the local copy, then load them." },
+    { "name": "list_decks", "description": "List locally synced decks with note, card and note-type counts." }
+  ],
+  "user_config": {
+    "couch_host": {
+      "type": "string",
+      "title": "Backend URL",
+      "description": "The learnthings proxy in front of CouchDB. Use http://localhost:3000 for the local stack.",
+      "default": "https://206.189.211.160.nip.io",
+      "required": true
+    },
+    "use_auth_emulator": {
+      "type": "boolean",
+      "title": "Use the local Firebase auth emulator",
+      "description": "Only for the local development stack. Real Google sign-in needs this off, and a backend running against real Firebase.",
+      "default": false,
+      "required": false
+    },
+    "google_client_id": {
+      "type": "string",
+      "title": "Google OAuth client ID",
+      "description": "An OAuth client of type 'Desktop app'. Needed only for Google sign-in against the real backend.",
+      "required": false
+    },
+    "google_client_secret": {
+      "type": "string",
+      "title": "Google OAuth client secret",
+      "description": "Issued alongside the client ID above.",
+      "sensitive": true,
+      "required": false
+    },
+    "data_dir": {
+      "type": "directory",
+      "title": "Local deck storage",
+      "description": "Where the local copies of your decks are kept. Defaults to a folder in your home directory.",
+      "default": "${HOME}/.learnthings-mcp/data",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": { "node": ">=20.0.0" }
+  }
+}

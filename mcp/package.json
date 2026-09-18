@@ -3,12 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "bin": { "learnthings-mcp": "./build/index.js" },
+  "bin": {
+    "learnthings-mcp": "./build/index.js"
+  },
   "scripts": {
     "clean": "rimraf ./build",
     "build": "npm run clean && tsc",
     "watch": "tsc --watch",
-    "start": "node ./build/index.js"
+    "start": "node ./build/index.js",
+    "bundle": "npm run build && node scripts/bundle.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",

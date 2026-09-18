@@ -56,7 +56,34 @@ npm run build
 `core` must be built first (`cd ../core && npm run build`) — this package consumes
 `core/build`.
 
-## Claude Desktop configuration
+## Installing as a Claude Desktop extension
+
+The packaged form is an `.mcpb` bundle — a single file you drag onto
+**Settings → Extensions**. It carries its own dependencies and uses the Node runtime
+Claude Desktop ships, so there is no config file to edit and no Node path to hardcode.
+Settings are collected in the UI rather than from `.env`, and the Google client secret is
+stored by the OS rather than sitting in a file.
+
+```bash
+npm run bundle     # builds, stages a self-contained tree, writes learnthings.mcpb
+```
+
+`scripts/bundle.mjs` does the staging. The development layout cannot be packed as-is:
+`core` is a `file:` dependency, so npm links it as a symlink, and its `node_modules`
+carries build and test tooling. The script instead writes a fresh `package.json` holding
+the runtime dependencies of both packages, installs them production-only into a single
+hoisted tree, and copies `core/build` in as a real directory. The result is ~31MB packed.
+
+`leveldown`, PouchDB's storage engine, is a native module, but it ships N-API prebuilds
+for every platform and those are included, so the bundle is not tied to one machine's
+Node build.
+
+## Manual configuration (development)
+
+Editing the config file directly is still useful while working on the server, since it
+runs `build/` in place with no packing step.
+
+
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
