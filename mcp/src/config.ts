@@ -1,9 +1,28 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 
+/**
+ * A manifest can hand us `${user_config.foo}` for a setting the user left
+ * blank, and only a fixed set of placeholders (`${__dirname}` and the
+ * user_config ones) are ever expanded — `${HOME}` and friends are not. An
+ * unexpanded placeholder is not a value, so treat it as unset and fall back to
+ * the default rather than, say, creating a directory literally named "${HOME}".
+ *
+ * Passwords are exempt: "${" is unusual but legal in one.
+ */
+const UNEXPANDED = /\$\{[A-Za-z_][A-Za-z0-9_.]*\}/;
+
 const env = (key: string) => {
   const v = process.env[key];
-  return v === undefined || v.trim() === "" ? undefined : v.trim();
+  if (v === undefined || v.trim() === "") return undefined;
+  const value = v.trim();
+  if (key !== "LEARNTHINGS_PASSWORD" && UNEXPANDED.test(value)) {
+    process.stderr.write(
+      `[learnthings-mcp] ignoring ${key}: contains an unexpanded placeholder (${value})\n`,
+    );
+    return undefined;
+  }
+  return value;
 };
 
 const bool = (key: string) => env(key)?.toLowerCase() === "true";
