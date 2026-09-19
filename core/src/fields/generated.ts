@@ -30,7 +30,10 @@ export class TextToSpeechField extends GeneratedAttachmentField<
 > {
   static subtype = "text_to_speech";
   static service?: GoogleTextToSpeech;
-  static defaultOptions = {
+  // Annotated so the language code keeps its literal union type rather than
+  // widening to string, which would make these defaults unassignable back to
+  // TextToSpeechOptions.
+  static defaultOptions: TextToSpeechOptions = {
     languageCode: "en-GB",
     voiceName: "Achernar",
   };

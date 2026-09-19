@@ -5,7 +5,11 @@ import type {
   PersistedObject,
   CreatablePersistableObjectConstructor,
 } from "./object_manager/PersistableObject.js";
-import { AnyNoteField } from "./fields/base.js";
+import type {
+  AnyNoteField,
+  NoteFieldClass,
+  FieldOptionsArg,
+} from "./fields/base.js";
 import { Note } from "./Note.js";
 import { CardTemplate } from "./CardTemplate.js";
 import { slugify, uniqueSlug } from "./utils/slug.js";
@@ -96,11 +100,8 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
    * `slug` defaults to a template-safe form of `name`, unique within this note
    * type.
    */
-  createNewField<
-    O extends { name: string; noteTypeId: string },
-    T extends PersistableObject<any>,
-  >(
-    fieldClass: CreatablePersistableObjectConstructor<T, any>,
+  createNewField<C extends NoteFieldClass>(
+    fieldClass: C,
     {
       name,
       slug,
@@ -110,18 +111,17 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
       name: string;
       slug?: string;
       description?: string;
-      options?: Omit<O, "name" | "noteTypeId" | "slug" | "description">;
-    },
-  ) {
+    } & FieldOptionsArg<InstanceType<C>>,
+  ): InstanceType<C> {
     const field = fieldClass.createNew(this.objectManager, {
-      ...(options ?? {}),
       name,
       noteTypeId: this.id,
       slug: slug ?? this.availableFieldSlug(name),
       description,
-    } as unknown as O);
+      options,
+    });
     this.objectManager.setObject(field);
-    return field as T;
+    return field as InstanceType<C>;
   }
 
   @cacheByVersion(["notefield"])

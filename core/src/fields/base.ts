@@ -110,11 +110,13 @@ export abstract class NoteField<
       noteTypeId,
       slug,
       description,
+      options,
     }: {
       name: string;
       noteTypeId: string;
       slug?: string;
       description?: string;
+      options?: TOptions;
     },
   ): TSelf {
     return new this(
@@ -124,7 +126,7 @@ export abstract class NoteField<
         noteTypeId,
         slug: slug ?? slugify(name),
         description,
-        options: this.defaultOptions,
+        options: options ?? this.defaultOptions,
       } as any,
       objectManager,
     );
@@ -243,6 +245,31 @@ export abstract class NoteField<
 }
 
 export type AnyNoteField = NoteField<any, any, any>;
+
+/**
+ * The options type of a field, read from its public `options` property.
+ *
+ * Structural rather than `F extends NoteField<infer O, ...>`, because the
+ * protected members on the concrete field classes stop that form matching.
+ */
+export type FieldOptionsOf<F> = F extends { options: infer O } ? O : never;
+
+/** Any concrete field class: constructible, and able to create new instances. */
+export type NoteFieldClass = (new (
+  serialised: any,
+  objectManager: ObjectManager,
+) => AnyNoteField) & {
+  createNew(objectManager: ObjectManager, args: any): AnyNoteField;
+};
+
+/**
+ * The `options` argument for a given field class. Fields with no options —
+ * TextField, whose options are null — accept none at all rather than
+ * `options?: null`, so passing any is a type error.
+ */
+export type FieldOptionsArg<F> = [FieldOptionsOf<F>] extends [null]
+  ? { options?: never }
+  : { options?: FieldOptionsOf<F> };
 
 /** ========================================================================== *
  *  NOTE FIELD CONTENT (base)
