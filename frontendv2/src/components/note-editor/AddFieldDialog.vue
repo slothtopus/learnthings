@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import FormDialog from '@/components/common/FormDialog.vue'
 import AppInput from '@/components/common/AppInput.vue'
 import AppIconButton from '@/components/common/AppIconButton.vue'
 import OptionListItem from '@/components/common/OptionListItem.vue'
 import { useDialogForm } from '@/composables/useFormDialog'
+
+import { slugify, isValidSlug } from 'core/utils/slug.js'
+import type { NoteType } from 'core/NoteType.js'
 
 export type AddFieldFormData = {
   name: string
@@ -15,7 +18,13 @@ export type AddFieldFormData = {
   fieldType: 'text' | 'image' | 'audio' | 'text-to-audio'
 }
 
-const { formData, submit, cancel, hasChanged } = useDialogForm<AddFieldFormData>()
+/** The note type the field is being added to, so slugs can be checked for clashes. */
+type TContext = { noteType: NoteType }
+
+const { formData, contextData, submit, cancel, hasChanged } = useDialogForm<
+  AddFieldFormData,
+  TContext
+>()
 
 const slugEditable = ref(false)
 
@@ -23,16 +32,26 @@ const slugEditable = ref(false)
 watch(
   () => formData.name,
   (name) => {
-    if (!slugEditable.value) {
-      formData.slug = name
-        .toLowerCase()
-        .trim()
-        .normalize('NFKD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]+/g, '_')
-        .replace(/^_+|_+$/g, '')
-    }
+    if (!slugEditable.value) formData.slug = slugify(name)
   },
+)
+
+/** Slugs already used by this note type's fields. */
+const takenSlugs = computed(
+  () => new Set((contextData?.noteType.getAllFields() ?? []).map((f) => f.slug)),
+)
+
+const slugError = computed(() => {
+  const slug = formData.slug.trim()
+  if (slug === '') return 'A template name is required.'
+  if (!isValidSlug(slug))
+    return 'Use letters, numbers and underscores, starting with a letter or underscore.'
+  if (takenSlugs.value.has(slug)) return 'Another field already uses this template name.'
+  return undefined
+})
+
+const canSubmit = computed(
+  () => hasChanged.value && !!formData.fieldType && !!formData.name.trim() && !slugError.value,
 )
 
 const fieldTypes: {
@@ -52,7 +71,7 @@ const fieldTypes: {
   <FormDialog
     title="Add New Field"
     submit-label="Add Field"
-    :submit-disabled="!hasChanged || !formData.fieldType || !formData.name || !formData.slug"
+    :submit-disabled="!canSubmit"
     :show="true"
     @close="cancel"
     @submit="submit"
@@ -85,10 +104,11 @@ const fieldTypes: {
             <AppIconButton
               :icon="slugEditable ? 'close' : 'edit'"
               size="sm"
-              @click="slugEditable ? (slugEditable = false, formData.slug = formData.name.toLowerCase().trim().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')) : (slugEditable = true)"
+              @click="slugEditable ? ((slugEditable = false), (formData.slug = slugify(formData.name))) : (slugEditable = true)"
             />
           </div>
-          <p class="text-xs font-light text-on-surface-variant/60 italic">
+          <p v-if="slugError" class="text-xs font-light text-error">{{ slugError }}</p>
+          <p v-else class="text-xs font-light text-on-surface-variant/60 italic">
             This is how you reference the field in your card templates.
           </p>
         </div>

@@ -133,18 +133,14 @@ export const createLittlePrince = async (deck: Deck) => {
   deck.setName('O Pequeno Príncipe')
   const noteType = deck.createNewNoteType('sentences')
 
-  const promptFieldMinusOne = noteType.createNewField('prompt_part_minus_1', TextField, {})
-  const promptFieldMinusOneIndex = noteType.createNewField(
-    'prompt_part_minus_1_index',
-    TextField,
-    {},
-  )
-  const promptField = noteType.createNewField('prompt_part', TextField, {})
-  const promptFieldIndex = noteType.createNewField('prompt_part_index', TextField, {})
-  const nextField = noteType.createNewField('next_part', TextField, {})
-  const nextFieldIndex = noteType.createNewField('next_part_index', TextField, {})
-  const nextFieldPlusOne = noteType.createNewField('next_part_plus_1', TextField, {})
-  const nextFieldPlusOneIndex = noteType.createNewField('next_part_plus_1_index', TextField, {})
+  const promptFieldMinusOne = noteType.createNewField(TextField, { name: 'prompt_part_minus_1' })
+  const promptFieldMinusOneIndex = noteType.createNewField(TextField, { name: 'prompt_part_minus_1_index' })
+  const promptField = noteType.createNewField(TextField, { name: 'prompt_part' })
+  const promptFieldIndex = noteType.createNewField(TextField, { name: 'prompt_part_index' })
+  const nextField = noteType.createNewField(TextField, { name: 'next_part' })
+  const nextFieldIndex = noteType.createNewField(TextField, { name: 'next_part_index' })
+  const nextFieldPlusOne = noteType.createNewField(TextField, { name: 'next_part_plus_1' })
+  const nextFieldPlusOneIndex = noteType.createNewField(TextField, { name: 'next_part_plus_1_index' })
 
   for (let i = 0; i < littlePrince.length - 2; i++) {
     const note = noteType.createNewNote()

@@ -64,7 +64,7 @@ export const registerNoteTools = (server: McpServer) => {
         "Add a note to a note type, filling its text fields. Cards are created " +
         "automatically from the note type's card templates. Call describe_deck first to " +
         "learn the field names and what each one holds. Keys are the template names " +
-        "shown by describe_deck (the {{slug}} form); display names are accepted too. " +
+        "shown by describe_deck — the {{slug}} form, not the display name. " +
         "The note is saved locally — run sync_decks to send it to the server.",
       inputSchema: {
         deck_id: z.string().describe("Deck id, as shown by list_decks."),
@@ -72,7 +72,8 @@ export const registerNoteTools = (server: McpServer) => {
         fields: z
           .record(z.string(), z.string())
           .describe(
-            'Field values keyed by field name, e.g. {"front": "aterrar", "back": "to land"}. ' +
+            'Field values keyed by the field\'s template name, e.g. ' +
+              '{"front": "aterrar", "back": "to land"}. ' +
               "Only text fields can be set; omit any field you have no value for.",
           ),
       },

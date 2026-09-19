@@ -108,8 +108,8 @@ const BACK = `
 export const createCountriesAndCapitals = async (deck: Deck) => {
   deck.setName('Countries and Capitals')
   const noteType = deck.createNewNoteType('Countries and Capitals')
-  const countryField = noteType.createNewField('country', TextField, {})
-  const capitalField = noteType.createNewField('capital', TextField, {})
+  const countryField = noteType.createNewField(TextField, { name: 'country' })
+  const capitalField = noteType.createNewField(TextField, { name: 'capital' })
 
   for (const { country, capital } of capitals) {
     const note = noteType.createNewNote()

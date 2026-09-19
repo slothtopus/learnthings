@@ -16,8 +16,8 @@ import type { AddFieldFormData } from '@/components/note-editor/AddFieldDialog.v
 import CreateCardDialog from '@/components/note-editor/CreateCardDialog.vue'
 import type { CreateCardTemplateFormData } from '@/components/note-editor/CreateCardDialog.vue'
 import CardTemplateCard from '@/components/note-editor/CardTemplateCard.vue'
-import FieldSettingsForm from '@/components/note-editor/FieldSettingsForm.vue'
-import type { FieldSettingsFormData } from '@/components/note-editor/FieldSettingsForm.vue'
+import GenericFieldSettingsForm from '@/components/note-editor/GenericFieldSettingsForm.vue'
+import type { GenericFieldSettingsFormData } from '@/components/note-editor/GenericFieldSettingsForm.vue'
 
 import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 import { useFormDialog } from '@/composables/useFormDialog'
@@ -27,6 +27,7 @@ import { TextField, ImageAttachmentField, AudioAttachmentField } from 'core/fiel
 import { TextToSpeechField } from 'core/fields/generated.js'
 import type { AnyNoteField } from 'core/fields/base.js'
 import type { CardTemplate } from 'core/CardTemplate.js'
+import type { NoteType } from 'core/NoteType.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -62,39 +63,48 @@ const isImageField = (field: AnyNoteField): field is ImageAttachmentField => fie
 const isAudioField = (field: AnyNoteField): field is AudioAttachmentField => field instanceof AudioAttachmentField
 const isTtsField = (field: AnyNoteField): field is TextToSpeechField => field instanceof TextToSpeechField
 
-const fieldSettingsDialog = useFormDialog<FieldSettingsFormData>(FieldSettingsForm)
+const fieldSettingsDialog = useFormDialog<
+  GenericFieldSettingsFormData,
+  { noteType: NoteType; field: AnyNoteField }
+>(GenericFieldSettingsForm)
+
 const handleFieldSettings = async (field: AnyNoteField) => {
-  const result = await fieldSettingsDialog.open({
-    name: field.name,
-    slug: field.slug,
-    description: field.description ?? '',
-  })
+  const result = await fieldSettingsDialog.open(
+    { name: field.name, slug: field.slug, description: field.description ?? '' },
+    { noteType, field },
+  )
   if (result.cancelled) return
   const { name, slug, description } = result.data
-  try {
-    // Name first: renaming pins the slug of a field that predates slugs, so
-    // setting it explicitly afterwards wins.
-    field.setName(name.trim())
-    field.setSlug(slug.trim())
-    field.setDescription(description)
-  } catch (err) {
-    window.alert((err as Error).message)
-    return
-  }
+  // Name first: renaming pins the slug of a field that predates slugs, so
+  // setting it explicitly afterwards wins.
+  field.setName(name.trim())
+  field.setSlug(slug.trim())
+  field.setDescription(description)
   await deck.persist()
 }
 
-const addFieldDialog = useFormDialog<AddFieldFormData>(AddFieldDialog)
+const addFieldDialog = useFormDialog<AddFieldFormData, { noteType: NoteType }>(AddFieldDialog)
 const handleAddField = async () => {
   const result = await addFieldDialog.open({ name: '', slug: '', description: '', fieldType: 'text' })
   if (!result.cancelled) {
     const { name, slug, description } = result.data
-    const extra = { slug: slug.trim() || undefined, description }
+    const field = { name, slug: slug.trim() || undefined, description }
     switch (result.data.fieldType) {
-      case 'text':          noteType.createNewField(name, TextField, {}, extra); break
-      case 'image':         noteType.createNewField(name, ImageAttachmentField, {}, extra); break
-      case 'audio':         noteType.createNewField(name, AudioAttachmentField, {}, extra); break
-      case 'text-to-audio': noteType.createNewField(name, TextToSpeechField, TextToSpeechField.defaultOptions, extra); break
+      case 'text':
+        noteType.createNewField(TextField, field)
+        break
+      case 'image':
+        noteType.createNewField(ImageAttachmentField, field)
+        break
+      case 'audio':
+        noteType.createNewField(AudioAttachmentField, field)
+        break
+      case 'text-to-audio':
+        noteType.createNewField(TextToSpeechField, {
+          ...field,
+          options: TextToSpeechField.defaultOptions,
+        })
+        break
     }
     await deck.persist()
   }

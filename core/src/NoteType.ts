@@ -83,14 +83,35 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
     };
   }
 
+  /**
+   * Create a field on this note type.
+   *
+   * Takes a single descriptor rather than positional arguments so it reads the
+   * same way as NoteField.createNew, and so adding further field metadata does
+   * not keep extending the signature. `options` stays separate because it is
+   * the field type's own settings — a mimetype, a TTS voice — persisted as an
+   * opaque blob, whereas name, slug and description are properties every field
+   * has and are persisted in their own right.
+   *
+   * `slug` defaults to a template-safe form of `name`, unique within this note
+   * type.
+   */
   createNewField<
     O extends { name: string; noteTypeId: string },
     T extends PersistableObject<any>,
   >(
-    name: string,
     fieldClass: CreatablePersistableObjectConstructor<T, any>,
-    options: Omit<O, "name" | "noteTypeId"> & { __brand?: never },
-    { slug, description }: { slug?: string; description?: string } = {},
+    {
+      name,
+      slug,
+      description,
+      options,
+    }: {
+      name: string;
+      slug?: string;
+      description?: string;
+      options?: Omit<O, "name" | "noteTypeId" | "slug" | "description">;
+    },
   ) {
     const field = fieldClass.createNew(this.objectManager, {
       ...(options ?? {}),

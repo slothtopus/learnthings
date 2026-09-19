@@ -20,7 +20,9 @@ audio from text. Every field has two names, which is the thing to get right:
   - a slug, which card templates reference as {{slug}}
 
 They are separate so a field can be renamed without breaking its templates.
-describe_deck shows both; create_note accepts either, but the slug is canonical.
+describe_deck shows both, but the slug is the identifier: it is what create_note
+takes, because one field's display name can be another field's slug and guessing
+between them would write to the wrong field.
 A field may also carry a description saying what belongs in it. Read those:
 field names alone are often ambiguous, and a field called "explanation" may well
 hold the answer rather than a definition.

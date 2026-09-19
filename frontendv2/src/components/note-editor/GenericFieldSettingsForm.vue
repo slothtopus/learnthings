@@ -4,38 +4,60 @@ import FormDialog from '@/components/common/FormDialog.vue'
 import AppInput from '@/components/common/AppInput.vue'
 import { useDialogForm } from '@/composables/useFormDialog'
 
-export type FieldSettingsFormData = {
+import { slugify, isValidSlug } from 'core/utils/slug.js'
+import type { NoteType } from 'core/NoteType.js'
+import type { AnyNoteField } from 'core/fields/base.js'
+
+export type GenericFieldSettingsFormData = {
   name: string
   slug: string
   description: string
 }
 
-const { formData, submit, cancel, hasChanged } = useDialogForm<FieldSettingsFormData>()
+/** The field being edited, and its note type, so slugs can be checked for clashes. */
+type TContext = { noteType: NoteType; field: AnyNoteField }
+
+const { formData, contextData, submit, cancel, hasChanged } = useDialogForm<
+  GenericFieldSettingsFormData,
+  TContext
+>()
 
 // Keep the template name in step with the display name until it is edited by
 // hand, at which point it is left alone.
 let slugTouched = false
 const markSlugTouched = () => (slugTouched = true)
 
-const slugify = (name: string) =>
-  name
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-
-// Built in script: a literal {{ inside a template interpolation cannot be parsed.
-const templateRef = computed(
-  () => '{' + '{' + (formData.slug || 'field') + '}' + '}',
-)
-
 watch(
   () => formData.name,
   (name) => {
     if (!slugTouched) formData.slug = slugify(name)
   },
+)
+
+/** Slugs already used by the note type's other fields. */
+const takenSlugs = computed(
+  () =>
+    new Set(
+      (contextData?.noteType.getAllFields() ?? [])
+        .filter((f) => f !== contextData?.field)
+        .map((f) => f.slug),
+    ),
+)
+
+const slugError = computed(() => {
+  const slug = formData.slug.trim()
+  if (slug === '') return 'A template name is required.'
+  if (!isValidSlug(slug))
+    return 'Use letters, numbers and underscores, starting with a letter or underscore.'
+  if (takenSlugs.value.has(slug)) return 'Another field already uses this template name.'
+  return undefined
+})
+
+// Built in script: a literal {{ inside a template interpolation cannot be parsed.
+const templateRef = computed(() => '{' + '{' + (formData.slug || 'field') + '}' + '}')
+
+const canSubmit = computed(
+  () => hasChanged.value && !!formData.name.trim() && !slugError.value,
 )
 </script>
 
@@ -44,7 +66,7 @@ watch(
     title="Field Settings"
     subtitle="Rename this field, choose how card templates refer to it, and say what it holds."
     submit-label="Save"
-    :submit-disabled="!hasChanged || !formData.name.trim() || !formData.slug.trim()"
+    :submit-disabled="!canSubmit"
     @submit="submit"
     @close="cancel"
   >
@@ -58,7 +80,8 @@ watch(
           placeholder="e.g. front"
           @input="markSlugTouched"
         />
-        <p class="mt-2 text-xs font-light text-on-surface-variant/70">
+        <p v-if="slugError" class="mt-2 text-xs font-light text-error">{{ slugError }}</p>
+        <p v-else class="mt-2 text-xs font-light text-on-surface-variant/70">
           Use this in card templates as
           <code class="text-primary">{{ templateRef }}</code>. Changing it will break
           templates that use the old name.

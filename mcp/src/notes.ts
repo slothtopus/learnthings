@@ -2,16 +2,17 @@ import { Deck } from "core/Deck.js";
 import type { NoteType } from "core/NoteType.js";
 import type { AnyNoteField } from "core/fields/base.js";
 import { GeneratedField } from "core/fields/base.js";
-import { TextField } from "core/fields/fields.js";
-import {
-  ImageAttachmentField,
-  AudioAttachmentField,
-} from "core/fields/fields.js";
-import { TextToSpeechField } from "core/fields/generated.js";
 
 import { getLoadedDeck, hasSynced } from "./registry.js";
 
-export type FieldKind = "text" | "image" | "audio" | "text_to_speech" | "unknown";
+/**
+ * Every field class declares its kind as its subtype — "text", "image",
+ * "audio", "text_to_speech" — so there is no need to match on constructors.
+ */
+export type FieldKind = string;
+
+/** The one kind whose content can be set as plain text. */
+const TEXT_KIND = "text";
 
 export type FieldSchema = {
   /** The name card templates reference, e.g. {{front}}. The key create_note takes. */
@@ -38,16 +39,7 @@ export type NoteTypeSchema = {
   templates: TemplateSchema[];
 };
 
-export const kindOf = (field: AnyNoteField): FieldKind =>
-  field instanceof TextField
-    ? "text"
-    : field instanceof ImageAttachmentField
-      ? "image"
-      : field instanceof AudioAttachmentField
-        ? "audio"
-        : field instanceof TextToSpeechField
-          ? "text_to_speech"
-          : "unknown";
+export const kindOf = (field: AnyNoteField): FieldKind => field.subtype;
 
 const describeField = (field: AnyNoteField): FieldSchema => {
   const kind = kindOf(field);
@@ -59,7 +51,7 @@ const describeField = (field: AnyNoteField): FieldSchema => {
     mimetype: (field.options as { mimetype?: string } | null)?.mimetype,
   };
 
-  if (kind === "text") return { ...base, writable: true };
+  if (kind === TEXT_KIND) return { ...base, writable: true };
   if (field instanceof GeneratedField) {
     return {
       ...base,
@@ -140,9 +132,13 @@ export type CreateNoteResult = {
 /**
  * Create a note and fill its text fields.
  *
- * Values are keyed by field slug; the display name is accepted too, since that
- * is what a person is likely to say. Everything is validated before anything is
- * written, so a rejected call leaves no partial note behind.
+ * Values are keyed by field slug, the same name card templates use. Display
+ * names are deliberately not accepted: one field's display name can equal
+ * another's slug, and resolving both would silently write to the wrong field.
+ * A display name is recognised only to point at the slug to use instead.
+ *
+ * Everything is validated before anything is written, so a rejected call leaves
+ * no partial note behind.
  */
 export const createNote = async (
   deckId: string,
@@ -173,16 +169,17 @@ export const createNote = async (
   const problems: string[] = [];
 
   for (const [key, rawValue] of Object.entries(values)) {
-    const field =
-      fields.find((f) => f.slug === key) ??
-      fields.find((f) => f.name === key) ??
-      fields.find((f) => f.slug.toLowerCase() === key.toLowerCase()) ??
-      fields.find((f) => f.name.toLowerCase() === key.toLowerCase());
+    const field = fields.find((f) => f.slug === key);
 
     if (field === undefined) {
+      const byName = fields.find(
+        (f) => f.name === key || f.name.toLowerCase() === key.toLowerCase(),
+      );
       problems.push(
-        `"${key}" is not a field of "${noteType.name}". Its fields are: ` +
-          fields.map((f) => f.slug).join(", "),
+        byName
+          ? `"${key}" is the display name of a field; use its template name "${byName.slug}" instead.`
+          : `"${key}" is not a field of "${noteType.name}". Its fields are: ` +
+            fields.map((f) => f.slug).join(", "),
       );
       continue;
     }

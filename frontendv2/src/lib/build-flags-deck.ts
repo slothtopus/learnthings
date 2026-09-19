@@ -100,8 +100,8 @@ export const createFlagsDeck = async (deck: Deck) => {
 
   const noteType = deck.createNewNoteType('Flag and Country')
 
-  const countryField = noteType.createNewField('country', TextField, {})
-  const flagField = noteType.createNewField('flag', ImageAttachmentField, {})
+  const countryField = noteType.createNewField(TextField, { name: 'country' })
+  const flagField = noteType.createNewField(ImageAttachmentField, { name: 'flag' })
 
   for (const { country, url } of flags) {
     const note = noteType.createNewNote()
