@@ -103,8 +103,9 @@ export const useDecks = () => {
   const newDeck = async (name: string) => {
     const deckId = generateId()
     const om = await initialiseDeckObjectManager(deckId)
-    const deck = Deck.createNew(om, { id: deckId, name })
-    om.setObject(deck)
+    // Take the object back from the manager: it is the reactive proxy, and the
+    // one that has to go into _decks for the UI to track its changes.
+    const deck = om.setObject(Deck.createNew(om, { id: deckId, name }))
     await deck.persist()
     _decks.value.push(deck)
     return deck

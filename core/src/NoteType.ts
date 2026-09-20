@@ -138,8 +138,7 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
       description,
       options,
     });
-    this.objectManager.setObject(field);
-    return field as InstanceType<C>;
+    return this.objectManager.setObject(field) as InstanceType<C>;
   }
 
   @cacheByVersion(["notefield"])
@@ -169,22 +168,22 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
   }
 
   createNewNote() {
-    const note = Note.createNew(this.objectManager, {
-      noteTypeId: this.id,
-    });
-    this.objectManager.setObject(note);
+    const note = this.objectManager.setObject(
+      Note.createNew(this.objectManager, { noteTypeId: this.id }),
+    );
     this.getAllCardTemplates().forEach((c) =>
       note.getOrCreateCardForTemplate(c.id),
     );
-    return this.objectManager.setObject(note);;
+    return note;
   }
 
   createNewCardTemplate(name: string) {
-    const template = CardTemplate.createNew(this.objectManager, {
-      name,
-      noteTypeId: this.id,
-    });
-    this.objectManager.setObject(template);
+    const template = this.objectManager.setObject(
+      CardTemplate.createNew(this.objectManager, {
+        name,
+        noteTypeId: this.id,
+      }),
+    );
     this.getAllNotes().forEach((n) =>
       n.getOrCreateCardForTemplate(template.id),
     );

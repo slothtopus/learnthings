@@ -100,11 +100,12 @@ export class Note extends PersistableObject<SerialisedNote> {
   getOrCreateCardForTemplate(cardTemplateId: string) {
     let card = this.getCardForTemplate(cardTemplateId);
     if (card === undefined) {
-      card = Card.createNew(this.objectManager, {
-        noteId: this.id,
-        cardTemplateId,
-      });
-      this.objectManager.setObject(card);
+      card = this.objectManager.setObject(
+        Card.createNew(this.objectManager, {
+          noteId: this.id,
+          cardTemplateId,
+        }),
+      );
     }
     return card;
   }

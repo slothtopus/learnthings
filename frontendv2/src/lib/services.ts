@@ -20,11 +20,11 @@ export const defineService = <T>(service: RegisteredService<T>) => service
 export const SERVICE_REGISTRY = {
   'google-tts': defineService({
     createNew: (om: ReactiveObjectManager) => {
-      const obj = GoogleTextToSpeech.createNew(om, {
-        apiUrl: import.meta.env['VITE_GENERATION_API_URL'],
-      })
-      om.setObject(obj)
-      return obj
+      return om.setObject(
+        GoogleTextToSpeech.createNew(om, {
+          apiUrl: import.meta.env['VITE_GENERATION_API_URL'],
+        }),
+      )
     },
     injectDependencies: (obj) => {
       obj.tokenGenerator = tokenGenerator

@@ -85,9 +85,9 @@ export class Deck extends PersistableObject<SerialisedDeck> {
   }
 
   createNewNoteType(name: string) {
-    const notetype = NoteType.createNew(this.objectManager, { name });
-    this.objectManager.setObject(notetype);
-    return notetype;
+    return this.objectManager.setObject(
+      NoteType.createNew(this.objectManager, { name }),
+    );
   }
 
   @cacheByVersion(["notetype"])
