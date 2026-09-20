@@ -62,4 +62,20 @@ prompt field produces a card that looks right and teaches the wrong thing.
 Only text fields can be filled at the moment. Image and audio fields are
 reported as read-only, and generated audio fields fill themselves from a text
 field once the note exists.
+
+CHANGING A NOTE TYPE'S FIELDS
+
+Fields belong to the note type, not to one note, so adding or removing one
+changes every note of that type. add_field only creates text fields, for the
+same reason create_note only fills them.
+
+A new field is not shown on any card until a card template is edited to
+reference it, which this server cannot do — say so rather than implying a new
+field will appear during review.
+
+delete_field destroys the field's content on every note of the type. Call it
+without confirm first: nothing is deleted and the effect is reported instead.
+Show that to the user and get their agreement before calling again with
+confirm. Deleting the last field of a note type removes its notes as well,
+since a note with no content is not kept.
 `.trim();

@@ -1,7 +1,14 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
-import { describeDeck, createNote, type NoteTypeSchema } from "../notes.js";
+import {
+  describeDeck,
+  createNote,
+  addField,
+  deleteField,
+  type NoteTypeSchema,
+  type FieldDeletionImpact,
+} from "../notes.js";
 import { text, failure } from "./result.js";
 
 const renderNoteType = (nt: NoteTypeSchema) => {
@@ -21,6 +28,32 @@ const renderNoteType = (nt: NoteTypeSchema) => {
       const uses = t.usesFields.length > 0 ? t.usesFields.join(", ") : "(none)";
       lines.push(`    ${t.name}  shows: ${uses}`);
     }
+  }
+  return lines;
+};
+
+const describeImpact = (impact: FieldDeletionImpact, noteTypeName: string) => {
+  const lines = [
+    `Deleting "${impact.name}" ({{${impact.slug}}}, ${impact.kind}) from "${noteTypeName}" would:`,
+  ];
+
+  lines.push(
+    impact.notesWithContent > 0
+      ? `  - delete its content from ${impact.notesWithContent} of ${impact.totalNotes} note(s)`
+      : `  - delete no content: none of the ${impact.totalNotes} note(s) have a value in it`,
+  );
+
+  if (impact.templatesUsingField.length > 0) {
+    lines.push(
+      `  - leave ${impact.templatesUsingField.length} card template(s) rendering it ` +
+        `blank: ${impact.templatesUsingField.join(", ")}`,
+    );
+  }
+  if (impact.isLastField) {
+    lines.push(
+      `  - remove all ${impact.totalNotes} note(s) and their cards, since it is the ` +
+        "last field and an empty note is not kept",
+    );
   }
   return lines;
 };
@@ -97,4 +130,113 @@ export const registerNoteTools = (server: McpServer) => {
       }
     },
   );
+  server.registerTool(
+    "add_field",
+    {
+      title: "Add a field to a note type",
+      description:
+        "Add a text field to a note type. The field appears on every note of that " +
+        "type, empty until filled in. Only text fields can be added: the other kinds " +
+        "hold a file or generate their own content. To show the field on a card, its " +
+        "template has to be edited to reference it, which this server cannot do yet. " +
+        "Saved locally — run sync_decks to send it to the server.",
+      inputSchema: {
+        deck_id: z.string().describe("Deck id, as shown by list_decks."),
+        note_type_id: z.string().describe("Note type id, as shown by describe_deck."),
+        name: z.string().describe('Display name, e.g. "Example sentence".'),
+        slug: z
+          .string()
+          .optional()
+          .describe(
+            "The name card templates will use, e.g. example_sentence. Derived from " +
+              "the display name when omitted.",
+          ),
+        description: z
+          .string()
+          .optional()
+          .describe(
+            "What belongs in this field. Worth setting — it guides whoever fills it in.",
+          ),
+      },
+      annotations: { readOnlyHint: false, idempotentHint: false },
+    },
+    async ({ deck_id, note_type_id, name, slug, description }) => {
+      try {
+        const r = await addField(deck_id, note_type_id, { name, slug, description });
+        return text(
+          `Added the field "${r.name}" to "${r.noteTypeName}".`,
+          `Card templates reference it as {{${r.slug}}}.`,
+          ...(r.description ? [`Description: ${r.description}`] : []),
+          "",
+          `It is now on all ${r.notesAffected} note(s) of this type, empty until filled in.`,
+          "It will not appear on a card until a card template references it.",
+          "",
+          "Saved locally. Run `sync_decks` to send it to the server.",
+        );
+      } catch (err) {
+        return failure((err as Error).message);
+      }
+    },
+  );
+
+  server.registerTool(
+    "delete_field",
+    {
+      title: "Delete a field from a note type",
+      description:
+        "Remove a field from a note type, deleting its content from every note of " +
+        "that type. Call without `confirm` first: nothing is deleted and the effect " +
+        "is reported, so it can be checked before anything is lost. This cannot be " +
+        "undone once synced.",
+      inputSchema: {
+        deck_id: z.string().describe("Deck id, as shown by list_decks."),
+        note_type_id: z.string().describe("Note type id, as shown by describe_deck."),
+        slug: z.string().describe("The field's template name, as shown by describe_deck."),
+        confirm: z
+          .boolean()
+          .optional()
+          .describe(
+            "Omit or set false to report the effect without deleting anything. Set " +
+              "true only once the user has seen that report and agreed.",
+          ),
+      },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    },
+    async ({ deck_id, note_type_id, slug, confirm }) => {
+      try {
+        const r = await deleteField(deck_id, note_type_id, slug, confirm === true);
+        const impact = describeImpact(r.impact, r.noteTypeName);
+
+        if (!r.deleted) {
+          return text(
+            ...impact,
+            "",
+            "Nothing has been deleted. Re-run with confirm: true to go ahead.",
+          );
+        }
+        return text(
+          `Deleted the field "${r.impact.name}" ({{${r.impact.slug}}}) from "${r.noteTypeName}".`,
+          ...(r.notesDeleted > 0
+            ? [
+                "",
+                `It was the last field, so ${r.notesDeleted} note(s) had nothing left in ` +
+                  "them and were removed too.",
+              ]
+            : []),
+          ...(r.impact.templatesUsingField.length > 0
+            ? [
+                "",
+                `These card templates still reference {{${r.impact.slug}}} and will now ` +
+                  `render it blank: ${r.impact.templatesUsingField.join(", ")}.`,
+              ]
+            : []),
+          "",
+          "Saved locally. Run `sync_decks` to send the change to the server.",
+        );
+      } catch (err) {
+        return failure((err as Error).message);
+      }
+    },
+  );
+
 };

@@ -12,7 +12,7 @@ import type {
 } from "./fields/base.js";
 import { Note } from "./Note.js";
 import { CardTemplate } from "./CardTemplate.js";
-import { slugify, uniqueSlug } from "./utils/slug.js";
+import { slugify, uniqueSlug, isValidSlug } from "./utils/slug.js";
 
 export type SerialisedNoteType = {
   name: string;
@@ -113,6 +113,24 @@ export class NoteType extends PersistableObject<SerialisedNoteType> {
       description?: string;
     } & FieldOptionsArg<InstanceType<C>>,
   ): InstanceType<C> {
+    // setSlug cannot check this for us: the field is not registered yet, so it
+    // cannot see its siblings. An explicit slug is validated here instead, so a
+    // field can never be created with a name no template could reference.
+    if (slug !== undefined) {
+      if (!isValidSlug(slug)) {
+        throw new Error(
+          `"${slug}" cannot be used in a card template. Use letters, numbers and ` +
+            `underscores, starting with a letter or underscore.`,
+        );
+      }
+      const clash = this.getAllFields().find((f) => f.slug === slug);
+      if (clash) {
+        throw new Error(
+          `Template name "${slug}" is already used by the field "${clash.name}".`,
+        );
+      }
+    }
+
     const field = fieldClass.createNew(this.objectManager, {
       name,
       noteTypeId: this.id,

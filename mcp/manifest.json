@@ -63,6 +63,14 @@
     {
       "name": "create_note",
       "description": "Add a note to a note type, filling its text fields."
+    },
+    {
+      "name": "add_field",
+      "description": "Add a text field to a note type."
+    },
+    {
+      "name": "delete_field",
+      "description": "Remove a field from a note type, deleting its content from every note."
     }
   ],
   "user_config": {

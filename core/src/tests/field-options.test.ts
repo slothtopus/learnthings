@@ -53,6 +53,19 @@ describe("createNewField", () => {
     expect(field.options.mimetype).toBe("image/png");
   });
 
+  test("rejects an explicit slug that is unusable or taken", () => {
+    const noteType = newNoteType();
+    noteType.createNewField(TextField, { name: "Front", slug: "front" });
+
+    expect(() =>
+      noteType.createNewField(TextField, { name: "Other", slug: "not a slug" }),
+    ).toThrow(/cannot be used in a card template/);
+
+    expect(() =>
+      noteType.createNewField(TextField, { name: "Other", slug: "front" }),
+    ).toThrow(/already used by the field "Front"/);
+  });
+
   test("returns the concrete field type", () => {
     const noteType = newNoteType();
     const field = noteType.createNewField(ImageAttachmentField, { name: "Picture" });

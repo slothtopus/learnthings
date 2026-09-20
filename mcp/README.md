@@ -20,6 +20,35 @@ of the loaded `Deck` objects.
 | `list_decks` | List locally loaded decks with note type, note and card counts. Local reads only. |
 | `describe_deck` | Show a deck's note types, their fields, what each field holds, and which fields each card template displays. |
 | `create_note` | Add a note to a note type, filling its text fields. Cards are generated automatically. |
+| `add_field` | Add a text field to a note type. |
+| `delete_field` | Remove a field from a note type, deleting its content from every note. |
+
+### Changing a note type's fields
+
+Fields belong to the note type, so adding or removing one changes every note of that type.
+
+`add_field` creates **text fields only**, for the same reason `create_note` fills only
+those: the other kinds hold a file or generate their own content, so creating one would
+leave a field nothing here could fill. A new field does not appear on any card until a
+card template is edited to reference it, which this server cannot do.
+
+`delete_field` destroys the field's content on every note. Called without `confirm` it
+deletes nothing and reports what would happen instead:
+
+```
+Deleting "Back" ({{back}}, text) from "vocab" would:
+  - delete its content from 3 of 3 note(s)
+  - leave 1 card template(s) rendering it blank: recall
+
+Nothing has been deleted. Re-run with confirm: true to go ahead.
+```
+
+That is not a security barrier — a model can set `confirm` itself — but it puts the
+consequences in front of the user before anything is lost, which is worth the extra call
+for something irreversible.
+
+Deleting the last field of a note type also removes its notes, since a note with no
+fields holds nothing worth storing. The dry run says so explicitly.
 
 ### Creating notes
 

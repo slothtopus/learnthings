@@ -2,6 +2,7 @@ import { Deck } from "core/Deck.js";
 import type { NoteType } from "core/NoteType.js";
 import type { AnyNoteField } from "core/fields/base.js";
 import { GeneratedField } from "core/fields/base.js";
+import { TextField } from "core/fields/fields.js";
 
 import { getLoadedDeck, hasSynced } from "./registry.js";
 
@@ -71,7 +72,7 @@ const describeField = (field: AnyNoteField): FieldSchema => {
  * matched loosely and then intersected with the real field slugs, so block
  * helpers and unrelated identifiers drop out.
  */
-const fieldsUsedBy = (source: string, slugs: Set<string>) => {
+export const fieldsUsedBy = (source: string, slugs: Set<string>) => {
   const found = new Set<string>();
   for (const [, ref] of source.matchAll(/\{\{\{?[#/]?\s*([A-Za-z_][A-Za-z0-9_]*)/g)) {
     if (ref && slugs.has(ref)) found.add(ref);
@@ -122,6 +123,20 @@ export const describeDeck = (deckId: string) => {
   };
 };
 
+export const getNoteTypeOrThrow = (deck: Deck, noteTypeId: string): NoteType => {
+  const noteType = deck.getAllNoteTypes().find((n) => n.id === noteTypeId);
+  if (noteType === undefined) {
+    const available = deck
+      .getAllNoteTypes()
+      .map((n) => `${n.name} (${n.id})`)
+      .join(", ");
+    throw new Error(
+      `No note type "${noteTypeId}" in deck "${deck.name}". Available: ${available || "none"}.`,
+    );
+  }
+  return noteType;
+};
+
 export type CreateNoteResult = {
   noteId: string;
   noteTypeName: string;
@@ -147,16 +162,7 @@ export const createNote = async (
 ): Promise<CreateNoteResult> => {
   const deck = getDeckOrThrow(deckId);
 
-  const noteType = deck.getAllNoteTypes().find((n) => n.id === noteTypeId);
-  if (noteType === undefined) {
-    const available = deck
-      .getAllNoteTypes()
-      .map((n) => `${n.name} (${n.id})`)
-      .join(", ");
-    throw new Error(
-      `No note type "${noteTypeId}" in deck "${deck.name}". Available: ${available || "none"}.`,
-    );
-  }
+  const noteType = getNoteTypeOrThrow(deck, noteTypeId);
 
   const fields = noteType.getAllFields();
   if (fields.length === 0) {
@@ -217,5 +223,146 @@ export const createNote = async (
     noteTypeName: noteType.name,
     cardsCreated: note.getAllCards().length,
     set: resolved.map(({ field }) => ({ slug: field.slug, name: field.name })),
+  };
+};
+
+/* ========================================================================== *
+ *  FIELDS
+ * ========================================================================== */
+
+export type AddFieldResult = {
+  slug: string;
+  name: string;
+  noteTypeName: string;
+  description?: string;
+  notesAffected: number;
+};
+
+/**
+ * Add a text field to a note type.
+ *
+ * Only text fields can be added here. The other kinds hold a file or generate
+ * their own content, neither of which can be supplied through this interface,
+ * so creating one would leave a field nothing could fill.
+ */
+export const addField = async (
+  deckId: string,
+  noteTypeId: string,
+  { name, slug, description }: { name: string; slug?: string; description?: string },
+): Promise<AddFieldResult> => {
+  const deck = getDeckOrThrow(deckId);
+  const noteType = getNoteTypeOrThrow(deck, noteTypeId);
+
+  if (name.trim() === "") {
+    throw new Error("A field name is required.");
+  }
+
+  // core validates an explicit slug and derives a unique one otherwise.
+  const field = noteType.createNewField(TextField, {
+    name: name.trim(),
+    slug: slug?.trim() || undefined,
+    description,
+  });
+  await deck.persist();
+
+  return {
+    slug: field.slug,
+    name: field.name,
+    noteTypeName: noteType.name,
+    description: field.description,
+    notesAffected: noteType.getAllNotes().length,
+  };
+};
+
+export type FieldDeletionImpact = {
+  slug: string;
+  name: string;
+  kind: FieldKind;
+  /** Notes holding content in this field, which is what would be lost. */
+  notesWithContent: number;
+  totalNotes: number;
+  /** Card templates that render this field, and would lose the value. */
+  templatesUsingField: string[];
+  /**
+   * Deleting the last field leaves every note with nothing in it, and empty
+   * notes are not kept.
+   */
+  isLastField: boolean;
+};
+
+export type DeleteFieldResult = {
+  impact: FieldDeletionImpact;
+  deleted: boolean;
+  notesDeleted: number;
+  noteTypeName: string;
+};
+
+const impactOf = (noteType: NoteType, field: AnyNoteField): FieldDeletionImpact => {
+  const notes = noteType.getAllNotes();
+  const slugs = new Set(noteType.getAllFields().map((f) => f.slug));
+
+  return {
+    slug: field.slug,
+    name: field.name,
+    kind: kindOf(field),
+    notesWithContent: notes.filter((note) => {
+      const content = field.getContent(note);
+      return content !== undefined && !content.isEmpty();
+    }).length,
+    totalNotes: notes.length,
+    templatesUsingField: noteType
+      .getAllCardTemplates()
+      .filter((template) => {
+        const source = template
+          .getAllVariants()
+          .map((v) => `${v.front ?? ""}\n${v.back ?? ""}`)
+          .join("\n");
+        return fieldsUsedBy(source, slugs).includes(field.slug);
+      })
+      .map((t) => t.name),
+    isLastField: noteType.getAllFields().length === 1,
+  };
+};
+
+/**
+ * Delete a field from a note type, removing its content from every note.
+ *
+ * Without `confirm` nothing is deleted and the impact is reported instead, so
+ * what is about to be lost reaches the user before it goes. The change is local
+ * until the next sync, but is not otherwise reversible.
+ */
+export const deleteField = async (
+  deckId: string,
+  noteTypeId: string,
+  slug: string,
+  confirm: boolean,
+): Promise<DeleteFieldResult> => {
+  const deck = getDeckOrThrow(deckId);
+  const noteType = getNoteTypeOrThrow(deck, noteTypeId);
+
+  const field = noteType.getAllFields().find((f) => f.slug === slug);
+  if (field === undefined) {
+    const byName = noteType.getAllFields().find((f) => f.name === slug);
+    throw new Error(
+      byName
+        ? `"${slug}" is the display name of a field; use its template name "${byName.slug}" instead.`
+        : `"${slug}" is not a field of "${noteType.name}". Its fields are: ` +
+          noteType.getAllFields().map((f) => f.slug).join(", "),
+    );
+  }
+
+  const impact = impactOf(noteType, field);
+  if (!confirm) {
+    return { impact, deleted: false, notesDeleted: 0, noteTypeName: noteType.name };
+  }
+
+  field.delete();
+  await deck.persist();
+
+  return {
+    impact,
+    deleted: true,
+    notesDeleted: impact.isLastField ? impact.totalNotes : 0,
+    noteTypeName: noteType.name,
   };
 };
