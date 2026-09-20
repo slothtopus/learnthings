@@ -558,6 +558,19 @@ export abstract class AttachmentContentCommon<
     return true;
   }
 
+  /**
+   * Filename and mimetype without fetching the blob.
+   *
+   * The blob is not part of the serialised content, so an attachment loaded
+   * from the database has only a placeholder until getContent fetches it.
+   * Describing an attachment — its name and type — should not pay for that.
+   */
+  getAttachmentMetadata(): Omit<AttachmentData, "data"> | null {
+    if (this.content === undefined) return null;
+    const { data: _data, ...metadata } = this.content;
+    return metadata;
+  }
+
   /** Sync “do we already have the blob?” accessor */
   getAttachment() {
     return this.content && this.content.data !== PLACEHOLDER_BLOB

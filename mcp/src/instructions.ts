@@ -63,6 +63,18 @@ Only text fields can be filled at the moment. Image and audio fields are
 reported as read-only, and generated audio fields fill themselves from a text
 field once the note exists.
 
+READING NOTES
+
+search_notes finds notes whose text contains a phrase, ignoring case, across
+every text field. It reports how many matched and returns a page of them, so
+when the total is larger than what came back, either narrow the query or page
+through with offset rather than assuming you have seen everything.
+
+list_notes browses without a query. get_note shows one note in full.
+
+Only text is searchable. Image and audio fields hold no text and are described
+rather than returned, so never claim to have seen their contents.
+
 CHANGING A NOTE TYPE'S FIELDS
 
 Fields belong to the note type, not to one note, so adding or removing one

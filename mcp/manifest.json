@@ -3,7 +3,7 @@
   "name": "learnthings",
   "display_name": "learnthings decks",
   "version": "0.1.0",
-  "description": "Sync your learnthings flashcard decks and add notes to them.",
+  "description": "Sync your learnthings flashcard decks, search them, and add notes.",
   "long_description": "Signs in to learnthings and keeps a local copy of your decks, replicated from the server. Sync is a single pass that leaves nothing running in the background; run it again to push later work back up and pick up changes made elsewhere.",
   "author": {
     "name": "Russell Keeley"
@@ -71,6 +71,18 @@
     {
       "name": "delete_field",
       "description": "Remove a field from a note type, deleting its content from every note."
+    },
+    {
+      "name": "search_notes",
+      "description": "Find notes whose text contains a phrase."
+    },
+    {
+      "name": "list_notes",
+      "description": "Browse a deck's notes."
+    },
+    {
+      "name": "get_note",
+      "description": "Show every field of one note."
     }
   ],
   "user_config": {

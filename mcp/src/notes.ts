@@ -3,6 +3,8 @@ import type { NoteType } from "core/NoteType.js";
 import type { AnyNoteField } from "core/fields/base.js";
 import { GeneratedField } from "core/fields/base.js";
 import { TextField } from "core/fields/fields.js";
+import type { Note } from "core/Note.js";
+import { searchNotes, noteTextFields, buildSnippet } from "core/search.js";
 
 import { getLoadedDeck, hasSynced } from "./registry.js";
 
@@ -364,5 +366,155 @@ export const deleteField = async (
     deleted: true,
     notesDeleted: impact.isLastField ? impact.totalNotes : 0,
     noteTypeName: noteType.name,
+  };
+};
+
+/* ========================================================================== *
+ *  READING NOTES
+ * ========================================================================== */
+
+/** Defaults chosen to keep a tool result small enough to reason over. */
+export const DEFAULT_LIMIT = 20;
+export const MAX_LIMIT = 100;
+const SNIPPET_RADIUS = 48;
+const MAX_FIELD_LENGTH = 2000;
+
+export type NoteFieldView = {
+  slug: string;
+  name: string;
+  kind: FieldKind;
+  /** Text content, or a description for a field holding a file. */
+  value: string;
+  truncated: boolean;
+};
+
+export type NoteView = {
+  id: string;
+  noteTypeId: string;
+  noteTypeName: string;
+  fields: NoteFieldView[];
+  cards: { template: string; variant?: string }[];
+};
+
+export type NoteSummary = {
+  id: string;
+  noteTypeName: string;
+  /** One line per field the query matched, or a preview when browsing. */
+  lines: { slug: string; snippet: string }[];
+};
+
+export type SearchResult = {
+  total: number;
+  offset: number;
+  returned: NoteSummary[];
+  deckName: string;
+};
+
+const clampLimit = (limit?: number) =>
+  Math.max(1, Math.min(limit ?? DEFAULT_LIMIT, MAX_LIMIT));
+
+/**
+ * Attachments cannot be sent over this transport, so they are described.
+ * Saying so plainly stops a model reporting that it has seen the file.
+ */
+const describeValue = (field: AnyNoteField, note: Note): NoteFieldView => {
+  const base = { slug: field.slug, name: field.name, kind: kindOf(field) };
+  const content = field.getContent(note);
+
+  if (content === undefined || content.isEmpty()) {
+    return { ...base, value: "(empty)", truncated: false };
+  }
+
+  if (field instanceof TextField) {
+    const text = content.getContent() ?? "";
+    return {
+      ...base,
+      value: text.slice(0, MAX_FIELD_LENGTH),
+      truncated: text.length > MAX_FIELD_LENGTH,
+    };
+  }
+
+  const metadata = (
+    content as { getAttachmentMetadata?: () => { filename: string; mimetype: string } | null }
+  ).getAttachmentMetadata?.();
+
+  return {
+    ...base,
+    value: metadata
+      ? `(${metadata.mimetype} file "${metadata.filename}" — not shown here)`
+      : "(file — not shown here)",
+    truncated: false,
+  };
+};
+
+export const viewNote = (deckId: string, noteId: string): NoteView => {
+  const deck = getDeckOrThrow(deckId);
+  const note = deck.getAllNotes().find((n) => n.id === noteId);
+  if (note === undefined) {
+    throw new Error(
+      `No note "${noteId}" in deck "${deck.name}". Use search_notes or list_notes to find one.`,
+    );
+  }
+
+  return {
+    id: note.id,
+    noteTypeId: note.noteTypeId,
+    noteTypeName: note.noteType.name,
+    fields: note.noteType.getAllFields().map((f) => describeValue(f, note)),
+    cards: note.getAllCards().map((card) => ({
+      template: card.getCardTemplate()?.name ?? "(unknown)",
+      variant: card.getCardTemplateVariant()?.name,
+    })),
+  };
+};
+
+/**
+ * Search, or browse when no query is given. Every match is counted so the
+ * caller can say how many were found before showing a slice of them.
+ */
+export const findNotes = (
+  deckId: string,
+  {
+    query,
+    noteTypeId,
+    fieldSlug,
+    limit,
+    offset = 0,
+  }: {
+    query?: string;
+    noteTypeId?: string;
+    fieldSlug?: string;
+    limit?: number;
+    offset?: number;
+  },
+): SearchResult => {
+  const deck = getDeckOrThrow(deckId);
+  if (noteTypeId !== undefined) getNoteTypeOrThrow(deck, noteTypeId);
+
+  const matches = searchNotes(deck, { query, noteTypeId, fieldSlug });
+  const from = Math.max(0, offset);
+  const page = matches.slice(from, from + clampLimit(limit));
+
+  return {
+    total: matches.length,
+    offset: from,
+    deckName: deck.name,
+    returned: page.map(({ note, fields }) => ({
+      id: note.id,
+      noteTypeName: note.noteType.name,
+      lines:
+        fields.length > 0
+          ? fields.map(({ field, text, positions }) => ({
+              slug: field.slug,
+              snippet: buildSnippet(text, positions[0]!, query?.trim().length ?? 0, SNIPPET_RADIUS),
+            }))
+          : // Browsing: preview the note rather than highlighting nothing.
+            noteTextFields(note)
+              .slice(0, 2)
+              .map(({ field, text }) => ({
+                slug: field.slug,
+                snippet: buildSnippet(text, 0, 0, SNIPPET_RADIUS * 2),
+              })),
+    })),
   };
 };

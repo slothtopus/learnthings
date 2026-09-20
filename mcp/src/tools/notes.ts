@@ -6,8 +6,13 @@ import {
   createNote,
   addField,
   deleteField,
+  findNotes,
+  viewNote,
+  DEFAULT_LIMIT,
+  MAX_LIMIT,
   type NoteTypeSchema,
   type FieldDeletionImpact,
+  type SearchResult,
 } from "../notes.js";
 import { text, failure } from "./result.js";
 
@@ -55,6 +60,25 @@ const describeImpact = (impact: FieldDeletionImpact, noteTypeName: string) => {
         "last field and an empty note is not kept",
     );
   }
+  return lines;
+};
+
+const renderResults = (r: SearchResult, what: string) => {
+  if (r.total === 0) return [`No notes ${what} in "${r.deckName}".`];
+
+  const last = r.offset + r.returned.length;
+  const lines = [
+    r.total === r.returned.length
+      ? `${r.total} note(s) ${what} in "${r.deckName}".`
+      : `${r.total} note(s) ${what} in "${r.deckName}" \u2014 showing ${r.offset + 1}\u2013${last}.`,
+  ];
+
+  for (const note of r.returned) {
+    lines.push("", `${note.id}   [${note.noteTypeName}]`);
+    for (const line of note.lines) lines.push(`    ${line.slug}: ${line.snippet}`);
+  }
+
+  if (last < r.total) lines.push("", `Pass offset: ${last} to see the next page.`);
   return lines;
 };
 
@@ -232,6 +256,121 @@ export const registerNoteTools = (server: McpServer) => {
             : []),
           "",
           "Saved locally. Run `sync_decks` to send the change to the server.",
+        );
+      } catch (err) {
+        return failure((err as Error).message);
+      }
+    },
+  );
+
+  server.registerTool(
+    "search_notes",
+    {
+      title: "Search notes in a deck",
+      description:
+        "Find notes whose text contains a phrase. Matching ignores case and covers " +
+        "every text field, showing which field matched and the text around it. " +
+        "Attachment fields hold no searchable text. Returns note ids — pass one to " +
+        "get_note for the full content.",
+      inputSchema: {
+        deck_id: z.string().describe("Deck id, as shown by list_decks."),
+        query: z.string().describe("Text to look for."),
+        note_type_id: z
+          .string()
+          .optional()
+          .describe("Restrict to one note type, as shown by describe_deck."),
+        field: z.string().optional().describe("Restrict to one field, by its template name."),
+        limit: z
+          .number()
+          .int()
+          .optional()
+          .describe(`How many notes to return. Default ${DEFAULT_LIMIT}, maximum ${MAX_LIMIT}.`),
+        offset: z.number().int().optional().describe("Skip this many results, for paging."),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ deck_id, query, note_type_id, field, limit, offset }) => {
+      try {
+        const r = findNotes(deck_id, {
+          query,
+          noteTypeId: note_type_id,
+          fieldSlug: field,
+          limit,
+          offset,
+        });
+        return text(...renderResults(r, `matching "${query}"`));
+      } catch (err) {
+        return failure((err as Error).message);
+      }
+    },
+  );
+
+  server.registerTool(
+    "list_notes",
+    {
+      title: "List notes in a deck",
+      description:
+        "Browse a deck's notes without searching, previewing the first text fields of " +
+        "each. Use search_notes to find particular content, and get_note for one note " +
+        "in full.",
+      inputSchema: {
+        deck_id: z.string().describe("Deck id, as shown by list_decks."),
+        note_type_id: z
+          .string()
+          .optional()
+          .describe("Restrict to one note type, as shown by describe_deck."),
+        limit: z
+          .number()
+          .int()
+          .optional()
+          .describe(`How many notes to return. Default ${DEFAULT_LIMIT}, maximum ${MAX_LIMIT}.`),
+        offset: z.number().int().optional().describe("Skip this many notes, for paging."),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ deck_id, note_type_id, limit, offset }) => {
+      try {
+        const r = findNotes(deck_id, { noteTypeId: note_type_id, limit, offset });
+        return text(...renderResults(r, "in total"));
+      } catch (err) {
+        return failure((err as Error).message);
+      }
+    },
+  );
+
+  server.registerTool(
+    "get_note",
+    {
+      title: "Show a note's content",
+      description:
+        "Show every field of one note, with the cards it produces. Image and audio " +
+        "fields are described rather than returned: their contents cannot be sent " +
+        "over this connection.",
+      inputSchema: {
+        deck_id: z.string().describe("Deck id, as shown by list_decks."),
+        note_id: z.string().describe("Note id, as shown by search_notes or list_notes."),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ deck_id, note_id }) => {
+      try {
+        const note = viewNote(deck_id, note_id);
+        const width = Math.max(...note.fields.map((f) => f.slug.length), 4);
+        const pad = " ".repeat(width);
+        return text(
+          `NOTE  ${note.id}   [${note.noteTypeName}]`,
+          "",
+          ...note.fields.flatMap((f) => {
+            const [first = "", ...rest] = f.value.split("\n");
+            const body = [`  ${f.slug.padEnd(width)}  ${first}`, ...rest.map((l) => `  ${pad}  ${l}`)];
+            return f.truncated ? [...body, `  ${pad}  … (truncated)`] : body;
+          }),
+          "",
+          note.cards.length > 0
+            ? `Cards: ${note.cards
+                .map((c) => c.template + (c.variant ? ` (${c.variant})` : ""))
+                .join(", ")}`
+            : "Cards: none",
         );
       } catch (err) {
         return failure((err as Error).message);

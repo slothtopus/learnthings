@@ -22,6 +22,26 @@ of the loaded `Deck` objects.
 | `create_note` | Add a note to a note type, filling its text fields. Cards are generated automatically. |
 | `add_field` | Add a text field to a note type. |
 | `delete_field` | Remove a field from a note type, deleting its content from every note. |
+| `search_notes` | Find notes whose text contains a phrase. Case-insensitive, across all text fields. |
+| `list_notes` | Browse a deck's notes, previewing their first text fields. |
+| `get_note` | Show every field of one note, and the cards it produces. |
+
+### Reading notes
+
+`search_notes` scans a deck's notes in memory — `ObjectManager.query` matches exact
+values, which is no help for finding a phrase. Matching ignores case and covers every
+text field, reporting which field matched and the text around it.
+
+Results are paged: 20 by default, 100 at most. The total is always reported, so a caller
+can tell a partial view from a complete one and page with `offset`.
+
+Only text is searchable. Image and audio fields are described rather than returned —
+their contents cannot cross this transport, and saying so keeps a model from claiming
+otherwise.
+
+The search itself lives in `core` (`core/search.js`), not here, so the web client can
+adopt it: its browse view currently does the same job inline, case-sensitively, and with
+its field filter unimplemented.
 
 ### Changing a note type's fields
 
