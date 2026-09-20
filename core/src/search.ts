@@ -63,27 +63,16 @@ const positionsOf = (text: string, query: string, caseSensitive: boolean) => {
   }
 };
 
-/**
- * Notes are ordered by their explicit order where one is set, then by id, so
- * that paging through results is stable.
- */
-const inStableOrder = (notes: Note[]) =>
-  [...notes].sort((a, b) => {
-    const ao = a.order ?? Number.MAX_SAFE_INTEGER;
-    const bo = b.order ?? Number.MAX_SAFE_INTEGER;
-    return ao !== bo ? ao - bo : a.id.localeCompare(b.id);
-  });
-
 export const searchNotes = (
   deck: Deck,
   { query, noteTypeId, fieldSlug, caseSensitive = false }: NoteSearchOptions = {},
 ): NoteMatch[] => {
   const needle = query?.trim() ?? "";
-  const notes = inStableOrder(
+  // Already ordered, and filtering preserves that order.
+  const notes =
     noteTypeId === undefined
-      ? deck.getAllNotes()
-      : deck.getAllNotes().filter((n) => n.noteTypeId === noteTypeId),
-  );
+      ? deck.getAllNotesOrdered()
+      : deck.getAllNotesOrdered().filter((n) => n.noteTypeId === noteTypeId);
 
   return notes.flatMap((note) => {
     const values = noteTextFields(note).filter(

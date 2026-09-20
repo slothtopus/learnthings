@@ -8,6 +8,7 @@ import {
   type PersistedObject,
 } from "./object_manager/PersistableObject.js";
 import { NoteType } from "./NoteType.js";
+import { compareNoteOrder } from "./Note.js";
 import type { Note } from "./Note.js";
 import type { Card } from "./Card.js";
 import { FSRSScheduler } from "./schedulers/FSRSScheduler.js";
@@ -100,6 +101,16 @@ export class Deck extends PersistableObject<SerialisedDeck> {
   @cacheByVersion(["note"])
   getAllNotes() {
     return this.objectManager.query({ include: { doctype: "note" } }) as Note[];
+  }
+
+  /**
+   * Every note, in a deterministic order. Not cached by version: setOrder marks
+   * the note dirty but does not bump the note version, so a cached ordering
+   * would survive a reorder. The underlying getAllNotes is cached, so this only
+   * pays for the sort.
+   */
+  getAllNotesOrdered() {
+    return [...this.getAllNotes()].sort(compareNoteOrder);
   }
 
   @cacheByVersion(["card"])

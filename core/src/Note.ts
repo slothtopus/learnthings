@@ -14,6 +14,19 @@ export type SerialisedNote = {
   order?: number;
 } & PersistedObject;
 
+/**
+ * Notes sort by their explicit order where one is set, and by id otherwise, so
+ * that a list of them is deterministic and paging through it is stable.
+ *
+ * Nothing populates `order` today, so in practice this is id order: reliable,
+ * but not the order the notes were created in.
+ */
+export const compareNoteOrder = (a: Note, b: Note) => {
+  const ao = a.order ?? Number.MAX_SAFE_INTEGER;
+  const bo = b.order ?? Number.MAX_SAFE_INTEGER;
+  return ao !== bo ? ao - bo : a.id.localeCompare(b.id);
+};
+
 export class Note extends PersistableObject<SerialisedNote> {
   static doctype = "note";
   static subtype = "note";

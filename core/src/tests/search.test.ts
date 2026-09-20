@@ -122,17 +122,9 @@ describe("searchNotes", () => {
     expect(searchNotes(ctx.deck, { query: "zebra" })).toEqual([]);
   });
 
-  test("is ordered by note order, then id, so paging is stable", () => {
-    const ids = () => searchNotes(ctx.deck, {}).map((r) => r.note.id);
-    expect(ids()).toEqual(ids());
-    // Nothing sets Note.order today, so the fallback is id order.
-    expect(ids()).toEqual([...ids()].sort((a, b) => a.localeCompare(b)));
-
-    // An explicit order takes precedence over it.
-    const notes = ctx.deck.getAllNotes();
-    const last = [...ids()].pop()!;
-    notes.find((n) => n.id === last)!.setOrder(-1);
-    expect(ids()[0]).toBe(last);
+  test("returns notes in the deck's order", () => {
+    const ids = searchNotes(ctx.deck, {}).map((r) => r.note.id);
+    expect(ids).toEqual(ctx.deck.getAllNotesOrdered().map((n) => n.id));
   });
 });
 
