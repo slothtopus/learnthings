@@ -175,7 +175,9 @@ export class ObjectManager {
       docLevels: {},
     };
     const count: Record<string, number> = {};
-    const timestampMap = new Map<PersistableObject<any>, number>();
+    // Keyed by object id, not by the object: getObjectById returns a proxy in
+    // the reactive manager, so an identity-keyed lookup would never match.
+    const timestampMap = new Map<string, number>();
 
     for (const { doc } of allDocs.rows) {
       if (doc._id.startsWith("_")) continue;
@@ -243,7 +245,7 @@ export class ObjectManager {
       toPersist: Set<string>;
       docLevels: Record<string, number>;
     },
-    timestampMap: Map<PersistableObject<any>, number>,
+    timestampMap: Map<string, number>,
     count: Record<string, number>,
   ) {
     const { objects: serialisedEmbeddedObjs, ...serialisedObj } = serialisedDoc;
@@ -290,14 +292,16 @@ export class ObjectManager {
     migration is not completed or fully synced). In these cases we keep the newest
     obj, based on lastPersistedTimestamp
     */
-    timestampMap.set(obj, docLastPersistedTimestamp);
-    const existingTimestamp = timestampMap.get(this.getObjectById(obj.id));
+    const existingTimestamp = timestampMap.get(obj.id);
     if (
       existingTimestamp === undefined ||
       existingTimestamp < docLastPersistedTimestamp
     ) {
       this.setObject(obj, false);
       schemaChange.docLevels[obj.id] = level;
+      // Recorded only once the object is kept, so the comparison above is
+      // always against the timestamp of the version currently registered.
+      timestampMap.set(obj.id, docLastPersistedTimestamp);
     }
 
     count[obj.doctype] = (count[obj.doctype] ?? 0) + 1;
