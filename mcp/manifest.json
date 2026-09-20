@@ -83,6 +83,10 @@
     {
       "name": "get_note",
       "description": "Show every field of one note."
+    },
+    {
+      "name": "edit_note",
+      "description": "Change text fields on an existing note."
     }
   ],
   "user_config": {

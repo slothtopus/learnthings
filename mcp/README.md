@@ -20,6 +20,7 @@ of the loaded `Deck` objects.
 | `list_decks` | List locally loaded decks with note type, note and card counts. Local reads only. |
 | `describe_deck` | Show a deck's note types, their fields, what each field holds, and which fields each card template displays. |
 | `create_note` | Add a note to a note type, filling its text fields. Cards are generated automatically. |
+| `edit_note` | Change text fields on an existing note. Only the fields named are touched. |
 | `add_field` | Add a text field to a note type. |
 | `delete_field` | Remove a field from a note type, deleting its content from every note. |
 | `search_notes` | Find notes whose text contains a phrase. Case-insensitive, across all text fields. |
@@ -84,6 +85,12 @@ matters because a note with no content deletes itself on save.
 
 Only text fields can be set. Image and audio fields are reported as read-only, and
 generated audio fields fill themselves from a text field.
+
+`edit_note` updates an existing note. It is a partial update — fields left out keep their
+current value — which is also how a field added after the fact gets filled in on notes
+that already existed. An empty value clears a field, removing its content rather than
+storing an empty string, since an empty row is worth nothing and still costs something to
+carry.
 
 Notes are saved locally. Run `sync_decks` again to send them to the server — there is
 deliberately no automatic sync.

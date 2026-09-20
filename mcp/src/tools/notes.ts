@@ -4,6 +4,7 @@ import { z } from "zod";
 import {
   describeDeck,
   createNote,
+  editNote,
   addField,
   deleteField,
   findNotes,
@@ -371,6 +372,57 @@ export const registerNoteTools = (server: McpServer) => {
                 .map((c) => c.template + (c.variant ? ` (${c.variant})` : ""))
                 .join(", ")}`
             : "Cards: none",
+        );
+      } catch (err) {
+        return failure((err as Error).message);
+      }
+    },
+  );
+
+  server.registerTool(
+    "edit_note",
+    {
+      title: "Change a note's content",
+      description:
+        "Update text fields on an existing note. Only the fields you name are changed; " +
+        "anything you leave out keeps its current value, so there is no need to resend " +
+        "a whole note to change one field. This is also how a field added after the " +
+        "note was written gets filled in. Passing an empty value clears a field. " +
+        "Saved locally — run sync_decks to send the change to the server.",
+      inputSchema: {
+        deck_id: z.string().describe("Deck id, as shown by list_decks."),
+        note_id: z.string().describe("Note id, as shown by search_notes or list_notes."),
+        fields: z
+          .record(z.string(), z.string())
+          .describe(
+            'Field values keyed by the field\'s template name, e.g. {"back": "to land"}. ' +
+              "Only text fields can be set. An empty string clears the field.",
+          ),
+      },
+      annotations: { readOnlyHint: false, idempotentHint: true },
+    },
+    async ({ deck_id, note_id, fields }) => {
+      try {
+        const r = await editNote(deck_id, note_id, fields);
+        const changed = r.edits.filter((e) => e.action !== "unchanged");
+
+        if (changed.length === 0) {
+          return text(
+            `Nothing changed on the note in "${r.noteTypeName}" — every field given ` +
+              "already held that value.",
+          );
+        }
+        return text(
+          `Updated the note in "${r.noteTypeName}".`,
+          `Note id: ${r.noteId}`,
+          "",
+          ...r.edits.map((e) => {
+            const what =
+              e.action === "set" ? "set" : e.action === "cleared" ? "cleared" : "unchanged";
+            return `  ${e.slug}  ("${e.name}") — ${what}`;
+          }),
+          "",
+          "Saved locally. Run `sync_decks` to send the change to the server.",
         );
       } catch (err) {
         return failure((err as Error).message);

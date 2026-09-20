@@ -122,6 +122,30 @@ export const getNoteTypeOrThrow = (deck: Deck, noteTypeId: string): NoteType => 
   return noteType;
 };
 
+/**
+ * Fields are addressed by slug everywhere. A display name is recognised only to
+ * say which slug to use, since one field's name can be another's slug and
+ * accepting both would risk writing to the wrong field.
+ */
+const resolveField = (
+  noteType: NoteType,
+  key: string,
+): { field: AnyNoteField } | { problem: string } => {
+  const fields = noteType.getAllFields();
+  const field = fields.find((f) => f.slug === key);
+  if (field !== undefined) return { field };
+
+  const byName = fields.find(
+    (f) => f.name === key || f.name.toLowerCase() === key.toLowerCase(),
+  );
+  return {
+    problem: byName
+      ? `"${key}" is the display name of a field; use its template name "${byName.slug}" instead.`
+      : `"${key}" is not a field of "${noteType.name}". Its fields are: ` +
+        fields.map((f) => f.slug).join(", "),
+  };
+};
+
 export type CreateNoteResult = {
   noteId: string;
   noteTypeName: string;
@@ -160,20 +184,12 @@ export const createNote = async (
   const problems: string[] = [];
 
   for (const [key, rawValue] of Object.entries(values)) {
-    const field = fields.find((f) => f.slug === key);
-
-    if (field === undefined) {
-      const byName = fields.find(
-        (f) => f.name === key || f.name.toLowerCase() === key.toLowerCase(),
-      );
-      problems.push(
-        byName
-          ? `"${key}" is the display name of a field; use its template name "${byName.slug}" instead.`
-          : `"${key}" is not a field of "${noteType.name}". Its fields are: ` +
-            fields.map((f) => f.slug).join(", "),
-      );
+    const found = resolveField(noteType, key);
+    if ("problem" in found) {
+      problems.push(found.problem);
       continue;
     }
+    const { field } = found;
     const schema = describeField(field);
     if (!schema.writable) {
       problems.push(`"${key}" is a ${schema.kind} field — ${schema.readOnlyReason}.`);
@@ -296,16 +312,9 @@ export const deleteField = async (
   const deck = getDeckOrThrow(deckId);
   const noteType = getNoteTypeOrThrow(deck, noteTypeId);
 
-  const field = noteType.getAllFields().find((f) => f.slug === slug);
-  if (field === undefined) {
-    const byName = noteType.getAllFields().find((f) => f.name === slug);
-    throw new Error(
-      byName
-        ? `"${slug}" is the display name of a field; use its template name "${byName.slug}" instead.`
-        : `"${slug}" is not a field of "${noteType.name}". Its fields are: ` +
-          noteType.getAllFields().map((f) => f.slug).join(", "),
-    );
-  }
+  const found = resolveField(noteType, slug);
+  if ("problem" in found) throw new Error(found.problem);
+  const { field } = found;
 
   const impact = impactOf(field);
   if (!confirm) {
@@ -471,4 +480,93 @@ export const findNotes = (
               })),
     })),
   };
+};
+
+export type FieldEdit = {
+  slug: string;
+  name: string;
+  action: "set" | "cleared" | "unchanged";
+};
+
+export type EditNoteResult = {
+  noteId: string;
+  noteTypeName: string;
+  edits: FieldEdit[];
+};
+
+/**
+ * Change field content on an existing note.
+ *
+ * Only the fields named are touched — anything omitted keeps its current value,
+ * so a caller need not resend a whole note to change one field. This is also
+ * how a field added after the note was written gets filled in.
+ *
+ * An empty value clears the field, removing its content rather than storing an
+ * empty string: an empty row is worth nothing and still costs something to
+ * carry. Validation happens before anything is written, as it does for
+ * createNote.
+ */
+export const editNote = async (
+  deckId: string,
+  noteId: string,
+  values: Record<string, string>,
+): Promise<EditNoteResult> => {
+  const deck = getDeckOrThrow(deckId);
+  const note = deck.getAllNotes().find((n) => n.id === noteId);
+  if (note === undefined) {
+    throw new Error(
+      `No note "${noteId}" in deck "${deck.name}". Use search_notes or list_notes to find one.`,
+    );
+  }
+  const noteType = note.noteType;
+
+  const resolved: { field: AnyNoteField; value: string }[] = [];
+  const problems: string[] = [];
+
+  for (const [key, rawValue] of Object.entries(values)) {
+    const found = resolveField(noteType, key);
+    if ("problem" in found) {
+      problems.push(found.problem);
+      continue;
+    }
+    const { field } = found;
+    const schema = describeField(field);
+    if (!schema.writable) {
+      problems.push(`"${key}" is a ${schema.kind} field — ${schema.readOnlyReason}.`);
+      continue;
+    }
+    resolved.push({
+      field,
+      value: typeof rawValue === "string" ? rawValue : String(rawValue),
+    });
+  }
+
+  if (problems.length > 0) throw new Error(problems.join("\n"));
+  if (resolved.length === 0) {
+    throw new Error("No fields were given to change.");
+  }
+
+  const edits = resolved.map(({ field, value }): FieldEdit => {
+    const label = { slug: field.slug, name: field.name };
+    const existing = field.getContent(note);
+
+    if (value.trim() === "") {
+      if (existing === undefined || existing.isEmpty()) {
+        return { ...label, action: "unchanged" };
+      }
+      // Remove the content rather than storing an empty string.
+      existing.flagShouldDelete(true);
+      return { ...label, action: "cleared" };
+    }
+
+    if (existing?.getContent() === value) {
+      return { ...label, action: "unchanged" };
+    }
+    field.getOrCreateContent(note).setContent(value);
+    return { ...label, action: "set" };
+  });
+
+  await deck.persist();
+
+  return { noteId: note.id, noteTypeName: noteType.name, edits };
 };

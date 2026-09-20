@@ -75,6 +75,11 @@ list_notes browses without a query. get_note shows one note in full.
 Only text is searchable. Image and audio fields hold no text and are described
 rather than returned, so never claim to have seen their contents.
 
+edit_note changes an existing note. Only the fields named are touched, so
+there is no need to resend a whole note to change one of them, and it is how a
+field added later gets filled in on notes that already existed. An empty value
+clears a field rather than storing an empty string.
+
 CHANGING A NOTE TYPE'S FIELDS
 
 Fields belong to the note type, not to one note, so adding or removing one
