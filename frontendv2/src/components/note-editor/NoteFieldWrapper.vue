@@ -2,7 +2,7 @@
 import AppIconButton from '@/components/common/AppIconButton.vue'
 
 defineProps<{ label: string }>()
-defineEmits<{ settings: [] }>()
+defineEmits<{ settings: []; delete: [] }>()
 </script>
 
 <template>
@@ -13,7 +13,11 @@ defineEmits<{ settings: [] }>()
     <div class="flex-grow min-w-0">
       <div class="flex justify-between items-center mb-3">
         <span class="text-xs font-bold tracking-widest uppercase text-on-surface-variant">{{ label }}</span>
-        <AppIconButton icon="settings" size="sm" @click="$emit('settings')" />
+        <div class="flex items-center gap-1">
+          <AppIconButton icon="settings" size="sm" @click="$emit('settings')" />
+          <div class="w-px h-4 bg-white/10 mx-1" />
+          <AppIconButton icon="delete" size="sm" variant="destructive" @click="$emit('delete')" />
+        </div>
       </div>
       <slot />
     </div>

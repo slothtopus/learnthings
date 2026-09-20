@@ -12,7 +12,7 @@ const props = defineProps<{
   field: AudioAttachmentField
   note: Note
 }>()
-defineEmits<{ settings: [] }>()
+defineEmits<{ settings: []; delete: [] }>()
 
 const loading = ref(true)
 
@@ -111,7 +111,7 @@ const handleClear = async () => {
 </script>
 
 <template>
-  <NoteFieldWrapper :label="field.name" @settings="$emit('settings')">
+  <NoteFieldWrapper :label="field.name" @settings="$emit('settings')" @delete="$emit('delete')">
     <div class="space-y-3">
       <!-- Player + actions row -->
       <div class="flex items-center gap-2">

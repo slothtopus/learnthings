@@ -2,6 +2,7 @@ import { Deck } from "core/Deck.js";
 import type { NoteType } from "core/NoteType.js";
 import type { AnyNoteField } from "core/fields/base.js";
 import { GeneratedField } from "core/fields/base.js";
+import type { FieldDeletionImpact as CoreFieldDeletionImpact } from "core/fields/base.js";
 import { TextField } from "core/fields/fields.js";
 import type { Note } from "core/Note.js";
 import { searchNotes, noteTextFields, buildSnippet } from "core/search.js";
@@ -69,22 +70,8 @@ const describeField = (field: AnyNoteField): FieldSchema => {
   };
 };
 
-/**
- * Which field slugs a template actually renders. Handlebars references are
- * matched loosely and then intersected with the real field slugs, so block
- * helpers and unrelated identifiers drop out.
- */
-export const fieldsUsedBy = (source: string, slugs: Set<string>) => {
-  const found = new Set<string>();
-  for (const [, ref] of source.matchAll(/\{\{\{?[#/]?\s*([A-Za-z_][A-Za-z0-9_]*)/g)) {
-    if (ref && slugs.has(ref)) found.add(ref);
-  }
-  return [...found];
-};
-
 export const describeNoteType = (noteType: NoteType): NoteTypeSchema => {
   const fields = noteType.getAllFields();
-  const slugs = new Set(fields.map((f) => f.slug));
 
   return {
     id: noteType.id,
@@ -92,15 +79,11 @@ export const describeNoteType = (noteType: NoteType): NoteTypeSchema => {
     description: noteType.description,
     noteCount: noteType.getAllNotes().length,
     fields: fields.map(describeField),
-    templates: noteType.getAllCardTemplates().map((t) => {
-      const variants = t.getAllVariants();
-      const source = variants.map((v) => `${v.front ?? ""}\n${v.back ?? ""}`).join("\n");
-      return {
-        name: t.name,
-        variants: variants.map((v) => v.name),
-        usesFields: fieldsUsedBy(source, slugs),
-      };
-    }),
+    templates: noteType.getAllCardTemplates().map((t) => ({
+      name: t.name,
+      variants: t.getAllVariants().map((v) => v.name),
+      usesFields: t.getReferencedFieldSlugs(),
+    })),
   };
 };
 
@@ -276,20 +259,11 @@ export const addField = async (
   };
 };
 
-export type FieldDeletionImpact = {
+/** core's impact, plus how the field is identified in tool output. */
+export type FieldDeletionImpact = CoreFieldDeletionImpact & {
   slug: string;
   name: string;
   kind: FieldKind;
-  /** Notes holding content in this field, which is what would be lost. */
-  notesWithContent: number;
-  totalNotes: number;
-  /** Card templates that render this field, and would lose the value. */
-  templatesUsingField: string[];
-  /**
-   * Deleting the last field leaves every note with nothing in it, and empty
-   * notes are not kept.
-   */
-  isLastField: boolean;
 };
 
 export type DeleteFieldResult = {
@@ -299,32 +273,12 @@ export type DeleteFieldResult = {
   noteTypeName: string;
 };
 
-const impactOf = (noteType: NoteType, field: AnyNoteField): FieldDeletionImpact => {
-  const notes = noteType.getAllNotes();
-  const slugs = new Set(noteType.getAllFields().map((f) => f.slug));
-
-  return {
-    slug: field.slug,
-    name: field.name,
-    kind: kindOf(field),
-    notesWithContent: notes.filter((note) => {
-      const content = field.getContent(note);
-      return content !== undefined && !content.isEmpty();
-    }).length,
-    totalNotes: notes.length,
-    templatesUsingField: noteType
-      .getAllCardTemplates()
-      .filter((template) => {
-        const source = template
-          .getAllVariants()
-          .map((v) => `${v.front ?? ""}\n${v.back ?? ""}`)
-          .join("\n");
-        return fieldsUsedBy(source, slugs).includes(field.slug);
-      })
-      .map((t) => t.name),
-    isLastField: noteType.getAllFields().length === 1,
-  };
-};
+const impactOf = (field: AnyNoteField): FieldDeletionImpact => ({
+  slug: field.slug,
+  name: field.name,
+  kind: kindOf(field),
+  ...field.getDeletionImpact(),
+});
 
 /**
  * Delete a field from a note type, removing its content from every note.
@@ -353,7 +307,7 @@ export const deleteField = async (
     );
   }
 
-  const impact = impactOf(noteType, field);
+  const impact = impactOf(field);
   if (!confirm) {
     return { impact, deleted: false, notesDeleted: 0, noteTypeName: noteType.name };
   }

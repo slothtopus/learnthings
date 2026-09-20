@@ -83,6 +83,36 @@ const handleFieldSettings = async (field: AnyNoteField) => {
   await deck.persist()
 }
 
+const handleDeleteField = async (field: AnyNoteField) => {
+  const impact = field.getDeletionImpact()
+
+  const consequences = [
+    impact.notesWithContent > 0
+      ? `Its content will be deleted from ${impact.notesWithContent} of ${impact.totalNotes} note(s).`
+      : `None of the ${impact.totalNotes} note(s) have a value in it.`,
+  ]
+  if (impact.templatesUsingField.length > 0) {
+    consequences.push(
+      `${impact.templatesUsingField.join(', ')} still reference {{${field.slug}}} and will render it blank.`,
+    )
+  }
+  if (impact.isLastField) {
+    consequences.push(
+      `This is the last field, so all ${impact.totalNotes} note(s) and their cards will be removed too.`,
+    )
+  }
+  consequences.push('This cannot be undone.')
+
+  const confirmed = await showConfirmation(
+    `Delete the field "${field.name}"?`,
+    consequences.join(' '),
+  )
+  if (!confirmed) return
+
+  field.delete()
+  await deck.persist()
+}
+
 const addFieldDialog = useFormDialog<AddFieldFormData, { noteType: NoteType }>(AddFieldDialog)
 const handleAddField = async () => {
   const result = await addFieldDialog.open({ name: '', slug: '', description: '', fieldType: 'text' })
@@ -224,14 +254,18 @@ const tagOptions = [
         />
         <template v-if="viewMode === 'field'">
           <template v-for="field in noteType.getAllFields()" :key="field.id">
-            <TextFieldComponent v-if="isTextField(field)" :field="field" :note="noteWrapper.note" @settings="handleFieldSettings(field)" />
-            <ImageFieldComponent v-else-if="isImageField(field)" :field="field" :note="noteWrapper.note" @settings="handleFieldSettings(field)" />
-            <AudioFieldComponent v-else-if="isAudioField(field)" :field="field" :note="noteWrapper.note" @settings="handleFieldSettings(field)" />
+            <TextFieldComponent v-if="isTextField(field)" :field="field" :note="noteWrapper.note" @settings="handleFieldSettings(field)"
+              @delete="handleDeleteField(field)" />
+            <ImageFieldComponent v-else-if="isImageField(field)" :field="field" :note="noteWrapper.note" @settings="handleFieldSettings(field)"
+              @delete="handleDeleteField(field)" />
+            <AudioFieldComponent v-else-if="isAudioField(field)" :field="field" :note="noteWrapper.note" @settings="handleFieldSettings(field)"
+              @delete="handleDeleteField(field)" />
             <TextToSpeechFieldComponent
               v-else-if="isTtsField(field)"
               :field="field"
               :note="noteWrapper.note"
               :note-type="noteType"
+              @delete="handleDeleteField(field)"
             />
           </template>
           <!-- Add new field -->

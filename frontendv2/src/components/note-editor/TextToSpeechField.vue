@@ -17,6 +17,7 @@ const props = defineProps<{
   note: Note
   noteType: NoteType
 }>()
+defineEmits<{ delete: [] }>()
 
 const audioUrl = ref<string | undefined>(undefined)
 
@@ -48,7 +49,7 @@ const handleSettings = async () => {
 </script>
 
 <template>
-  <NoteFieldWrapper :label="field.name" @settings="handleSettings">
+  <NoteFieldWrapper :label="field.name" @settings="handleSettings" @delete="$emit('delete')">
     <div class="space-y-3">
       <!-- Audio player -->
       <div class="flex items-center gap-3">

@@ -131,6 +131,28 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     }) as CardTemplateAttachment[];
   }
 
+  /**
+   * Field slugs this template renders, e.g. the `front` in `{{front}}`.
+   *
+   * Handlebars references are matched loosely and then narrowed to the note
+   * type's actual field slugs, so block helpers and unrelated identifiers drop
+   * out without needing to parse the template properly.
+   */
+  getReferencedFieldSlugs(): string[] {
+    const slugs = new Set(this.noteType.getAllFields().map((f) => f.slug));
+    const source = this.getAllVariants()
+      .map((v) => `${v.front ?? ""}\n${v.back ?? ""}`)
+      .join("\n");
+
+    const found = new Set<string>();
+    for (const [, ref] of source.matchAll(
+      /\{\{\{?[#/]?\s*([A-Za-z_][A-Za-z0-9_]*)/g,
+    )) {
+      if (ref !== undefined && slugs.has(ref)) found.add(ref);
+    }
+    return [...found];
+  }
+
   @cacheByVersion(["cardtemplatevariant"])
   getAllVariants() {
     const variants = this.objectManager.query({

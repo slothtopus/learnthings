@@ -9,7 +9,9 @@ import { useRouteMetaObjects } from '@/composables/useRouteObjects'
 import { useDeckDetails } from '@/composables/useObjectDetails'
 import PaginationFooter from '@/components/common/PaginationFooter.vue'
 
-import { TextField, TextFieldContent } from 'core/fields/fields.js'
+import { searchNotes, noteTextFields, buildSnippet } from 'core/search.js'
+import type { ResultLine } from '@/components/browse-notes/NoteResultCard.vue'
+import { useConfirmation } from '@/composables/useConfirmationDialog'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,8 +24,21 @@ const { notes, noteTypes } = useDeckDetails(deck)
 
 const searchQuery = ref(typeof route.query.q === 'string' ? route.query.q : '')
 
-const fieldFilter = ref('all')
-const fieldOptions = computed(() => [{ value: 'all', label: 'All' }])
+const fieldFilter = ref(typeof route.query.field === 'string' ? route.query.field : 'all')
+
+// Every text field in the deck, by slug — the only fields holding searchable text.
+const fieldOptions = computed(() => {
+  const bySlug = new Map<string, string>()
+  for (const noteType of noteTypes.value) {
+    for (const field of noteType.getAllFields()) {
+      if (!bySlug.has(field.slug)) bySlug.set(field.slug, field.name)
+    }
+  }
+  return [
+    { value: 'all', label: 'All Fields' },
+    ...[...bySlug].map(([value, label]) => ({ value, label })),
+  ]
+})
 
 const noteTypeFilter = ref(typeof route.query.noteType === 'string' ? route.query.noteType : 'all')
 const noteTypeOptions = computed(() => [
@@ -37,28 +52,37 @@ const breadcrumbs = computed(() => [
   { label: 'Browse Notes' },
 ])
 
-const fieldContentResults = computed(() =>
-  notes.value.flatMap((n) => {
-    if (noteTypeFilter.value !== 'all' && n.noteType.id !== noteTypeFilter.value) {
-      return []
-    }
+// Searching lives in core so this view and the MCP server agree on what a
+// match is: case-insensitive, across every text field, not just the first.
+const results = computed(() => {
+  // Depend on the deck's notes explicitly. core's cached queries do read the
+  // reactive version counter, so this would probably track anyway, but that is
+  // an implementation detail of the cache rather than something to rely on.
+  void notes.value
 
-    const fields = n.noteType.getAllFields()
-    const textFieldContent = fields
-      .filter((f) => f instanceof TextField)
-      .map((f) => f.getContent(n))
-      .filter(Boolean) as TextFieldContent[]
-
-    if (searchQuery.value.length > 0) {
-      const contentMatch = textFieldContent.find((f) =>
-        (f.getContent() ?? '').includes(searchQuery.value),
-      )
-      return contentMatch ? [contentMatch] : []
-    } else {
-      return textFieldContent.length > 0 ? textFieldContent[0] : []
-    }
-  }),
-)
+  return searchNotes(deck, {
+    query: searchQuery.value,
+    noteTypeId: noteTypeFilter.value === 'all' ? undefined : noteTypeFilter.value,
+    fieldSlug: fieldFilter.value === 'all' ? undefined : fieldFilter.value,
+  }).map(({ note, fields }) => ({
+    note,
+    lines:
+      fields.length > 0
+        ? fields.map(
+            ({ field, text, positions }): ResultLine => ({
+              label: field.name,
+              snippet: buildSnippet(text, positions[0] ?? 0, searchQuery.value.trim().length),
+            }),
+          )
+        : // Browsing: preview the note rather than highlighting nothing.
+          noteTextFields(note)
+            .slice(0, 1)
+            .map(({ field, text }): ResultLine => ({
+              label: field.name,
+              snippet: buildSnippet(text, 0, 0, 120),
+            })),
+  }))
+})
 
 const tags = ref(['Anatomy', 'Review'])
 const tagOptions = [
@@ -79,17 +103,32 @@ const pageSize = ref(25)
 
 const paginatedResults = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
-  return fieldContentResults.value.slice(start, start + pageSize.value)
+  return results.value.slice(start, start + pageSize.value)
 })
+
+const { showConfirmation } = useConfirmation()
+
+const handleDeleteNote = async (note: (typeof results.value)[number]['note']) => {
+  const confirmed = await showConfirmation(
+    'Delete this note?',
+    'Its content and all of its cards will be removed. This cannot be undone.',
+  )
+  if (!confirmed) return
+  note.delete()
+  await deck.persist()
+}
 
 watch(currentPage, () => window.scrollTo({ top: 0, behavior: 'smooth' }))
 
-watch([searchQuery, noteTypeFilter], ([q, noteType]) => {
+// Filtering changes what page 1 means, so go back to it.
+watch([searchQuery, noteTypeFilter, fieldFilter], ([q, noteType, field]) => {
+  currentPage.value = 1
   router.replace({
     query: {
       ...route.query,
       q: q || undefined,
       noteType: noteType !== 'all' ? noteType : undefined,
+      field: field !== 'all' ? field : undefined,
     },
   })
 })
@@ -114,24 +153,30 @@ watch([searchQuery, noteTypeFilter], ([q, noteType]) => {
 
       <!-- Results count -->
       <p class="text-[10px] font-light uppercase tracking-[0.3em] text-on-surface-variant mb-3">
-        {{ fieldContentResults.length }} notes found
+        {{ results.length }} notes found
       </p>
 
       <div class="space-y-3">
         <NoteResultCard
-          v-for="f in paginatedResults"
-          :key="f.id"
-          :field-content="f"
+          v-for="result in paginatedResults"
+          :key="result.note.id"
+          :note="result.note"
+          :lines="result.lines"
+          @delete="handleDeleteNote(result.note)"
           @click="
             $router.push({
               name: 'note-editor',
-              params: { ...$route.params, noteTypeId: f.field.noteTypeId, noteId: f.noteId },
+              params: {
+                ...$route.params,
+                noteTypeId: result.note.noteTypeId,
+                noteId: result.note.id,
+              },
             })
           "
         />
       </div>
     </div>
 
-    <PaginationFooter v-model:current-page="currentPage" :total-results="fieldContentResults.length" v-model:page-size="pageSize" />
+    <PaginationFooter v-model:current-page="currentPage" :total-results="results.length" v-model:page-size="pageSize" />
   </PageLayout>
 </template>

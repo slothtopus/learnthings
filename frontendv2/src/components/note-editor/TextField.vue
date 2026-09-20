@@ -12,7 +12,7 @@ interface Props {
   note: Note
 }
 const props = defineProps<Props>()
-defineEmits<{ settings: [] }>()
+defineEmits<{ settings: []; delete: [] }>()
 
 //const _fieldContent = reactive<TextNoteFieldContent | undefined>(undefined)
 
@@ -28,7 +28,7 @@ const fieldContent = computed({
 </script>
 
 <template>
-<NoteFieldWrapper :label="field.name" @settings="$emit('settings')">
+<NoteFieldWrapper :label="field.name" @settings="$emit('settings')" @delete="$emit('delete')">
     <AppInput v-model="fieldContent" :placeholder="'Description goes here...'" :multiline="true"/>
 </NoteFieldWrapper>
 </template>

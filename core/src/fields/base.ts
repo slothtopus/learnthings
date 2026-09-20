@@ -233,6 +233,28 @@ export abstract class NoteField<
     }
   }
 
+  /**
+   * What deleting this field would cost. Both clients warn before doing it, and
+   * the answer is the same for each.
+   */
+  getDeletionImpact(): FieldDeletionImpact {
+    const noteType = this.noteType;
+    const notes = noteType.getAllNotes();
+
+    return {
+      notesWithContent: notes.filter((note) => {
+        const content = this.getContent(note);
+        return content !== undefined && !content.isEmpty();
+      }).length,
+      totalNotes: notes.length,
+      templatesUsingField: noteType
+        .getAllCardTemplates()
+        .filter((t) => t.getReferencedFieldSlugs().includes(this.slug))
+        .map((t) => t.name),
+      isLastField: noteType.getAllFields().length === 1,
+    };
+  }
+
   delete() {
     this.flagShouldDelete(true);
     this.objectManager.markDirtyQuery({
@@ -243,6 +265,20 @@ export abstract class NoteField<
     });
   }
 }
+
+/** What deleting a field would remove. See NoteField.getDeletionImpact. */
+export type FieldDeletionImpact = {
+  /** Notes holding a value in this field, which is what would be lost. */
+  notesWithContent: number;
+  totalNotes: number;
+  /** Names of card templates that render this field. */
+  templatesUsingField: string[];
+  /**
+   * Deleting the last field leaves every note empty, and empty notes are not
+   * kept, so the notes go too.
+   */
+  isLastField: boolean;
+};
 
 export type AnyNoteField = NoteField<any, any, any>;
 
