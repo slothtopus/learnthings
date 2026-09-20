@@ -158,7 +158,21 @@ test("delete note field", async () => {
   }
   const noteType = deck.getAllNoteTypes()[0];
   const field = noteType.getAllFields()[0];
+  const otherField = noteType.getAllFields()[1];
+  const fieldCount = noteType.getAllFields().length;
+  const noteCount = noteType.getAllNotes().length;
+  const sampleNote = noteType.getAllNotes()[0];
+
   field.delete();
   await deck.persist();
   console.log(`**** Field deleted in ${Date.now() - startTime}ms`);
+
+  expect(noteType.getAllFields().length).toBe(fieldCount - 1);
+  // Notes survive while the note type still has fields.
+  expect(noteType.getAllNotes().length).toBe(noteCount);
+  // The deleted field's content goes with it; other fields keep theirs.
+  expect(sampleNote?.getAllFieldContent().map((c) => c.fieldId)).not.toContain(
+    field.id,
+  );
+  expect(otherField?.getContent(sampleNote!)).toBeDefined();
 });

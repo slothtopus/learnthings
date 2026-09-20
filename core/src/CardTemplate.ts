@@ -248,6 +248,10 @@ export class CardTemplate extends PersistableObject<SerialisedCardTemplate> {
     const fieldContent = note.getAllFieldContent();
     const renderedContent: RenderedContent = {};
     for (const content of fieldContent) {
+      // Content whose field has gone is skipped rather than rendered. Decks
+      // written before content cascaded properly can still hold such rows, and
+      // a card that cannot be reviewed is worse than one missing a value.
+      if (content.field === undefined) continue;
       const rendered = await this.renderFieldContent(content);
       if (rendered.content === null) continue;
       renderedContent[rendered.name] = rendered.content;

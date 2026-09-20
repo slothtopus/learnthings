@@ -307,6 +307,16 @@ export abstract class NoteFieldContent<
     return combineIds([this.noteId, this.fieldId]);
   }
 
+  /**
+   * Content exists only for a note and a field. Naming both here is what makes
+   * it orphan — and so be deleted — when either goes away. Without the field,
+   * deleting a field left its content behind on every note, and rendering then
+   * threw reaching for the missing field's slug.
+   */
+  get relatedIds() {
+    return [this.noteId, this.fieldId];
+  }
+
   get parentId() {
     return this.noteId;
   }
